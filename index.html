@@ -150,7 +150,7 @@
 
 <script>
   // Single source of truth — set once GitHub username is known.
-  const GH_USER = "GITHUB_USERNAME";
+  const GH_USER = "Veeiy";
   const base = "https://github.com/" + GH_USER;
   document.querySelectorAll("[data-repo]").forEach(a => { a.href = base + "/" + a.dataset.repo; });
   ["nav-gh","hero-gh","foot-gh"].forEach(id => { const e=document.getElementById(id); if(e) e.href=base; });
