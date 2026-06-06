@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Brad O'Haire — Agentic Systems & Automation</title>
+<meta name="description" content="Builder of multi-agent systems, automation, and data tooling. Portfolio of Brad O'Haire." />
+<style>
+  :root{
+    --bg:#0a0b0f; --panel:#13151c; --panel2:#181b24; --line:#262a36;
+    --ink:#e7e9ee; --muted:#9aa3b2; --dim:#6b7280;
+    --accent:#6ea8fe; --accent2:#9d7bff; --ok:#43d692;
+    --radius:16px; --maxw:1040px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; background:radial-gradient(1200px 600px at 80% -10%, #1a1f2e 0%, var(--bg) 55%) no-repeat, var(--bg);
+    color:var(--ink); font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
+
+  /* nav */
+  nav{position:sticky;top:0;z-index:10;backdrop-filter:blur(10px);
+    background:rgba(10,11,15,.6);border-bottom:1px solid var(--line)}
+  nav .wrap{display:flex;align-items:center;justify-content:space-between;height:60px}
+  .brand{font-weight:700;letter-spacing:.2px}
+  .brand span{color:var(--accent)}
+  .navlinks a{color:var(--muted);margin-left:22px;font-size:14px}
+  .navlinks a:hover{color:var(--ink)}
+
+  /* hero */
+  header{padding:88px 0 56px}
+  .eyebrow{color:var(--accent);font-weight:600;font-size:13px;letter-spacing:2px;text-transform:uppercase}
+  h1{font-size:clamp(34px,6vw,58px);line-height:1.05;margin:14px 0 0;letter-spacing:-1px}
+  h1 .grad{background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .lede{color:var(--muted);font-size:clamp(17px,2.2vw,20px);max-width:660px;margin:22px 0 0}
+  .cta{display:flex;gap:12px;flex-wrap:wrap;margin-top:32px}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:11px 18px;border-radius:12px;font-weight:600;font-size:14px;border:1px solid var(--line)}
+  .btn.primary{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#0a0b0f;border:none}
+  .btn:hover{transform:translateY(-1px)}
+  .btn.ghost:hover{border-color:var(--accent)}
+
+  /* sections */
+  section{padding:48px 0}
+  .sec-head{display:flex;align-items:baseline;gap:14px;margin-bottom:26px}
+  .sec-head h2{font-size:24px;margin:0;letter-spacing:-.3px}
+  .sec-head .rule{flex:1;height:1px;background:var(--line)}
+
+  /* project grid */
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:18px}
+  .card{background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid var(--line);border-radius:var(--radius);padding:24px;display:flex;flex-direction:column;transition:.2s}
+  .card:hover{border-color:#37405a;transform:translateY(-3px);box-shadow:0 18px 40px -24px rgba(110,168,254,.5)}
+  .tag{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--accent);background:rgba(110,168,254,.1);border:1px solid rgba(110,168,254,.25);padding:4px 9px;border-radius:999px}
+  .card h3{margin:16px 0 8px;font-size:20px}
+  .card p{color:var(--muted);font-size:14.5px;margin:0 0 16px;flex:1}
+  .stack{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:18px}
+  .chip{font-size:11.5px;color:var(--dim);border:1px solid var(--line);border-radius:6px;padding:3px 8px}
+  .card .links{display:flex;gap:14px;font-size:13.5px;font-weight:600}
+  .card .links a{color:var(--accent)}
+  .card .links a:hover{text-decoration:underline}
+
+  /* highlights */
+  .hl{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
+  .hl div{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px}
+  .hl b{display:block;font-size:28px;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .hl span{color:var(--muted);font-size:14px}
+
+  /* about */
+  .about p{color:var(--muted);max-width:720px}
+  .about p strong{color:var(--ink);font-weight:600}
+
+  footer{border-top:1px solid var(--line);padding:32px 0 56px;color:var(--dim);font-size:13.5px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px}
+  footer a{color:var(--muted)} footer a:hover{color:var(--ink)}
+</style>
+</head>
+<body>
+
+<nav><div class="wrap">
+  <div class="brand">Brad<span>.</span>OHaire</div>
+  <div class="navlinks">
+    <a href="#work">Work</a>
+    <a href="#about">About</a>
+    <a id="nav-gh" href="#">GitHub</a>
+  </div>
+</div></nav>
+
+<header><div class="wrap">
+  <div class="eyebrow">Agentic systems · automation · data</div>
+  <h1>I build <span class="grad">multi-agent systems</span><br/>that get real work done.</h1>
+  <p class="lede">Data Collection Lead by day, systems builder by night. I design coordinator-and-sub-agent architectures, automation that knows its own guardrails, and tooling that turns scattered work into something orchestrated.</p>
+  <div class="cta">
+    <a class="btn primary" href="#work">View the work</a>
+    <a class="btn ghost" id="hero-gh" href="#">GitHub →</a>
+  </div>
+</div></header>
+
+<section id="stats"><div class="wrap">
+  <div class="hl">
+    <div><b>3</b><span>open-source repos, end-to-end</span></div>
+    <div><b>16+</b><span>skills &amp; agents engineered</span></div>
+    <div><b>Tiered</b><span>permissions + QA gate on every action</span></div>
+    <div><b>0</b><span>secrets or PII shipped — audited</span></div>
+  </div>
+</div></section>
+
+<section id="work"><div class="wrap">
+  <div class="sec-head"><h2>Selected work</h2><div class="rule"></div></div>
+  <div class="grid">
+
+    <a class="card" data-repo="vantage-os" href="#">
+      <span class="tag">Multi-agent system</span>
+      <h3>Vantage OS</h3>
+      <p>A personal operating system built as a Claude Code plugin. A coordinator routes every request to the right skill or sub-agent, then gates real-world actions through a QA filter and a permissions-tier system before they reach the human. 10 skills, 8 agents, a worked-example venture vertical.</p>
+      <div class="stack"><span class="chip">Claude Code</span><span class="chip">Agent orchestration</span><span class="chip">Prompt engineering</span><span class="chip">Permissions tiers</span></div>
+      <div class="links"><span>View repo →</span></div>
+    </a>
+
+    <a class="card" data-repo="agent-skills" href="#">
+      <span class="tag">Prompt engineering</span>
+      <h3>Agent Skills</h3>
+      <p>Two standalone agentic skills: an <em>optimizer</em> that finds the single highest-leverage move in any context, and an <em>orchestrator</em> that plans a mission into a wave-based DAG of parallel sub-agents, gated by an auditor. Role separation and autonomy tiers, done deliberately.</p>
+      <div class="stack"><span class="chip">DAG orchestration</span><span class="chip">Autonomy tiers</span><span class="chip">Auditor gating</span></div>
+      <div class="links"><span>View repo →</span></div>
+    </a>
+
+    <a class="card" data-repo="prediction-market-automation" href="#">
+      <span class="tag">Automation · data</span>
+      <h3>Prediction-Market Automation</h3>
+      <p>Scheduled, read-only samplers that build a time-series of Polymarket and Kalshi order books to test — with data, not vibes — whether hourly prediction markets are ever actually market-makeable. Hard "no trades / no writes" rails baked into every task.</p>
+      <div class="stack"><span class="chip">Scheduled tasks</span><span class="chip">Python</span><span class="chip">Hypothesis-driven</span><span class="chip">Guardrails</span></div>
+      <div class="links"><span>View repo →</span></div>
+    </a>
+
+  </div>
+</div></section>
+
+<section id="about"><div class="wrap about">
+  <div class="sec-head"><h2>About</h2><div class="rule"></div></div>
+  <p>I'm <strong>Brad O'Haire</strong> — currently a Data Collection Lead on a robotics program, building toward technical program management and AI research engineering. I run several ventures on the side, and the throughline in all of it is the same: <strong>turn messy, multi-threaded work into systems that route, gate, and ship.</strong></p>
+  <p>The repos here are real working systems, genericized for public release. Every one was audited for secrets and personal data before it went up. I care about guardrails as much as capability — the interesting part of an agent isn't what it <em>can</em> do, it's what it's allowed to do and how that's enforced.</p>
+</div></section>
+
+<footer><div class="wrap" style="display:flex;justify-content:space-between;width:100%;flex-wrap:wrap;gap:12px">
+  <span>© 2026 Brad O'Haire</span>
+  <span><a id="foot-gh" href="#">GitHub</a> · <a href="mailto:bradtohaire@gmail.com">Email</a></span>
+</div></footer>
+
+<script>
+  // Single source of truth — set once GitHub username is known.
+  const GH_USER = "GITHUB_USERNAME";
+  const base = "https://github.com/" + GH_USER;
+  document.querySelectorAll("[data-repo]").forEach(a => { a.href = base + "/" + a.dataset.repo; });
+  ["nav-gh","hero-gh","foot-gh"].forEach(id => { const e=document.getElementById(id); if(e) e.href=base; });
+</script>
+</body>
+</html>
