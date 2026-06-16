@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Instrumented fleet operations · Brad O'Haire</title>
-<meta name="description" content="Instrumented operations for a five-car Tesla fleet, run on Tessie telematics with data-driven turnaround and pricing decisions. The operator credential: real autonomous systems against real money, with a human on every call that carries liability." />
+<title>An agent team that runs my car-rental business · Brad O'Haire</title>
+<meta name="description" content="I built a team of agents that runs the back office of a car-rental business I own. The agents handle day-to-day operations and the work that scales the team, which cuts my hands-on time and operating costs, while a human approves anything that moves money or cannot be undone." />
 <link rel="canonical" href="https://bradohaire.com/work/fleet-operations" />
 <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 <meta name="theme-color" content="#0a0b0f" />
@@ -36,10 +36,10 @@
 <div class="cs-head"><div class="wrap">
   <a class="cs-back" href="/work"><span aria-hidden="true">←</span> All work</a>
   <div class="cs-eyebrow reveal"><span class="tag">Systems I run</span></div>
-  <h1 class="cs-h1 reveal">A five-car instrumented fleet run on live telemetry</h1>
-  <p class="cs-summary reveal">I operate a five-car fleet of instrumented Tesla vehicles, with Tessie telematics streaming the live signal that drives each operational decision.</p>
+  <h1 class="cs-h1 reveal">An agent team that runs my car-rental business</h1>
+  <p class="cs-summary reveal">I built a team of agents that runs the back office of a car-rental business I own. The agents handle day-to-day operations and the work that scales the team, so the business runs largely on the system rather than on me.</p>
   <div class="cs-outcome q reveal">
-    <p>The same discipline as the agent work, against real money and real liability: real-time data in, guardrails on what acts automatically, and a human on the calls that carry the risk. This is the operator credential that makes the guardrails philosophy concrete rather than theoretical.</p>
+    <p>The same discipline as the agent work, against real money and real liability: agents do the operational legwork, guardrails govern what can act on its own, and a human stays on every call that carries the risk. It reduces my hands-on time and operating costs, and it is the operator credential that makes the guardrails philosophy concrete rather than theoretical.</p>
   </div>
 </div></div>
 
@@ -48,25 +48,25 @@
   <!-- 4. Problem / context -->
   <section class="reveal">
     <h2>The problem</h2>
-    <p>Running a five-car fleet is a real-time operations problem with money on every decision. Turnaround between uses, pricing, and the condition of each vehicle all move continuously, and running it on intuition leaves value and safety on the table. The need was the same one the agent work answers: instrument the system so decisions run on live data, automate the parts that are safe to automate, and keep a human firmly on anything that moves money or cannot be undone.</p>
+    <p>Running a car-rental fleet is a real-time operations problem with money on every decision. Bookings, turnaround between trips, pricing, vehicle condition, and the back-and-forth with each renter all move continuously, and a hands-on owner becomes the bottleneck the moment the fleet grows. The need was the same one the agent work answers: build a system that runs the day-to-day operations and the work that scales the team, so the business depends less on me being present, and keep a human firmly on anything that moves money or cannot be undone.</p>
   </section>
 
   <!-- 5. Approach as decisions, not code -->
   <section class="reveal">
     <h2>Approach</h2>
-    <p>The fleet runs on Tessie telematics as the live signal, and turnaround and pricing decisions are made off that data rather than off guesswork. The system is decision-advisory by design: it surfaces what the data says and what it would recommend, and the human approves anything that carries money or is irreversible. It is the same capability-then-leash pattern as the agent work, applied to physical assets and real liability instead of a software action.</p>
+    <p>I built a team of agents that runs the back office. They cover the recurring operational work end to end, draw on live vehicle telematics as the signal, and surface turnaround and pricing moves off that data rather than off guesswork. The system is bounded by design: agents handle the legwork and the scaling work, and the human approves anything that carries money or is irreversible. It is the same capability-then-leash pattern as the agent work, applied to a real business with physical assets and real liability instead of a software-only action.</p>
     <ul class="decisions">
       <li>
-        <span class="d-cap">Run on the live signal.</span>
-        <span class="d-leash">Tessie telematics streams the real-time state of each vehicle, and that signal drives turnaround and pricing decisions. <b>The leash: data informs the call, it does not silently execute it.</b></span>
+        <span class="d-cap">Let agents run the operations.</span>
+        <span class="d-leash">The agent team carries the day-to-day back office and the workload that scales the fleet, working off live vehicle telematics as the signal. <b>The leash: agents do the legwork, they do not own the calls that carry liability.</b></span>
       </li>
       <li>
         <span class="d-cap">Advise, do not transact.</span>
-        <span class="d-leash">The instrumentation recommends the turnaround and pricing move the data supports. <b>The leash: it stays decision-advisory, so a recommendation is not an action.</b></span>
+        <span class="d-leash">The system recommends the turnaround and pricing move the data supports rather than executing it unattended. <b>The leash: a recommendation is not an action until the operator approves it.</b></span>
       </li>
       <li>
         <span class="d-cap">Keep the human on the money.</span>
-        <span class="d-leash">Operational signals are automated; consequential moves are not. <b>The leash: anything that moves money or is irreversible waits for the operator.</b></span>
+        <span class="d-leash">Routine operational work is automated; consequential moves are not. <b>The leash: anything that moves money or is irreversible waits for the operator.</b></span>
       </li>
     </ul>
   </section>
@@ -77,9 +77,9 @@
       <h2>Guardrails</h2>
       <p class="gr-sub">What the system is structurally not allowed to do. This is the through-line: capability, then leash.</p>
       <ul>
-        <li><span class="gr-no">No</span><span>It cannot <strong>move money on its own</strong>. The human approves anything financial.</span></li>
-        <li><span class="gr-no">No</span><span>It cannot take an <strong>irreversible action</strong> unattended. Those calls wait for the operator.</span></li>
-        <li><span class="gr-no">No</span><span>It does not <strong>act beyond advising</strong>. The system surfaces the decision; the human owns the risk.</span></li>
+        <li><span class="gr-no">No</span><span>The agents cannot <strong>move money on their own</strong>. The human approves anything financial.</span></li>
+        <li><span class="gr-no">No</span><span>The agents cannot take an <strong>irreversible action</strong> unattended. Those calls wait for the operator.</span></li>
+        <li><span class="gr-no">No</span><span>The agents do not <strong>own a liability decision</strong>. The system surfaces the call and does the legwork; the human owns the risk.</span></li>
       </ul>
     </div>
   </section>
@@ -87,13 +87,13 @@
   <!-- 9. Role -->
   <section class="reveal">
     <h2>My role</h2>
-    <p class="cs-role">I <strong>built and operate</strong> this fleet myself. It is my own venture, and it is where the guardrails philosophy meets real money and real liability.</p>
+    <p class="cs-role">I <strong>own the business and built the agent team</strong> that runs it. It is my own venture, the cars are my own property, and it is where the guardrails philosophy meets real money and real liability. I stay on the decisions that carry liability; the agents carry the rest.</p>
   </section>
 
   <!-- 10. Links / verify -->
   <section class="reveal cs-links">
     <h2>Links and verification</h2>
-    <p class="cs-nolink">This is a private operation, my own venture, so there is no public repo to link and no public metric to cite. It is included as the operator credential behind the guardrails philosophy: the same discipline as the agent work, applied against real money.</p>
+    <p class="cs-nolink">This is a private business, my own venture, so there is no public repo to link and no public metric to cite. It is included as the operator credential behind the guardrails philosophy: a real business run largely by an agent team I built, applied against real money, with a human on the calls that carry liability.</p>
   </section>
 
   <!-- 11. Prev / next cross-links -->
@@ -109,7 +109,7 @@
 <!-- ===== CANONICAL FOOTER (identical markup on every page; update all copies together) ===== -->
 <footer><div class="wrap">
   <span>© 2026 Brad O'Haire</span>
-  <span><a href="/work">Work</a> · <a href="/about">About</a> · <a href="/contact">Contact</a> · <a href="/resume">Resume</a> · <a id="foot-gh" href="https://github.com/Veeiy" target="_blank" rel="noopener">GitHub</a> · <a href="mailto:bradtohaire@gmail.com">Email</a></span>
+  <span><a href="/work">Work</a> · <a href="/about">About</a> · <a href="/contact">Contact</a> · <a href="/resume">Resume</a> · <a id="foot-gh" href="https://github.com/Veeiy" target="_blank" rel="noopener">GitHub</a> · <a href="https://www.linkedin.com/in/brad-o-haire" target="_blank" rel="noopener">LinkedIn</a> · <a href="mailto:bradtohaire@gmail.com">Email</a></span>
 </div></footer>
 <!-- ===== /CANONICAL FOOTER ===== -->
 

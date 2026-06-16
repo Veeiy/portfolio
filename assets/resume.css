@@ -39,6 +39,7 @@
 .rz-name{font-size:clamp(28px,4.6vw,40px);line-height:1.05;letter-spacing:-.6px;margin:0;color:var(--ink)}
 .rz-headline{color:var(--muted);font-size:clamp(15px,2vw,17px);margin:8px 0 0;max-width:520px}
 .rz-headline b{color:var(--ink);font-weight:600}
+.rz-loc{color:var(--dim);font-size:13px;margin:7px 0 0;letter-spacing:.01em}
 
 /* credential chip: scoped, mirrors the home/about cred styling using shared tokens */
 .rz-cred{display:inline-flex;align-items:baseline;gap:8px;margin-top:12px;padding:6px 12px;
@@ -103,6 +104,11 @@
 .rz-exp .rz-exp-role{color:var(--ink);font-weight:600;font-size:14.5px}
 .rz-exp .rz-exp-meta{color:var(--dim);font-size:12.5px;margin-top:2px}
 .rz-exp .rz-exp-body{color:var(--muted);font-size:14px;line-height:1.55;margin-top:5px;max-width:620px}
+/* nested achievement bullets inside a dated experience entry */
+.rz-exp-points{list-style:none;margin:7px 0 0;padding:0;display:flex;flex-direction:column;gap:6px;max-width:620px}
+.rz-exp-points li{position:relative;margin:0;padding:0 0 0 16px;color:var(--muted);font-size:13.5px;line-height:1.5}
+.rz-exp-points li::before{content:"";position:absolute;left:0;top:.52em;width:5px;height:5px;border-radius:2px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2))}
 
 /* ---- Skills as chips ---- */
 .rz-skills{display:flex;flex-wrap:wrap;gap:8px;margin:0;padding:0;list-style:none}
@@ -131,15 +137,17 @@
 
 /* ============================================================
    PRINT  ( Save as PDF )
-   Goal: a clean one-to-two page document. Strip the dark chrome and
-   the animated/fixed canvas, flip to black ink on white, set page
-   margins, and collapse the two-column body to a single readable
-   flow. Everything is forced visible so a failed/!run reveal observer
-   can never hide content on the printed page.
+   Goal: a clean two-page document. Strip the dark chrome and the
+   animated/fixed canvas, flip to black ink on white, set page margins,
+   and keep the two-column body (left: impact + experience; right:
+   skills, certs, education, open source) so the real history stays to
+   two pages. Everything is forced visible so a failed/!run reveal
+   observer can never hide content on the printed page.
    ============================================================ */
 @media print{
-  /* page geometry */
-  @page{margin:14mm}
+  /* page geometry: a comfortable but efficient margin so the denser, real
+     history lands on two pages rather than spilling a few lines onto a third */
+  @page{margin:12mm}
 
   html,body{background:#fff !important;color:#111 !important}
 
@@ -150,6 +158,9 @@
   canvas{display:none !important}
 
   main,.rz-main{padding:0 !important;margin:0 !important}
+  /* zero any trailing whitespace that can spill a blank trailing page */
+  section,.wrap,.rz-wrap{padding-bottom:0 !important;margin-bottom:0 !important}
+  .rz-sheet>*:last-child,.rz-aside>*:last-child{margin-bottom:0 !important;padding-bottom:0 !important}
 
   /* the sheet becomes the page: no border, no shadow, no fill */
   .rz-sheet{background:#fff !important;border:none !important;border-radius:0 !important;
@@ -158,17 +169,20 @@
   /* force every progressive-reveal element fully visible (no opacity:0 left over) */
   .reveal{opacity:1 !important;transform:none !important}
 
-  /* single-column flow reads cleanly on paper */
-  .rz-body{display:block !important}
+  /* keep the two-column body on paper: with the real, denser history a single
+     column spills to ~4 pages, so the document keeps its left (impact +
+     experience) / right (skills, certs, education, open source) split, which
+     balances column heights and lands the resume on two pages. */
+  .rz-body{display:grid !important;grid-template-columns:1.5fr 1fr !important;gap:0 26px !important}
   .rz-aside{margin-top:0 !important}
 
   /* black-on-white type; flatten the gradient text fills to solid ink */
   .rz-name,.rz-headline b,.rz-impact .rz-imp-title,.rz-list .rz-li-h,
   .rz-exp .rz-exp-role,.rz-summary b,.rz-open b,.rz-exp-note b{color:#111 !important}
   .rz-headline,.rz-summary,.rz-impact .rz-imp-body,.rz-list .rz-li-b,
-  .rz-exp .rz-exp-body,.rz-exp-note,.rz-open{color:#333 !important}
+  .rz-exp .rz-exp-body,.rz-exp-points li,.rz-exp-note,.rz-open{color:#333 !important}
   .rz-cred .rz-cred-sub,.rz-impact .rz-imp-context,.rz-contact .rz-c-key,
-  .rz-exp .rz-exp-meta{color:#555 !important}
+  .rz-exp .rz-exp-meta,.rz-loc{color:#555 !important}
 
   /* metric + section headings: solid dark, no transparent gradient clip */
   .rz-metric,.rz-impact .rz-metric{-webkit-text-fill-color:#111 !important;color:#111 !important;
@@ -184,14 +198,51 @@
 
   /* chips + cred + dots: outline only, no dark fills bleeding ink */
   .rz-skills li,.rz-cred{background:none !important;border:1px solid #bbb !important;color:#222 !important}
-  .rz-cred .rz-cred-dot,.rz-list li::before{background:#555 !important}
+  .rz-cred .rz-cred-dot,.rz-list li::before,.rz-exp-points li::before{background:#555 !important}
 
-  /* avoid awkward breaks: keep headings with their content, don't split list items */
+  /* avoid awkward breaks: keep headings with their content, don't split list items.
+     The Experience section and its long lead entry are allowed to flow across a
+     page break (they are too tall to force whole), but each role heading stays
+     glued to the start of its bullets, and no single bullet splits mid-line. */
   .rz-sec{break-inside:avoid;page-break-inside:avoid}
+  .rz-sec-exp{break-inside:auto;page-break-inside:auto}
   .rz-sec-head{break-after:avoid;page-break-after:avoid}
-  .rz-impact li,.rz-list li,.rz-exp li{break-inside:avoid;page-break-inside:avoid}
+  .rz-impact li,.rz-list li{break-inside:avoid;page-break-inside:avoid}
+  .rz-exp>li{break-inside:auto;page-break-inside:auto}
+  .rz-exp .rz-exp-role{break-after:avoid;page-break-after:avoid}
+  .rz-exp .rz-exp-meta{break-after:avoid;page-break-after:avoid}
+  .rz-exp-points li{break-inside:avoid;page-break-inside:avoid}
 
-  /* tighten vertical rhythm a touch so the page count stays low */
-  .rz-sec{padding-top:14px;margin-top:14px}
-  .rz-summary{margin-top:12px}
+  /* columns size to their own content (no equal-height stretch) so the
+     full-width "Open to" sits directly under the taller column */
+  .rz-body{align-items:start !important}
+
+  /* tighten vertical rhythm and type so the denser content stays to two pages */
+  .rz-sec{padding-top:8px;margin-top:8px}
+  .rz-summary{margin-top:8px;font-size:12px;line-height:1.4}
+  .rz-head{padding-bottom:9px}
+  .rz-name{font-size:28px;line-height:1.02}
+  .rz-headline{font-size:12.5px;margin-top:4px}
+  .rz-loc{margin-top:3px;font-size:12px}
+  .rz-cred{margin-top:6px;padding:4px 10px;font-size:.72rem}
+  .rz-sec-head{margin-bottom:7px}
+  .rz-sec-head h2{font-size:12.5px}
+  /* body copy a touch smaller in print; keeps lines tight without hurting legibility */
+  .rz-impact .rz-imp-body,.rz-exp-points li,.rz-list .rz-li-b{font-size:11.5px;line-height:1.38}
+  .rz-impact .rz-imp-title{font-size:13px}
+  .rz-impact .rz-metric{font-size:13px}
+  .rz-exp .rz-exp-role{font-size:13px}
+  .rz-exp .rz-exp-meta{font-size:11.5px}
+  .rz-list .rz-li-h{font-size:12.5px}
+  .rz-impact{gap:7px}
+  .rz-impact li .rz-imp-body{margin-top:2px}
+  .rz-exp{gap:8px}
+  .rz-exp-points{gap:3px;margin-top:4px}
+  .rz-list{gap:6px}
+  .rz-skills{gap:5px}
+  .rz-skills li{font-size:10.5px;padding:3px 8px}
+  .rz-open{font-size:11.5px;line-height:1.4}
+  /* the contact line sits left under the name in print so it does not strand on the right */
+  .rz-contact{justify-content:flex-start;text-align:left;gap:3px 14px;font-size:11.5px}
+  .rz-contact a,.rz-contact span{min-height:0}
 }
