@@ -6,6 +6,8 @@
 <title>About · Brad O'Haire</title>
 <meta name="description" content="How Brad O'Haire builds: coordinator-and-specialist agent systems, control before capability, feasibility before code, and a repeatable audited build loop. With a teardown of this site." />
 <link rel="canonical" href="https://bradohaire.com/about" />
+<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+<meta name="theme-color" content="#0a0b0f" />
 <link rel="stylesheet" href="/assets/site.css" />
 <script defer src="/assets/site.js"></script>
 </head>
@@ -99,6 +101,23 @@
       <p>The same engine that runs a research brief can ship a storefront or an internal tool, because each run is driven by a mission blueprint rather than hard-coded to one job. Every build is scaffolded from a shared template, gated wave by wave by an auditor that returns pass, warn, or block, and checked against an evaluation list before it is called done.</p>
     </div>
 
+  </div>
+
+  <div class="adel reveal" style="margin-top:18px">
+    <p class="flow-cap" style="margin:0 0 14px">How this site was built, and what that approach saves</p>
+    <p class="adel-lede">This site is the clearest work sample I can point to, because I built it the way I build everything else. It went from a single static page to a deployed, accessible, responsive, multi-page site by orchestrating my own agents end to end, with a human on the decisions.</p>
+    <ul class="adel-points">
+      <li><span class="ap-h">Ideation in parallel</span><span class="ap-b">A think-tank proposes directions at the same time, so the strongest structure surfaces before any build starts.</span></li>
+      <li><span class="ap-h">Specialists implement</span><span class="ap-b">Build agents take the chosen direction and implement it, each scoped to its own slice of the work.</span></li>
+      <li><span class="ap-h">Auditor gate per wave</span><span class="ap-b">Every wave is reviewed and returns pass, warn, or block. Nothing moves forward on an unreviewed change.</span></li>
+      <li><span class="ap-h">Personas stress it, then it ships</span><span class="ap-b">Persona-based testers click through the result and loop findings back to a written definition of done.</span></li>
+    </ul>
+    <p class="sec-intro" style="max-width:760px;margin:2px 0 18px">The honest read is leverage, not magic. One operator covered design, front-end build, QA, an accessibility pass to WCAG AA, and copy, work that traditionally spans several roles. The build-and-QA loop ran in hours rather than weeks because reviews and tests are part of the loop, not a separate phase bolted on at the end.</p>
+    <div class="adel-est">
+      <p class="adel-est-head"><span class="est-tag">Estimate</span><span class="est-title">The time and cost delta, assumptions shown</span></p>
+      <p>A hand-built equivalent at this level of polish, interactivity, accessibility, and QA is realistically one to two weeks of focused solo work, or a small multi-person sprint. Orchestrating agents compressed that to about two days of part-time work.</p>
+      <p class="est-assume"><b>Assumptions:</b> a freelance web rate of roughly $75 to $150 per hour, and a one-to-two-week hand-built baseline for the same scope. On those assumptions the saved effort lands on the order of several thousand dollars of delivery, done by one person. These are ranges with the assumptions stated, not a measured invoice, a billed total, or a stopwatch figure. If the assumptions change, the number changes with them.</p>
+    </div>
   </div>
 
   <details class="teardown reveal">

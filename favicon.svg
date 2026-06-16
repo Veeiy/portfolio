@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="Brad OHaire">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#6ea8fe"/>
+      <stop offset="1" stop-color="#9d7bff"/>
+    </linearGradient>
+  </defs>
+  <rect x="3" y="3" width="94" height="94" rx="22" fill="url(#g)"/>
+  <g stroke="#0a0b0f" stroke-width="5" stroke-linecap="round" opacity=".9">
+    <line x1="33" y1="34" x2="67" y2="29"/>
+    <line x1="33" y1="34" x2="41" y2="69"/>
+    <line x1="67" y1="29" x2="71" y2="67"/>
+    <line x1="41" y1="69" x2="71" y2="67"/>
+  </g>
+  <g fill="#0a0b0f">
+    <circle cx="33" cy="34" r="9.5"/>
+    <circle cx="67" cy="29" r="7"/>
+    <circle cx="41" cy="69" r="7"/>
+    <circle cx="71" cy="67" r="7"/>
+  </g>
+</svg>
