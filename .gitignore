@@ -1,0 +1,5 @@
+# Local Claude Code preview/server config
+.claude/
+
+# OS cruft
+.DS_Store
