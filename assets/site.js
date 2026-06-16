@@ -40,6 +40,41 @@
     return r + "," + g + "," + b;
   }
 
+  /* ---------- Shared animation ticker: ONE requestAnimationFrame for the whole page ----------
+     Every node-field instance (the hero, the about-page echo, and the new
+     site-wide ambient backdrop) registers a per-frame callback here instead of
+     owning its own rAF. The single loop below is the ONLY requestAnimationFrame
+     driving these canvases, so adding the ambient layer does not add a second
+     loop. It also centralizes the safety contract: it never runs under
+     reduced-motion, it pauses on a hidden tab and resumes only when visible,
+     and a registered field that becomes empty simply stops being ticked. */
+  const ticker = (function(){
+    const cbs = new Set();   // active per-frame callbacks
+    let raf = null;          // the single in-flight frame (null when idle)
+    let last = 0;            // timestamp of the previous frame, for a dt clamp
+    function frame(now){
+      // Clamp dt so a backgrounded then resumed tab cannot jump the motion.
+      const dt = last ? Math.min(2, (now - last) / 16.6667) : 1;
+      last = now;
+      // Iterate a snapshot so a callback can unregister mid-frame safely.
+      cbs.forEach(cb => { try { cb(dt); } catch(e){ /* never let one field break the loop */ } });
+      raf = cbs.size ? requestAnimationFrame(frame) : null;
+    }
+    function arm(){ // idempotent: at most one frame in flight
+      if(reduceMotion || raf || document.hidden || !cbs.size) return;
+      last = 0;
+      raf = requestAnimationFrame(frame);
+    }
+    function add(cb){ cbs.add(cb); arm(); }
+    function remove(cb){ cbs.delete(cb); }
+    function stopAll(){ if(raf){ cancelAnimationFrame(raf); raf = null; } }
+    // Pause on hidden tab, resume when visible. One listener for every field.
+    document.addEventListener("visibilitychange", () => {
+      if(document.hidden) stopAll(); else arm();
+    });
+    return { add, remove, arm };
+  })();
+
   function nodeField(canvas, opts){
     if(!canvas || reduceMotion) return null;
     const ctx = canvas.getContext("2d");
@@ -51,9 +86,12 @@
       speed:0.25,                   // drift speed
       interactive:false,            // attach pointer reactivity?
       influence:120, pull:0.045, maxBoost:0.9, // cursor radius, attraction, velocity clamp near pointer
-      roles:false                   // promote a few nodes to labeled architecture roles + one pulse
+      roles:false,                  // promote a few nodes to labeled architecture roles + one pulse
+      ambient:false,                // site-wide backdrop variant: softer dots, no node glow pass
+      glow:true                     // soft additive glow under nodes for depth (off for the flat ambient)
     }, opts||{});
-    let w=0, h=0, dpr=Math.min(window.devicePixelRatio||1, 2), nodes=[], raf=null, running=true;
+    if(o.ambient) o.glow = false;   // the ambient layer stays flat and cheap
+    let w=0, h=0, dpr=Math.min(window.devicePixelRatio||1, 2), nodes=[];
     // Pointer is in CSS px, canvas-local. null = no active pointer (touch / left the field).
     let ptr = null;
 
@@ -101,6 +139,7 @@
       pending:0       // tokens that must arrive before the phase advances
     };
     let cycleCount = 0; // drives the deterministic "1 in 3 cycles revises" cadence
+    let phaseClock = 0; // ever-increasing dt sum; feeds gentle sine pulses on active nodes
     function layoutRoles(){
       // Pin role anchors to the RIGHT half / lower band, the hero's whitespace, so the
       // labels never sit on the H1 or lede. On narrow viewports the text fills the width,
@@ -164,9 +203,14 @@
       const target = Math.min(o.max, Math.max(o.min, Math.round((w*h)/o.area)));
       nodes = [];
       for(let i=0;i<target;i++){
+        // z is a depth factor in 0.45..1: nearer nodes (z->1) are larger,
+        // brighter and drift a little faster; farther nodes (z->0.45) recede.
+        // This gives the field real layering/parallax without adding nodes.
+        const z = 0.45 + Math.random()*0.55;
         nodes.push({
           x:Math.random()*w, y:Math.random()*h,
-          vx:(Math.random()-.5)*o.speed, vy:(Math.random()-.5)*o.speed
+          vx:(Math.random()-.5)*o.speed*z, vy:(Math.random()-.5)*o.speed*z,
+          z:z
         });
       }
       if(o.roles){
@@ -176,8 +220,10 @@
         cyc.phase = "idle"; cyc.timer = 30; // short beat before the first dispatch
       }
     }
-    function step(){
-      if(!running) return;
+    // One frame of this field. dt (~1 at 60fps) scales motion so speed is
+    // frame-rate independent. Called by the shared ticker, never self-arming.
+    function step(dt){
+      dt = dt || 1;
       ctx.clearRect(0,0,w,h);
       for(const n of nodes){
         // Soft cursor nudge: a gentle pull within the radius, eased by distance, capped.
@@ -191,64 +237,102 @@
         }
         // Damp so nudged nodes ease back to a calm drift once the cursor leaves.
         n.vx*=0.96; n.vy*=0.96;
-        // Keep a floor of motion so the field never freezes after damping.
-        const sp=Math.hypot(n.vx,n.vy), floor=o.speed*0.45;
+        // Keep a floor of motion so the field never freezes after damping. The
+        // floor scales with the node's depth so parallax layering is preserved.
+        const sp=Math.hypot(n.vx,n.vy), floor=o.speed*0.45*(n.z||1);
         if(sp<floor && sp>0){ const k=floor/sp; n.vx*=k; n.vy*=k; }
         // Clamp peak speed near the pointer so it stays smooth, never jumpy.
         if(sp>o.maxBoost){ const k=o.maxBoost/sp; n.vx*=k; n.vy*=k; }
-        n.x+=n.vx; n.y+=n.vy;
+        n.x+=n.vx*dt; n.y+=n.vy*dt;
         if(n.x<0||n.x>w) n.vx*=-1;
         if(n.y<0||n.y>h) n.vy*=-1;
         n.x=n.x<0?0:n.x>w?w:n.x; n.y=n.y<0?0:n.y>h?h:n.y;
       }
-      // links: colored by the midpoint's horizontal position, opacity low for readability
+      // Links: a true per-segment gradient from one node's accent tint to the
+      // other's, with a smooth (quadratic) distance falloff so connections fade
+      // in and out gently rather than popping. Nearer (deeper z) pairs read a
+      // touch stronger, which reinforces the layering. lineWidth 1 keeps it
+      // crisp; rounded caps soften the joints. This is the same O(n^2) pass as
+      // before over a hard-capped node count, so cost is unchanged.
+      ctx.lineCap = "round";
       for(let i=0;i<nodes.length;i++){
+        const a=nodes[i];
+        const ta = w ? a.x/w : 0.5;
         for(let j=i+1;j<nodes.length;j++){
-          const a=nodes[i], b=nodes[j];
+          const b=nodes[j];
           const dx=a.x-b.x, dy=a.y-b.y, d=Math.hypot(dx,dy);
           if(d<o.linkDist){
-            const alpha=(1-d/o.linkDist)*o.linkAlpha;
-            const t=w?((a.x+b.x)/2)/w:0.5;
-            ctx.strokeStyle="rgba("+mix(t)+","+alpha.toFixed(3)+")";
-            ctx.lineWidth=1;
+            const fall=1-d/o.linkDist;            // 1 close .. 0 at reach
+            const depth=((a.z||1)+(b.z||1))*0.5;  // average depth of the pair
+            const alpha=fall*fall*o.linkAlpha*(0.6+0.4*depth);
+            const tb = w ? b.x/w : 0.5;
+            const g = ctx.createLinearGradient(a.x,a.y,b.x,b.y);
+            g.addColorStop(0,"rgba("+mix(ta)+","+alpha.toFixed(3)+")");
+            g.addColorStop(1,"rgba("+mix(tb)+","+alpha.toFixed(3)+")");
+            ctx.strokeStyle=g;
+            ctx.lineWidth=0.6+0.7*depth;          // far links hairline, near a bit fuller
             ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
           }
         }
       }
-      // nodes: same gradient blend by x-position
+      // Nodes: gradient blend by x-position, sized and brightened by depth. On
+      // the hero/echo a soft additive glow sits under each node for a sense of
+      // light and depth; the ambient backdrop skips the glow (o.glow=false) to
+      // stay flat and cheap on every page.
+      if(o.glow) ctx.globalCompositeOperation = "lighter";
       for(const n of nodes){
-        const t=w?n.x/w:0.5;
-        ctx.fillStyle="rgba("+mix(t)+","+o.dotAlpha+")";
-        ctx.beginPath(); ctx.arc(n.x,n.y,o.dotR,0,Math.PI*2); ctx.fill();
+        const t=w?n.x/w:0.5, z=n.z||1, col=mix(t);
+        if(o.glow){
+          const gr=o.dotR*(3.2+1.6*z);
+          const rg=ctx.createRadialGradient(n.x,n.y,0,n.x,n.y,gr);
+          rg.addColorStop(0,"rgba("+col+","+(0.16*z).toFixed(3)+")");
+          rg.addColorStop(1,"rgba("+col+",0)");
+          ctx.fillStyle=rg;
+          ctx.beginPath(); ctx.arc(n.x,n.y,gr,0,Math.PI*2); ctx.fill();
+        }
+      }
+      if(o.glow) ctx.globalCompositeOperation = "source-over";
+      for(const n of nodes){
+        const t=w?n.x/w:0.5, z=n.z||1;
+        ctx.fillStyle="rgba("+mix(t)+","+(o.dotAlpha*(0.55+0.45*z)).toFixed(3)+")";
+        ctx.beginPath(); ctx.arc(n.x,n.y,o.dotR*(0.7+0.5*z),0,Math.PI*2); ctx.fill();
       }
 
       // ---- Orchestration handoff cycle (hero only) ----
       // The FOCUS of the animation: directional, ordered, labeled tokens moving
       // along the connectors between role nodes, one readable cycle at a time.
       if(o.roles && roleNodes.length){
-        if(labelAlpha < 1) labelAlpha = Math.min(1, labelAlpha + 0.012); // ease labels in once
+        if(labelAlpha < 1) labelAlpha = Math.min(1, labelAlpha + 0.012*dt); // ease labels in once
+        phaseClock += dt; // smooth, frame-rate independent clock for gentle pulses
         const C = roleNodes[COORD], A = roleNodes[AUDITOR];
 
         // 1) The fixed topology connectors, drawn faint under everything so the
         //    handoff routes (Coordinator -> Specialists -> Auditor -> Coordinator)
-        //    read as a stable diagram even between token hops.
-        ctx.lineWidth = 1.3;
+        //    read as a stable diagram even between token hops. Each route is a
+        //    true gradient between its endpoints' accent tints and uses rounded
+        //    caps, so the standing diagram looks deliberate, not wiry.
+        ctx.lineWidth = 1.3; ctx.lineCap = "round";
         const route = (a, b) => {
-          const t = w ? ((a.x+b.x)/2)/w : 0.5;
-          ctx.strokeStyle = "rgba("+mix(t)+",0.22)";
+          const ta = w ? a.x/w : 0.5, tb = w ? b.x/w : 0.5;
+          const g = ctx.createLinearGradient(a.x,a.y,b.x,b.y);
+          g.addColorStop(0,"rgba("+mix(ta)+",0.20)");
+          g.addColorStop(1,"rgba("+mix(tb)+",0.20)");
+          ctx.strokeStyle = g;
           ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
         };
         SPECIALISTS.forEach(s => { route(C, roleNodes[s]); route(roleNodes[s], A); });
         route(A, C); // auditor -> coordinator (the "done" return path)
 
-        // 2) Advance the cycle state machine off this single rAF tick.
+        // 2) Advance the cycle state machine off this single rAF tick. All
+        //    progress and timers scale by dt so the cycle reads at the same pace
+        //    regardless of refresh rate.
         if(cyc.phase === "idle"){
-          if(cyc.timer > 0) cyc.timer--; else startCycle();
+          if(cyc.timer > 0) cyc.timer -= dt; else startCycle();
         } else if(cyc.phase === "work"){
           // Specialists process: fill each arc, then send results to the auditor.
           let allDone = true;
           SPECIALISTS.forEach(s => {
-            if(workProg[s] >= 0 && workProg[s] < 1){ workProg[s] = Math.min(1, workProg[s] + 0.014); }
+            if(workProg[s] >= 0 && workProg[s] < 1){ workProg[s] = Math.min(1, workProg[s] + 0.014*dt); }
             if(workProg[s] < 1) allDone = false;
           });
           if(allDone){
@@ -257,7 +341,7 @@
           }
         } else if(cyc.phase === "gate"){
           // The auditor "thinks", then emits its verdict token.
-          if(cyc.timer > 0){ cyc.timer--; }
+          if(cyc.timer > 0){ cyc.timer -= dt; }
           else {
             cyc.phase = "verdict";
             if(cyc.revise && !cyc.reworked){
@@ -269,13 +353,13 @@
         } else if(cyc.phase === "rework"){
           // The revised specialist re-works, then re-returns a single result.
           const s = cyc.reviseTarget;
-          if(workProg[s] >= 0 && workProg[s] < 1){ workProg[s] = Math.min(1, workProg[s] + 0.016); }
+          if(workProg[s] >= 0 && workProg[s] < 1){ workProg[s] = Math.min(1, workProg[s] + 0.016*dt); }
           if(workProg[s] >= 1){
             cyc.phase = "verdict";
             addToken(s, AUDITOR, "result", "accent");
           }
         } else if(cyc.phase === "done"){
-          if(cyc.timer > 0){ cyc.timer--; } else { cyc.phase = "idle"; cyc.timer = 22; }
+          if(cyc.timer > 0){ cyc.timer -= dt; } else { cyc.phase = "idle"; cyc.timer = 22; }
         }
 
         // 3) Move + draw tokens. Each is an eased glide along its hop; on arrival it
@@ -283,34 +367,55 @@
         //    Labels are dropped below ~700px (phones / narrow tablets), where the
         //    hero text fills the column, so they can never compete with the H1.
         const showLabels = w >= 700;
-        ctx.textAlign = "center"; ctx.textBaseline = "middle";
+        ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.lineCap = "round";
         const survivors = [];
         for(const tok of tokens){
-          tok.t += TOKEN_SPEED;
+          tok.t += TOKEN_SPEED*dt;
           const a = roleNodes[tok.a], b = roleNodes[tok.b];
-          const tt = tok.t < 0.5 ? 2*tok.t*tok.t : 1-Math.pow(-2*tok.t+2,2)/2; // easeInOutQuad
+          // easeInOutCubic: a smoother accel/decel than the old quad, so the
+          // packet eases out of a node and settles into the next more gracefully.
+          const tt = tok.t < 0.5 ? 4*tok.t*tok.t*tok.t : 1-Math.pow(-2*tok.t+2,3)/2;
           const px = a.x+(b.x-a.x)*tt, py = a.y+(b.y-a.y)*tt;
+          // A short trailing point, so the head reads as moving and leaves a comet.
+          const trail = Math.max(0, tt-0.16);
+          const qx = a.x+(b.x-a.x)*trail, qy = a.y+(b.y-a.y)*trail;
           // Color: accent blend, or a fixed green/amber for verdict tokens.
           const cv = tok.color === "ok" ? rgbStr(OK_RGB)
                    : tok.color === "amber" ? rgbStr(AMBER_RGB)
                    : mix(w ? px/w : 0.5);
-          // Draw the lit connector segment the token has covered, so the hop reads
-          // as a directional flow rather than a free-floating dot.
-          ctx.strokeStyle = "rgba("+cv+",0.5)"; ctx.lineWidth = 1.6;
+          // The lit connector segment the token has covered: a gradient that
+          // fades from the source toward a brighter head, so the hop reads as a
+          // directional flow rather than a free-floating dot.
+          const seg = ctx.createLinearGradient(a.x,a.y,px,py);
+          seg.addColorStop(0,"rgba("+cv+",0.08)");
+          seg.addColorStop(1,"rgba("+cv+",0.45)");
+          ctx.strokeStyle = seg; ctx.lineWidth = 1.6;
           ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(px,py); ctx.stroke();
-          // Soft glow + core.
-          const grad = ctx.createRadialGradient(px,py,0,px,py,8);
-          grad.addColorStop(0,"rgba("+cv+",0.85)");
+          // Comet trail behind the head, additive for a soft light streak.
+          const tg = ctx.createLinearGradient(qx,qy,px,py);
+          tg.addColorStop(0,"rgba("+cv+",0)");
+          tg.addColorStop(1,"rgba("+cv+",0.6)");
+          ctx.save();
+          ctx.globalCompositeOperation = "lighter";
+          ctx.strokeStyle = tg; ctx.lineWidth = 2.4;
+          ctx.beginPath(); ctx.moveTo(qx,qy); ctx.lineTo(px,py); ctx.stroke();
+          // Soft glow head, gently pulsing so the packet feels alive but calm.
+          const pulse = 1 + 0.12*Math.sin(phaseClock*0.18 + tok.t*6);
+          const gr = 9*pulse;
+          const grad = ctx.createRadialGradient(px,py,0,px,py,gr);
+          grad.addColorStop(0,"rgba("+cv+",0.9)");
           grad.addColorStop(1,"rgba("+cv+",0)");
           ctx.fillStyle = grad;
-          ctx.beginPath(); ctx.arc(px,py,8,0,Math.PI*2); ctx.fill();
-          ctx.fillStyle = "rgba("+cv+",0.95)";
+          ctx.beginPath(); ctx.arc(px,py,gr,0,Math.PI*2); ctx.fill();
+          ctx.restore();
+          // Crisp core on top.
+          ctx.fillStyle = "rgba("+cv+",0.96)";
           ctx.beginPath(); ctx.arc(px,py,2.6,0,Math.PI*2); ctx.fill();
           // Token label, small and faint, carried just above the moving token.
           if(showLabels){
             ctx.font = "600 9.5px -apple-system,BlinkMacSystemFont,'Segoe UI',Inter,sans-serif";
             ctx.fillStyle = "rgba("+cv+","+(0.85*labelAlpha).toFixed(3)+")";
-            ctx.fillText(tok.label, px, py-11);
+            ctx.fillText(tok.label, px, py-12);
           }
           if(tok.t >= 1){ onTokenArrive(tok); } else { survivors.push(tok); }
         }
@@ -323,24 +428,43 @@
           ? (cyc.revise && !cyc.reworked ? rgbStr(AMBER_RGB) : (cyc.reworked || !cyc.revise ? rgbStr(OK_RGB) : null))
           : null;
         ctx.font = "600 11px -apple-system,BlinkMacSystemFont,'Segoe UI',Inter,sans-serif";
+        // A calm shared pulse (0..1) for active nodes, so a working specialist or
+        // gating auditor breathes gently rather than sitting static or flashing.
+        const pulse = 0.5 + 0.5*Math.sin(phaseClock*0.12);
         roleNodes.forEach((rn, idx) => {
-          const t = w ? rn.x/w : 0.5;
+          const t = w ? rn.x/w : 0.5, col = mix(t);
           const isSpec = SPECIALISTS.indexOf(idx) !== -1;
           const working = isSpec && workProg[idx] >= 0 && workProg[idx] < 1;
+          const auditing = (idx === AUDITOR && auditorTint);
+          // Soft glow under an active node (additive): the "light" on whoever is
+          // currently doing work, tinted to the verdict color while the auditor gates.
+          if(working || auditing){
+            const glowCol = auditing ? auditorTint : col;
+            const gr = 16 + 5*pulse;
+            ctx.save();
+            ctx.globalCompositeOperation = "lighter";
+            const rg = ctx.createRadialGradient(rn.x,rn.y,0,rn.x,rn.y,gr);
+            rg.addColorStop(0,"rgba("+glowCol+","+(0.22+0.12*pulse).toFixed(3)+")");
+            rg.addColorStop(1,"rgba("+glowCol+",0)");
+            ctx.fillStyle = rg;
+            ctx.beginPath(); ctx.arc(rn.x,rn.y,gr,0,Math.PI*2); ctx.fill();
+            ctx.restore();
+          }
           // Base node + ring.
-          ctx.fillStyle = "rgba("+mix(t)+",0.95)";
+          ctx.fillStyle = "rgba("+col+",0.95)";
           ctx.beginPath(); ctx.arc(rn.x,rn.y,3.4,0,Math.PI*2); ctx.fill();
-          ctx.strokeStyle = "rgba("+mix(t)+","+(working?0.3:0.5)+")"; ctx.lineWidth = 1.2;
+          ctx.strokeStyle = "rgba("+col+","+(working?0.3:0.5)+")"; ctx.lineWidth = 1.2;
           ctx.beginPath(); ctx.arc(rn.x,rn.y,7,0,Math.PI*2); ctx.stroke();
           // Specialist working arc: a progress sweep from the top, clockwise.
           if(working){
-            ctx.strokeStyle = "rgba("+mix(t)+",0.9)"; ctx.lineWidth = 2;
+            ctx.strokeStyle = "rgba("+col+",0.9)"; ctx.lineWidth = 2; ctx.lineCap = "round";
             ctx.beginPath();
             ctx.arc(rn.x, rn.y, 7, -Math.PI/2, -Math.PI/2 + Math.PI*2*workProg[idx]);
             ctx.stroke();
+            ctx.lineCap = "butt";
           }
           // Auditor verdict ring tint during the gate.
-          if(idx === AUDITOR && auditorTint){
+          if(auditing){
             ctx.strokeStyle = "rgba("+auditorTint+",0.85)"; ctx.lineWidth = 2;
             ctx.beginPath(); ctx.arc(rn.x,rn.y,10,0,Math.PI*2); ctx.stroke();
           }
@@ -352,28 +476,16 @@
           }
         });
       }
-      // Only the live frame re-arms; a stale frame (running flipped off) exits cleanly.
-      raf = running ? requestAnimationFrame(step) : null;
     }
-    // start() is idempotent: one frame max in flight, never starts under reduced-motion.
-    function start(){
-      if(reduceMotion || raf || running) return;
-      running = true;
-      raf = requestAnimationFrame(step);
-    }
-    function stop(){
-      running = false;
-      if(raf){ cancelAnimationFrame(raf); raf = null; }
-    }
+    // start()/stop() register or unregister this field's step with the shared
+    // ticker. Idempotent (the ticker holds callbacks in a Set), and start never
+    // does anything under reduced-motion since this field is never created then.
+    function start(){ ticker.add(step); }
+    function stop(){ ticker.remove(step); }
 
     resize();
-    running = false; // ensure a clean baseline before the single start
     start();
     window.addEventListener("resize", () => { resize(); });
-    // Pause when the tab is hidden to stay performant; resume only when visible.
-    document.addEventListener("visibilitychange", () => {
-      if(document.hidden) stop(); else start();
-    });
 
     // Cursor reactivity, only where a fine hover pointer exists (skips touch devices).
     if(o.interactive && window.matchMedia && window.matchMedia("(hover: hover) and (pointer: fine)").matches){
@@ -389,6 +501,38 @@
     }
     return { start, stop };
   }
+
+  /* ---------- Site-wide ambient backdrop (every page) ----------
+     Injects ONE fixed, full-viewport canvas as the first child of <body>, then
+     runs a faint, drift-only version of the same node-network on it. No html
+     file is touched. The canvas is aria-hidden, pointer-events:none, and lives
+     at z-index:-1 (behind all content, above the page background), so it can
+     never affect layout, scroll, overflow, or text legibility. It shares the
+     single page rAF via the ticker, and is never created under reduced-motion.
+     The field is deliberately sparse and very low opacity: quiet depth, not a
+     focal point. The CSS keeps it subtle and masks its top band on the home
+     page so it composes cleanly with the brighter hero canvas. */
+  (function ambientBackdrop(){
+    const hero = document.getElementById("hero-canvas");
+    // Flag the home page so CSS can fade the ambient layer under the hero.
+    if(hero && document.body){ document.body.classList.add("has-hero"); }
+    // Skip the work entirely under reduced-motion (no canvas, nothing to clean up).
+    if(reduceMotion || !document.body) return;
+    if(document.getElementById("ambient-bg")) return; // never inject twice
+    const c = document.createElement("canvas");
+    c.id = "ambient-bg";
+    c.setAttribute("aria-hidden", "true");
+    // First child so it paints behind the skip-link, nav, main and footer.
+    document.body.insertBefore(c, document.body.firstChild);
+    // Very faint, sparse, slow. Pages with a hero get a touch sparser still so
+    // the hero stays the clear focal layer; content pages get the gentle ambient.
+    nodeField(c, {
+      area: hero ? 52000 : 46000,
+      min: 10, max: hero ? 26 : 34,
+      linkDist: 150, linkAlpha: 0.10, dotAlpha: 0.30, dotR: 1.3,
+      speed: 0.12, interactive: false, ambient: true
+    });
+  })();
 
   // Hero: cursor-reactive, the centerpiece motion. The labeled Coordinator ->
   // Specialists -> Auditor handoff CYCLE is the focus, so the drifting field

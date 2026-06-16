@@ -13,9 +13,14 @@
   --radius:16px; --maxw:1040px;
 }
 *{box-sizing:border-box}
-html{scroll-behavior:smooth}
+/* The page background lives on <html> so it is the bottom-most backstop. The
+   ambient canvas (position:fixed; z-index:-1, injected by site.js) then sits
+   above this backstop but below the transparent <body> content, so it shows
+   through without any markup change. The gradient is unchanged from before. */
+html{scroll-behavior:smooth;
+  background:radial-gradient(1200px 600px at 80% -10%, #1a1f2e 0%, var(--bg) 55%) no-repeat, var(--bg)}
 body{
-  margin:0; background:radial-gradient(1200px 600px at 80% -10%, #1a1f2e 0%, var(--bg) 55%) no-repeat, var(--bg);
+  margin:0; background:transparent;
   color:var(--ink); font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;
   -webkit-font-smoothing:antialiased;
 }
@@ -45,6 +50,26 @@ nav .wrap{display:flex;align-items:center;justify-content:space-between;height:6
 /* active page marker: the current page's nav item gets ink color + an underline */
 .navlinks a[aria-current="page"]{color:var(--ink);
   border-bottom:2px solid var(--accent);padding-bottom:3px}
+
+/* ============================================================
+   Site-wide ambient backdrop (injected by site.js on every page).
+   A single fixed, full-viewport canvas that sits BEHIND all content:
+   fixed so it never adds scroll height or horizontal overflow, very low
+   opacity so text stays fully legible, pointer-events:none and aria-hidden
+   so it is inert and invisible to assistive tech. The accent-gradient field
+   it draws is the same motif as the hero, kept faint here as quiet depth.
+   On the home page (which carries the brighter hero canvas) the body gets
+   .has-hero, which fades the ambient layer at the top so the two layers read
+   as one intentional composition instead of competing. */
+#ambient-bg{position:fixed;inset:0;width:100vw;height:100vh;z-index:-1;
+  opacity:.5;pointer-events:none;
+  -webkit-mask-image:radial-gradient(120% 120% at 80% 0%,#000 0%,#000 60%,rgba(0,0,0,.65) 100%);
+  mask-image:radial-gradient(120% 120% at 80% 0%,#000 0%,#000 60%,rgba(0,0,0,.65) 100%)}
+/* On pages that already have the prominent hero, dim the top band of the
+   ambient layer so it never crowds the hero cycle, then ease it back in below. */
+body.has-hero #ambient-bg{
+  -webkit-mask-image:linear-gradient(180deg,transparent 0,rgba(0,0,0,.55) 70vh,#000 110vh);
+  mask-image:linear-gradient(180deg,transparent 0,rgba(0,0,0,.55) 70vh,#000 110vh)}
 
 /* hero */
 header{position:relative;padding:88px 0 56px;overflow:hidden}
@@ -597,8 +622,10 @@ footer a{color:var(--muted)} footer a:hover{color:var(--ink)}
   .reveal{opacity:1;transform:none;transition:none}
   .bar-fill{transition:none}
   .btn:hover, .card:hover{transform:none}
-  /* Both animated canvases stay hidden and static under reduced-motion. */
-  #hero-canvas, #data-echo{display:none}
+  /* All animated canvases stay hidden and static under reduced-motion. The
+     ambient backdrop renders nothing (site.js also never starts it here), so
+     no motion appears anywhere and the page background alone shows through. */
+  #hero-canvas, #data-echo, #ambient-bg{display:none}
   /* In their place, the static labeled orchestration diagram appears (no motion). */
   #hero-static{display:block}
   /* Process diagram: show the full diagram immediately, fully lit, no draw/transition. */
@@ -613,4 +640,128 @@ footer a{color:var(--muted)} footer a:hover{color:var(--ink)}
   .guard-run:hover, .guard-reset:hover{transform:none}
   .teardown summary .chev{transition:none}
   *{animation:none !important}
+}
+
+/* ============================================================
+   Layout balance: count-aware, section-scoped grid columns.
+   The shared base grids use repeat(auto-fit,minmax(...)), which
+   orphans the last card whenever the item count does not divide
+   evenly into the columns that fit at a given width (e.g. 4 cards
+   -> 3+1, or 3 cards -> 2+1 at tablet). These rules pin explicit
+   column counts per section at clean breakpoints so no grid ever
+   leaves a lone card stranded beside dead space, and sparse blocks
+   read as intentional. Single column below 640px everywhere, so an
+   orphan is impossible on phones. Cards keep equal heights because
+   grid items stretch by default and .card is a flex column.
+   Breakpoints: 640px = two-up tier, 900px = three-up tier.
+   ============================================================ */
+
+/* (1) About / How I build: #approach .grid has 4 method cards.
+   Balanced 2x2 from 640px up; auto-fit never gets to orphan 3+1. */
+@media (min-width:640px){
+  #approach .grid{grid-template-columns:repeat(2,1fr)}
+}
+
+/* (1b) adel-points supporting lists (home delivery + about): 4 items.
+   Pin to a 2x2 so the fourth item never sits alone in a 3-up row. */
+@media (min-width:640px){
+  .adel-points{grid-template-columns:repeat(2,1fr)}
+}
+
+/* (2) Work index groups (/work): each .work-group .grid holds a
+   different count (2, 3, 1). Pin columns to the group size at each
+   tier so none orphan, and constrain a lone card so it sits at a
+   natural card width instead of stretching full-bleed with 50%+
+   empty beside it. Groups are tagged in source by their card count
+   via :has(); a no-:has() fallback covers older engines below. */
+@supports selector(:has(*)){
+  /* two-card group: side by side from 640px, never a 1+1 orphan row */
+  .work-group .grid:has(> .card:nth-child(2):last-child){
+    grid-template-columns:repeat(2,minmax(0,1fr))}
+  /* three-card group: one column to 900px, then 3-across (skips the
+     2-column tablet state that would strand the third card) */
+  .work-group .grid:has(> .card:nth-child(3):last-child){
+    grid-template-columns:1fr}
+  @media (min-width:900px){
+    .work-group .grid:has(> .card:nth-child(3):last-child){
+      grid-template-columns:repeat(3,minmax(0,1fr))}
+  }
+  /* lone-card group (e.g. Operations): hold the single card to a
+     natural ~half-to-third width and left-align it, so it reads as a
+     deliberate single item, not a full-width banner with a dead zone */
+  .work-group .grid:has(> .card:only-child){
+    grid-template-columns:minmax(0,420px);justify-content:start}
+}
+/* Fallback for engines without :has(): keep the work-group grids on a
+   sane card-width track so the lone card cannot bleed full width and
+   the multi-card groups wrap without a stranded trailing card. */
+@supports not selector(:has(*)){
+  .work-group .grid{grid-template-columns:repeat(auto-fit,minmax(300px,360px));
+    justify-content:start}
+  @media (max-width:639px){
+    .work-group .grid{grid-template-columns:1fr}
+  }
+}
+
+/* (3) Contact page: two contact cards. Cap to two columns and cap the
+   container width so the pair feels like an intentional, centered block
+   rather than two small cards floating in a wide empty page. */
+.about .grid{max-width:760px;grid-template-columns:1fr}
+@media (min-width:640px){
+  .about .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+
+/* (4) Home "Selected work": #work .grid has 3 cards. One column below
+   900px, three across at and above it. This deliberately skips any
+   2-column width, which at 768 to 900 would orphan the third card. */
+#work .grid{grid-template-columns:1fr}
+@media (min-width:900px){
+  #work .grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+
+/* (5) Home stats: #stats .hl has 2 tiles. Pin to two-up from 640px so
+   they balance side by side instead of spreading across auto-fit
+   columns. (The <=480px rule below already gives a tidy 2-up phone
+   layout; between 481 and 639 they stack, which never orphans.) */
+@media (min-width:640px){
+  #stats .hl{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+
+/* (6) Home "Agent-driven delivery": the .adel panel already fills the
+   .wrap, but its lede and estimate copy use max-width:720 and would
+   read as half-empty in the wide panel. Widen those measures so the
+   text fills the panel as one balanced block (no content change). */
+#delivery .adel-lede,
+#delivery .adel-est p{max-width:none}
+
+/* (7) About "Data craft": .data-cols has 3 cards. Same treatment as
+   home Selected work: one column to 900px, three across above it, so
+   the tablet 2-column state cannot strand the third card. */
+.data-cols{grid-template-columns:1fr}
+@media (min-width:900px){
+  .data-cols{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+
+/* (8) Ambient backdrop on tall pages: the fixed #ambient-bg mask faded
+   from a point at 80% 0% and bottomed out at .65 opacity, which on a
+   long page leaves the lower viewport visibly flatter than the top.
+   Carry the field fully down so there is no flat dead band low on tall
+   pages. The hero pages keep their own top fade via body.has-hero
+   (declared earlier), so this only adjusts the default mask floor. */
+#ambient-bg{
+  -webkit-mask-image:radial-gradient(140% 130% at 80% 0%,#000 0%,#000 72%,rgba(0,0,0,.82) 100%);
+  mask-image:radial-gradient(140% 130% at 80% 0%,#000 0%,#000 72%,rgba(0,0,0,.82) 100%)}
+
+/* Safety: never let these pinned multi-column grids force horizontal
+   overflow on very narrow phones. Below 480px everything is one column.
+   (#stats .hl is intentionally excluded: the existing <=480px rule above
+   gives it a deliberate, non-orphaning 2x2 phone layout that stands.) */
+@media (max-width:480px){
+  #approach .grid,
+  .adel-points,
+  .work-group .grid,
+  .about .grid,
+  #work .grid,
+  .data-cols{grid-template-columns:1fr}
+  .work-group .grid{justify-content:stretch}
 }

@@ -32,8 +32,17 @@
 <main id="main">
 
 <section id="about"><div class="wrap about">
+  <style>
+    /* scoped credential styles (cred-) so they cannot collide with site.css; tokens reused */
+    .cred-line{display:inline-flex;align-items:baseline;gap:9px;margin:4px 0 8px;padding:8px 14px;border:1px solid var(--line,#23262f);border-radius:12px;background:linear-gradient(180deg,rgba(110,168,254,.06),rgba(157,123,255,.03));max-width:100%;}
+    .cred-line .cred-dot{flex:none;width:7px;height:7px;border-radius:50%;background:linear-gradient(135deg,var(--accent,#6ea8fe),var(--accent2,#9d7bff));align-self:center;}
+    .cred-line .cred-txt{font-size:.92rem;line-height:1.45;color:var(--fg,#e8ebf2);}
+    .cred-line .cred-name{font-weight:600;}
+    .cred-line .cred-sub{color:var(--dim,#8a92a6);}
+  </style>
   <div class="sec-head reveal"><h1>About</h1><div class="rule"></div></div>
   <p class="reveal">I'm <strong>Brad O'Haire</strong>, currently a Data Collection Lead on a humanoid robotics data program, building toward technical program management and AI research engineering. I run several ventures on the side, and the throughline in all of it is the same: <strong>turn messy, multi-threaded work into systems that route, gate, and ship.</strong></p>
+  <p class="reveal"><span class="cred-line"><span class="cred-dot" aria-hidden="true"></span><span class="cred-txt"><span class="cred-name">Claude Certified Architect (Foundations)</span><span class="cred-sub">, issued by Anthropic.</span></span></span></p>
   <p class="reveal d1">My day job is data. I lead collection on a robotics program, where the work is getting clean, well-labeled, repeatable data out of a messy physical process and keeping the pipeline honest end to end. On that program I have shipped two agents into production with real, measured outcomes, and I treat the agent work the way I treat the data: as pipelines with guardrails. Collect carefully, act inside a known envelope, and never let a read-only job quietly turn into a write.</p>
   <p class="reveal d2">The repos here are real working systems, genericized for public release. Every one was audited for secrets and personal data before it went up. I care about guardrails as much as capability. The interesting part of an agent isn't what it <em>can</em> do, it's what it's allowed to do and how that's enforced. I also operate a five-car fleet of instrumented Tesla vehicles on live telematics, which keeps the discipline concrete: real-time data in, guardrails on what acts automatically, a human on the calls that carry liability.</p>
 </div></section>

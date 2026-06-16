@@ -35,7 +35,26 @@
 
 <!-- ===== Intro: the principles I build by ===== -->
 <section id="pr-intro"><div class="wrap">
+  <style>
+    /* scoped credential styles (cred-) so they cannot collide with site.css or principles.css; tokens reused */
+    .cred-badge{display:flex;align-items:center;gap:16px;margin:18px 0 26px;padding:20px 22px;border:1px solid var(--line,#23262f);border-radius:14px;background:linear-gradient(180deg,rgba(110,168,254,.06),rgba(157,123,255,.03));max-width:760px;}
+    .cred-badge .cred-mark{flex:none;display:flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,var(--accent,#6ea8fe),var(--accent2,#9d7bff));color:#0a0b0f;font-weight:700;font-size:.92rem;letter-spacing:.02em;}
+    .cred-badge .cred-meta{min-width:0;}
+    .cred-badge .cred-kicker{display:block;font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--accent,#6ea8fe);font-weight:600;margin-bottom:3px;}
+    .cred-badge .cred-name{display:block;font-weight:600;font-size:1rem;color:var(--fg,#e8ebf2);line-height:1.35;}
+    .cred-badge .cred-sub{color:var(--dim,#8a92a6);font-weight:400;}
+    .cred-badge .cred-tie{display:block;margin-top:4px;font-size:.86rem;line-height:1.5;color:var(--dim,#8a92a6);}
+    @media (max-width:480px){.cred-badge{gap:13px;padding:16px 15px;margin:14px 0 22px;}.cred-badge .cred-mark{width:34px;height:34px;font-size:.86rem;}}
+  </style>
   <div class="sec-head reveal"><h1>Principles I build by</h1><div class="rule"></div></div>
+  <div class="cred-badge reveal">
+    <span class="cred-mark" aria-hidden="true">CCA</span>
+    <span class="cred-meta">
+      <span class="cred-kicker">Credential</span>
+      <span class="cred-name">Claude Certified Architect <span class="cred-sub">(Foundations), Anthropic</span></span>
+      <span class="cred-tie">These principles reflect how I build agentic systems, and the certification I hold.</span>
+    </span>
+  </div>
   <p class="pr-lede reveal">Anyone can wire a model to a tool and call it an agent. The engineering is in the rules that hold when no one is watching: how the loop knows it is done, what the system is allowed to touch, how work is split, how output is checked, and what survives once the context gets long. These are the five principles every system on this site is built on, each stated plainly, tied to real work, and paired with the failure it exists to prevent.</p>
 
   <!-- a compact, scannable index of the five; jump-links into the cards below -->
