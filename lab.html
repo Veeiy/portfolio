@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Lab · Brad O'Haire</title>
+<meta name="description" content="Inside the work. An interactive model of the orchestration engine I build: configure the autonomy dials and run a real, deterministic wave loop in your browser, gated by an auditor and held by a safety floor." />
+<link rel="canonical" href="https://bradohaire.com/lab" />
+<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+<meta name="theme-color" content="#0a0b0f" />
+<link rel="stylesheet" href="/assets/site.css" />
+<link rel="stylesheet" href="/assets/lab.css" />
+<script defer src="/assets/site.js"></script>
+<script defer src="/assets/lab.js"></script>
+</head>
+<body>
+
+<!-- ===== CANONICAL HEADER (identical markup on every page; update all copies together) ===== -->
+<a class="skip-link" href="#main">Skip to content</a>
+<nav><div class="wrap">
+  <a class="brand" href="/">Brad<span>.</span>OHaire</a>
+  <div class="navlinks">
+    <a href="/">Home</a>
+    <a href="/work">Work</a>
+    <a href="/lab" aria-current="page">Lab</a>
+    <a href="/about">About</a>
+    <a href="/contact">Contact</a>
+    <a id="nav-gh" href="https://github.com/Veeiy" target="_blank" rel="noopener">GitHub</a>
+  </div>
+</div></nav>
+<!-- ===== /CANONICAL HEADER ===== -->
+
+<main id="main">
+
+<!-- ===== Intro: Inside the work ===== -->
+<section id="lab-intro"><div class="wrap">
+  <div class="sec-head reveal"><h1>Inside the work</h1><div class="rule"></div></div>
+  <p class="lab-lede reveal">The case studies state what each system does. This page is for diving deeper into the agentic process itself: the routing, the parallel waves, the auditor gates, the autonomy dials, and the safety floor that makes the whole thing trustworthy. Start with the console below. Configure a run, then watch the engine work.</p>
+</div></section>
+
+<!-- ===== The Orchestrator Console (the centerpiece) ===== -->
+<section id="console-section"><div class="wrap">
+  <div class="sec-head reveal"><h2>The Orchestrator Console</h2><div class="rule"></div></div>
+  <p class="sec-intro reveal">Pick a mission, set how much autonomy the system has and how far it can reach, then press Run. The engine steps through waves of parallel agents, gates each wave through an auditor, catches a contradiction and routes it back, and stops cleanly at the definition of done or the run budget.</p>
+
+  <div class="console reveal" id="console">
+    <!-- Honesty caption: required, visible, never implies live inference -->
+    <p class="console-honesty">
+      <span class="console-honesty-tag">How this works</span>
+      An interactive model of the orchestration engine I build. The control logic, gating, autonomy dials, run budget, and safety floor are real and run in your browser. The agent outputs shown are illustrative, not live model calls. Same inputs, same run, every time. Nothing is sent anywhere.
+    </p>
+
+    <!-- ===== Controls ===== -->
+    <div class="console-controls" role="group" aria-label="Run configuration">
+
+      <div class="ctrl-block ctrl-mission">
+        <label class="ctrl-label" for="con-mission">Mission</label>
+        <div class="ctrl-hint">What the system is being asked to deliver.</div>
+        <select id="con-mission" class="con-select">
+          <option value="portfolio">Build this portfolio site</option>
+          <option value="labeling">First-pass labeling pipeline</option>
+          <option value="product">Ship a product</option>
+        </select>
+      </div>
+
+      <div class="ctrl-block">
+        <span class="ctrl-label" id="lbl-autonomy">Execution autonomy</span>
+        <div class="ctrl-hint">How much a human stays in the loop, per step.</div>
+        <div class="segmented" role="radiogroup" aria-labelledby="lbl-autonomy" id="seg-autonomy">
+          <button type="button" class="seg" role="radio" aria-checked="true"  data-val="full">Full</button>
+          <button type="button" class="seg" role="radio" aria-checked="false" data-val="checkpoint">Checkpoint</button>
+          <button type="button" class="seg" role="radio" aria-checked="false" data-val="manual">Manual</button>
+        </div>
+      </div>
+
+      <div class="ctrl-block">
+        <span class="ctrl-label" id="lbl-authority">External authority</span>
+        <div class="ctrl-hint">How far the system can reach into the real world.</div>
+        <div class="segmented" role="radiogroup" aria-labelledby="lbl-authority" id="seg-authority">
+          <button type="button" class="seg" role="radio" aria-checked="true"  data-val="1">Tier 1</button>
+          <button type="button" class="seg" role="radio" aria-checked="false" data-val="2">Tier 2</button>
+          <button type="button" class="seg" role="radio" aria-checked="false" data-val="3">Tier 3</button>
+        </div>
+      </div>
+
+      <div class="ctrl-block ctrl-actions">
+        <div class="console-buttons">
+          <button type="button" class="con-run" id="con-run">Run</button>
+          <button type="button" class="con-reset" id="con-reset">Reset</button>
+          <button type="button" class="con-continue" id="con-continue" hidden>Continue</button>
+        </div>
+        <p class="ctrl-tier-note" id="con-tier-note"></p>
+      </div>
+    </div>
+
+    <!-- ===== Run meta: wave X of N, dispatch budget, status ===== -->
+    <div class="console-meta" id="con-meta">
+      <div class="meta-cell">
+        <span class="meta-k">Wave</span>
+        <span class="meta-v"><b id="meta-wave">0</b> of <span id="meta-waves">4</span></span>
+      </div>
+      <div class="meta-cell">
+        <span class="meta-k">Dispatches</span>
+        <span class="meta-v"><b id="meta-used">0</b> of <span id="meta-budget">12</span></span>
+      </div>
+      <div class="meta-cell">
+        <span class="meta-k">State</span>
+        <span class="meta-v"><b id="meta-state">Idle</b></span>
+      </div>
+    </div>
+    <!-- aria-live region: announces run status to screen readers -->
+    <p class="visually-hidden" id="con-aria" role="status" aria-live="polite"></p>
+
+    <!-- ===== Stage: wave DAG (left) + run log (right) ===== -->
+    <div class="console-stage">
+
+      <div class="con-dag-wrap">
+        <p class="con-pane-cap">Wave plan</p>
+        <div class="con-dag" id="con-dag" aria-hidden="true">
+          <!-- waves injected by lab.js; static fallback also rendered there under reduced-motion -->
+        </div>
+        <p class="con-dag-empty" id="con-dag-empty">Press Run to dispatch the first wave.</p>
+      </div>
+
+      <div class="con-log-wrap">
+        <p class="con-pane-cap">Run log <span class="con-log-illus">Illustrative output</span></p>
+        <ol class="con-log" id="con-log" aria-hidden="true"></ol>
+        <p class="con-log-empty" id="con-log-empty">The run log streams here. Lines are illustrative, not live model calls.</p>
+      </div>
+
+    </div>
+  </div>
+</div></section>
+
+<!-- ===== EMPTY PLACEHOLDER: The real rollout (Build 2 fills this) ===== -->
+<section id="rollout"><div class="wrap">
+  <div class="sec-head reveal"><h2>The real rollout</h2><div class="rule"></div></div>
+  <p class="sec-intro reveal">A wave-by-wave walkthrough of how this site was actually built by orchestrating agents, with the real decisions opened up.</p>
+  <p class="lab-soon reveal"><span class="lab-soon-tag">Coming in this build</span> An explorable, animated timeline of the real rollout.</p>
+  <!-- BUILD 2: rollout explorable goes here. Section shell only, so the #rollout anchor exists. -->
+</div></section>
+
+<!-- ===== EMPTY PLACEHOLDER: Triage Desk (Build 2 fills this) ===== -->
+<section id="triage"><div class="wrap">
+  <div class="sec-head reveal"><h2>Triage Desk</h2><div class="rule"></div></div>
+  <p class="sec-intro reveal">A use-it-yourself tool: paste a batch of lines and watch a real client-side classifier auto-bucket them, with a human confirming every call.</p>
+  <p class="lab-soon reveal"><span class="lab-soon-tag">Coming in this build</span> An interactive triage tool that runs entirely in your browser.</p>
+  <!-- BUILD 2: Triage Desk tool goes here. Section shell only, so the #triage anchor exists. -->
+</div></section>
+
+</main>
+
+<!-- ===== CANONICAL FOOTER (identical markup on every page; update all copies together) ===== -->
+<footer><div class="wrap">
+  <span>© 2026 Brad O'Haire</span>
+  <span><a href="/work">Work</a> · <a href="/about">About</a> · <a href="/contact">Contact</a> · <a id="foot-gh" href="https://github.com/Veeiy" target="_blank" rel="noopener">GitHub</a> · <a href="mailto:bradtohaire@gmail.com">Email</a></span>
+</div></footer>
+<!-- ===== /CANONICAL FOOTER ===== -->
+
+</body>
+</html>
