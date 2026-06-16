@@ -733,3 +733,634 @@
   }
 
 })();
+
+
+/* ============================================================
+   The real rollout: explorable timeline (/lab #rollout).
+   A SEPARATE, self-contained IIFE with its OWN root null-check, so
+   it no-ops anywhere the timeline is absent (every page but /lab),
+   leaving zero console errors and independent of the console above.
+
+   Two jobs, both progressive enhancement on top of working markup:
+     1) Render the small wave-stat chips (agents dispatched + gate
+        verdict) from a data array. This array is the rollout's OWN
+        record of how this site was built, not a business metric and
+        not invented. The static HTML carries the same values as a
+        no-JS fallback; we re-render so the source of truth is one
+        array, the same single-source-of-truth discipline the rest
+        of the build follows.
+     2) Stagger the scroll-reveal: set --rw-i per wave and add .rw-in
+        as each enters view. Under reduced-motion or without
+        IntersectionObserver, reveal everything at once. The
+        expand/collapse is native <details>, so it needs no JS and
+        keeps working regardless of this block.
+   ============================================================ */
+(function(){
+  "use strict";
+
+  const timeline = document.getElementById("rollout-timeline");
+  if(!timeline) return; // not on /lab (or shell missing): no-op, zero errors.
+
+  const reduceMotion = window.matchMedia &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* The rollout's own record, wave by wave. verdict drives both the chip
+     label and its color class. This is the record of THIS build, presented
+     as the project's own log, exactly as the visible gate stamps already show. */
+  const ROLLOUT = [
+    { agents:3, verdict:"Pass" },  // 1 Ideation
+    { agents:1, verdict:"Pass" },  // 2 Synthesis + gate
+    { agents:5, verdict:"Pass" },  // 3 Build
+    { agents:1, verdict:"Warn" },  // 4 Auditor gate
+    { agents:2, verdict:"Warn" },  // 5 Persona testing
+    { agents:2, verdict:"Pass" },  // 6 Iterate
+    { agents:1, verdict:"Pass" }   // 7 Deploy
+  ];
+
+  const waves = Array.prototype.slice.call(timeline.querySelectorAll("[data-rw]"));
+
+  // ---- 1) Re-render the stat chips from the data array (idempotent) ----
+  waves.forEach((wave, i) => {
+    const rec = ROLLOUT[i];
+    const slot = wave.querySelector("[data-rollout-stats]");
+    if(!rec || !slot) return; // tolerate any markup/array mismatch, no throw
+
+    const vClass = rec.verdict === "Warn" ? "rw-v-warn"
+                 : rec.verdict === "Block" ? "rw-v-block"
+                 : "rw-v-pass";
+
+    // build with DOM nodes (no innerHTML) so text can never be parsed as markup
+    slot.textContent = "";
+    const mk = (kText, vText, vCls) => {
+      const stat = document.createElement("span");
+      stat.className = "rw-stat";
+      const k = document.createElement("span");
+      k.className = "rw-stat-k"; k.textContent = kText;
+      const v = document.createElement("span");
+      v.className = "rw-stat-v" + (vCls ? " " + vCls : ""); v.textContent = vText;
+      stat.appendChild(k); stat.appendChild(v);
+      return stat;
+    };
+    slot.appendChild(mk("Agents dispatched", String(rec.agents)));
+    slot.appendChild(mk("Gate verdict", rec.verdict, vClass));
+  });
+
+  // ---- 2) Staggered scroll-reveal of each wave row ----
+  // Assign a stagger index used by the CSS transition-delay (capped so a long
+  // list never delays absurdly), then reveal on intersection.
+  waves.forEach((wave, i) => { wave.style.setProperty("--rw-i", String(Math.min(i, 6))); });
+
+  function revealAll(){ waves.forEach(w => w.classList.add("rw-in")); }
+
+  if(reduceMotion || !("IntersectionObserver" in window)){
+    revealAll();
+    return;
+  }
+
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(en => {
+      if(en.isIntersecting){
+        en.target.classList.add("rw-in");
+        io.unobserve(en.target);
+      }
+    });
+  }, { threshold:0.12, rootMargin:"0px 0px -40px 0px" });
+  waves.forEach(w => io.observe(w));
+
+})();
+
+
+/* ============================================================
+   The Triage Desk: a real, working, client-side first-pass labeler
+   (/lab #triage). A SEPARATE, self-contained IIFE with its OWN root
+   null-check (#triage-desk), so it no-ops on every page that lacks
+   the tool (everywhere but /lab), leaving zero console errors and
+   fully independent of the console + rollout blocks above.
+
+   HONESTY, by construction:
+     - The classifier is a TRANSPARENT RULE-BASED SIGNAL MATCHER, not
+       a model and not AI. Each category owns a list of signal terms.
+       A line is scored by which signals match; the winning category
+       and a computed confidence are shown ALONGSIDE the exact signals
+       that fired (the "show the work"). Same input -> same output,
+       always. No randomness, no network, no inference.
+     - Everything runs in the browser. NOTHING the visitor pastes is
+       sent anywhere: there is no fetch / XHR / beacon in this file.
+     - Low-confidence or no-signal lines go to an explicit "Unsure"
+       lane and float to the TOP for review. That is the honest,
+       correct behaviour of a first-pass system.
+     - A human CONFIRMS or OVERRIDES every row. The tool tracks its
+       OWN counts (confirmed / overridden / needs-review). Those are
+       the tool's own tallies, never a business metric.
+     - Export builds a CSV / JSON file client-side via a Blob and an
+       object URL; no upload.
+   ============================================================ */
+(function(){
+  "use strict";
+
+  const root = document.getElementById("triage-desk");
+  if(!root) return; // not on /lab (or shell missing): no-op, zero errors.
+
+  const reduceMotion = window.matchMedia &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* ---------- DOM refs (each guarded at use) ---------- */
+  const ta         = document.getElementById("triage-text");
+  const goBtn      = document.getElementById("triage-go");
+  const sampleBtn  = document.getElementById("triage-sample");
+  const clearBtn   = document.getElementById("triage-clear");
+  const rowsEl     = document.getElementById("triage-rows");
+  const emptyEl    = document.getElementById("triage-empty");
+  const summaryEl  = document.getElementById("triage-summary");
+  const aria       = document.getElementById("triage-aria");
+  const exportBtn  = document.getElementById("triage-export");
+  const exportMenu = document.getElementById("triage-export-menu");
+  const exportCsv  = document.getElementById("triage-export-csv");
+  const exportJson = document.getElementById("triage-export-json");
+
+  const sumTotal      = document.getElementById("tsum-total");
+  const sumReview     = document.getElementById("tsum-review");
+  const sumConfirmed  = document.getElementById("tsum-confirmed");
+  const sumOverridden = document.getElementById("tsum-overridden");
+
+  /* ============================================================
+     The taxonomy. A fixed, universally legible set, plus an explicit
+     Unsure lane. Each category carries `signals`: terms or short
+     phrases that, when present, vote for that category. Matching is
+     case-insensitive and word-boundary aware (so "bug" does not fire
+     inside "debugger"; multi-word phrases match as substrings). This
+     list IS the classifier; it is shown to the user as the rules.
+     ============================================================ */
+  const CATEGORIES = [
+    { key:"bug",      label:"Bug",              cls:"cat-bug",
+      signals:["crash","crashes","crashed","error","errors","bug","broken","broke","breaks",
+               "fails","failed","failing","freeze","frozen","glitch","not working",
+               "doesn't work","does not work","won't load","wont load","stuck","blank screen",
+               "500","404","exception","unresponsive","hangs"] },
+    { key:"feature",  label:"Feature request",  cls:"cat-feature",
+      signals:["please add","add a","add an","add support","would love","wish","it would be great",
+               "feature request","can you add","could you add","would be nice","i'd like",
+               "id like","support for","ability to","option to","allow me to","integrate with",
+               "dark mode","export to","make it possible"] },
+    { key:"question", label:"Question",         cls:"cat-question",
+      signals:["how do i","how do you","how can i","how to","what is","what's the","whats the",
+               "where do i","where is","why does","why is","can i","is there a way","is it possible",
+               "do you support","does it","which","when will","help me understand","?"] },
+    { key:"praise",   label:"Positive feedback",cls:"cat-praise",
+      signals:["love","loved","awesome","amazing","great job","fantastic","excellent","best",
+               "thank you","thanks","brilliant","perfect","works great","so good","really nice",
+               "well done","impressed","game changer","life saver","wonderful","favorite"] }
+  ];
+  const UNSURE = { key:"unsure", label:"Unsure", cls:"cat-unsure" };
+
+  // For the override dropdown: every real category plus the Unsure lane.
+  const ALL_LANES = CATEGORIES.concat([UNSURE]);
+
+  /* ---------- Sample lines (CLEARLY labeled as sample in the UI) ----------
+     Realistic, de-identified, one per line, covering every lane including a
+     deliberately ambiguous one that should land in Unsure. */
+  const SAMPLE = [
+    "The app crashes every time I tap export on my phone.",
+    "Could you please add a dark mode for late-night use?",
+    "How do I reset my password if I lost access to my email?",
+    "Honestly this is the best scheduling tool I have used all year.",
+    "It says error 500 when I try to save a draft.",
+    "Would love the ability to bulk-tag items in one go.",
+    "Is there a way to export my data to CSV?",
+    "Thanks so much, the new layout works great on mobile.",
+    "the thing on the page",
+    "Login is broken and the dashboard won't load after the update."
+  ].join("\n");
+
+  /* ============================================================
+     The classifier. Pure function: text in, a verdict out, with the
+     matched signals. Deterministic. No state, no network.
+
+     Scoring: for each category, sum a small weight per distinct signal
+     that matches the line. The category with the top score wins. We
+     then compute a confidence from (a) the winning raw score and (b)
+     the MARGIN over the runner-up. No signals at all, or a winner that
+     barely edges the field, routes to the Unsure lane (low confidence
+     floats up). This margin rule is what makes "Unsure" honest rather
+     than a dumping ground.
+     ============================================================ */
+  // Escape a signal term for use in a RegExp.
+  function esc(s){ return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
+
+  // Does `term` occur in `text`? Word-boundary aware for alphanumeric
+  // terms; plain substring for phrases/punctuation (spaces, "?", etc.).
+  function hasSignal(text, term){
+    if(/[^a-z0-9]/.test(term)){
+      // phrase or punctuation signal: substring match (already lowercased)
+      return text.indexOf(term) !== -1;
+    }
+    // single token: require word boundaries so "bug" != "debugger"
+    const re = new RegExp("\\b" + esc(term) + "\\b");
+    return re.test(text);
+  }
+
+  function classify(rawLine){
+    const text = rawLine.toLowerCase();
+    const scores = {};
+    const matched = {};
+    let topKey = null, topScore = 0, secondScore = 0;
+
+    CATEGORIES.forEach(cat => {
+      let score = 0;
+      const fired = [];
+      cat.signals.forEach(sig => {
+        if(hasSignal(text, sig)){ score += 1; fired.push(sig); }
+      });
+      scores[cat.key] = score;
+      matched[cat.key] = fired;
+      if(score > topScore){ secondScore = topScore; topScore = score; topKey = cat.key; }
+      else if(score > secondScore){ secondScore = score; }
+    });
+
+    // No signal fired anywhere -> honest Unsure, no confidence.
+    if(topScore === 0){
+      return { catKey:UNSURE.key, confidence:"low", pct:0, signals:[], reason:"no signal terms matched" };
+    }
+
+    const margin = topScore - secondScore;
+    // Confidence: a transparent function of the winner's strength and its
+    // separation from the runner-up. Tunable, but fixed + reproducible.
+    //   high  : a clear winner (>=2 signals) that also leads by >=2
+    //   medium: a winner that leads by >=1
+    //   low   : a tie or a single weak signal -> treat as Unsure lane
+    let confidence, catKey = topKey;
+    if(topScore >= 2 && margin >= 2){ confidence = "high"; }
+    else if(margin >= 1){ confidence = "medium"; }
+    else { confidence = "low"; catKey = UNSURE.key; } // tie at the top: float up to Unsure
+
+    // A computed percent for display: scaled from score + margin, capped.
+    // This is the tool's own arithmetic, shown for transparency, not a model probability.
+    const pct = Math.min(95, 45 + topScore * 12 + margin * 12);
+
+    return { catKey:catKey, confidence:confidence, pct:(catKey===UNSURE.key?Math.min(pct,40):pct),
+             signals:matched[topKey], reason:null, proposedKey:topKey };
+  }
+
+  function catByKey(key){
+    for(const c of ALL_LANES){ if(c.key === key) return c; }
+    return UNSURE;
+  }
+
+  /* ---------- Live state: one record per line, holding the proposal
+     and the human decision. This array is also what export serialises. ---------- */
+  let records = []; // { i, text, proposedKey, currentKey, confidence, pct, signals, decided:false, action:null }
+
+  /* ---------- Render helpers (DOM nodes only; no innerHTML for user text) ---------- */
+  function makeCatPill(catKey){
+    const c = catByKey(catKey);
+    const pill = document.createElement("span");
+    pill.className = "trow-cat " + c.cls;
+    const dot = document.createElement("span"); dot.className = "cat-dot";
+    const lab = document.createElement("span"); lab.textContent = c.label;
+    pill.appendChild(dot); pill.appendChild(lab);
+    return pill;
+  }
+
+  function renderRow(rec){
+    const li = document.createElement("li");
+    li.className = "trow";
+    li.setAttribute("data-i", String(rec.i));
+
+    // index dot
+    const idx = document.createElement("span");
+    idx.className = "trow-idx";
+    idx.textContent = String(rec.i + 1);
+
+    const body = document.createElement("div");
+    body.className = "trow-body";
+
+    // the line text (user content -> textContent, never parsed as markup)
+    const txt = document.createElement("p");
+    txt.className = "trow-text";
+    txt.textContent = rec.text;
+
+    // proposal: category + confidence
+    const prop = document.createElement("div");
+    prop.className = "trow-proposed";
+    prop.appendChild(makeCatPill(rec.currentKey));
+    const conf = document.createElement("span");
+    const cMap = { high:"c-high", medium:"c-med", low:"c-low" };
+    conf.className = "trow-conf " + (cMap[rec.confidence] || "c-low");
+    conf.textContent = rec.confidence + " confidence" + (rec.pct ? " · " + rec.pct + "%" : "");
+    prop.appendChild(conf);
+
+    // why: the matched signals (show the work)
+    const why = document.createElement("p");
+    why.className = "trow-why";
+    const wk = document.createElement("span");
+    wk.className = "trow-why-k";
+    wk.textContent = "Why: ";
+    why.appendChild(wk);
+    if(rec.signals && rec.signals.length){
+      rec.signals.forEach(sig => {
+        const s = document.createElement("span");
+        s.className = "trow-sig";
+        s.textContent = sig;
+        why.appendChild(s);
+      });
+    } else {
+      const none = document.createElement("span");
+      none.className = "trow-why-none";
+      none.textContent = "no signal terms matched, routed to Unsure for a human";
+      why.appendChild(none);
+    }
+
+    // decision controls: confirm + override select + state note
+    const decide = document.createElement("div");
+    decide.className = "trow-decide";
+
+    const confirm = document.createElement("button");
+    confirm.type = "button";
+    confirm.className = "trow-confirm";
+    confirm.setAttribute("aria-pressed", rec.action === "confirmed" ? "true" : "false");
+    const ck = document.createElement("span"); ck.className = "tc-check";
+    const cl = document.createElement("span"); cl.textContent = "Confirm";
+    confirm.appendChild(ck); confirm.appendChild(cl);
+
+    const ovLab = document.createElement("label");
+    ovLab.className = "trow-override-lab";
+    ovLab.textContent = "Override:";
+    const selId = "trow-sel-" + rec.i;
+    ovLab.setAttribute("for", selId);
+
+    const sel = document.createElement("select");
+    sel.className = "trow-select";
+    sel.id = selId;
+    ALL_LANES.forEach(c => {
+      const opt = document.createElement("option");
+      opt.value = c.key; opt.textContent = c.label;
+      if(c.key === rec.currentKey) opt.selected = true;
+      sel.appendChild(opt);
+    });
+
+    const stateNote = document.createElement("span");
+    stateNote.className = "trow-state";
+    decide.appendChild(confirm);
+    decide.appendChild(ovLab);
+    decide.appendChild(sel);
+    decide.appendChild(stateNote);
+
+    // ---- wire the row's controls ----
+    confirm.addEventListener("click", () => {
+      // confirm locks the CURRENT proposal (or the current override) as accepted
+      rec.action = (rec.action === "confirmed") ? null : "confirmed";
+      if(rec.action === "confirmed"){ rec.decided = true; }
+      else { rec.decided = (rec.currentKey !== rec.proposedKey); rec.action = rec.decided ? "overridden" : null; }
+      applyRowState(li, rec, confirm, stateNote);
+      refreshSummary();
+    });
+
+    sel.addEventListener("change", () => {
+      rec.currentKey = sel.value;
+      if(rec.currentKey === rec.proposedKey){
+        // back to the proposal: it is no longer an override. Keep confirmed if it was.
+        rec.action = (rec.action === "confirmed") ? "confirmed" : null;
+        rec.decided = (rec.action === "confirmed");
+      } else {
+        rec.action = "overridden";
+        rec.decided = true;
+      }
+      // re-render the category pill to match the new lane
+      const oldPill = prop.querySelector(".trow-cat");
+      if(oldPill) prop.replaceChild(makeCatPill(rec.currentKey), oldPill);
+      applyRowState(li, rec, confirm, stateNote);
+      refreshSummary();
+    });
+
+    body.appendChild(txt);
+    body.appendChild(prop);
+    body.appendChild(why);
+    body.appendChild(decide);
+    li.appendChild(idx);
+    li.appendChild(body);
+
+    applyRowState(li, rec, confirm, stateNote);
+    return li;
+  }
+
+  // Paint a row's edge + state note from its decision, and keep the
+  // confirm button's pressed state in sync.
+  function applyRowState(li, rec, confirm, stateNote){
+    li.classList.remove("is-review","is-confirmed","is-overridden");
+    confirm.setAttribute("aria-pressed", rec.action === "confirmed" ? "true" : "false");
+    if(rec.action === "confirmed"){
+      li.classList.add("is-confirmed");
+      stateNote.className = "trow-state s-confirmed";
+      stateNote.textContent = "Confirmed";
+    } else if(rec.action === "overridden"){
+      li.classList.add("is-overridden");
+      stateNote.className = "trow-state s-overridden";
+      stateNote.textContent = "Overridden to " + catByKey(rec.currentKey).label;
+    } else {
+      stateNote.className = "trow-state";
+      stateNote.textContent = "";
+      // undecided + (Unsure or low confidence) -> flag for review
+      if(rec.currentKey === UNSURE.key || rec.confidence === "low"){
+        li.classList.add("is-review");
+      }
+    }
+  }
+
+  /* ---------- The summary strip: the tool's OWN counts ---------- */
+  function refreshSummary(){
+    const total = records.length;
+    let confirmed = 0, overridden = 0, review = 0;
+    records.forEach(r => {
+      if(r.action === "confirmed") confirmed += 1;
+      else if(r.action === "overridden") overridden += 1;
+      else if(r.currentKey === UNSURE.key || r.confidence === "low") review += 1;
+    });
+    if(sumTotal) sumTotal.textContent = String(total);
+    if(sumReview) sumReview.textContent = String(review);
+    if(sumConfirmed) sumConfirmed.textContent = String(confirmed);
+    if(sumOverridden) sumOverridden.textContent = String(overridden);
+    if(summaryEl) summaryEl.setAttribute("data-review", review > 0 ? "some" : "none");
+    say(total + " line" + (total===1?"":"s") + " triaged. " + review + " need review, " +
+        confirmed + " confirmed, " + overridden + " overridden.");
+  }
+
+  function say(msg){ if(aria) aria.textContent = msg; }
+
+  /* ---------- Run triage on the textarea contents ---------- */
+  function runTriage(){
+    if(!ta) return;
+    // split to lines, trim, drop blanks. Graceful on empty / whitespace / garbage.
+    const lines = ta.value.split(/\r?\n/).map(s => s.trim()).filter(s => s.length > 0);
+
+    if(rowsEl) rowsEl.innerHTML = "";
+    records = [];
+
+    if(lines.length === 0){
+      // empty / garbage input: keep the tool calm, explain, do not error.
+      root.classList.remove("has-run");
+      if(summaryEl) summaryEl.hidden = true;
+      if(exportBtn) exportBtn.hidden = true;
+      if(exportMenu) exportMenu.hidden = true;
+      if(emptyEl){
+        emptyEl.style.display = "";
+        emptyEl.textContent = "Nothing to triage yet. Paste one item per line, or load the sample, then press Triage.";
+      }
+      say("No lines to triage. Paste one item per line or load the sample.");
+      return;
+    }
+
+    // classify each line into a record
+    lines.forEach((line, i) => {
+      const v = classify(line);
+      records.push({
+        i: i,
+        text: line,
+        proposedKey: v.catKey,
+        currentKey: v.catKey,
+        confidence: v.confidence,
+        pct: v.pct,
+        signals: v.signals,
+        decided: false,
+        action: null
+      });
+    });
+
+    // Sort so low-confidence / Unsure rows float to the TOP for review,
+    // then by original order. Stable: map to index for a deterministic tie-break.
+    const rank = { low:0, medium:1, high:2 };
+    const ordered = records
+      .map((r, idx) => ({ r, idx }))
+      .sort((a, b) => {
+        const ra = a.r.currentKey === UNSURE.key ? -1 : rank[a.r.confidence];
+        const rb = b.r.currentKey === UNSURE.key ? -1 : rank[b.r.confidence];
+        if(ra !== rb) return ra - rb;
+        return a.idx - b.idx;
+      })
+      .map(o => o.r);
+
+    root.classList.add("has-run");
+    if(summaryEl) summaryEl.hidden = false;
+    if(exportBtn) exportBtn.hidden = false;
+
+    // render in the sorted (review-first) order; reveal with the row transition
+    ordered.forEach(rec => {
+      const li = renderRow(rec);
+      rowsEl.appendChild(li);
+      if(reduceMotion){ li.classList.add("show"); }
+      else { void li.offsetWidth; li.classList.add("show"); }
+    });
+
+    refreshSummary();
+  }
+
+  /* ============================================================
+     Export: build a CSV or JSON file entirely client-side via a Blob
+     and an object URL, then trigger a download. No upload, no network.
+     Serialises each record's text, the proposed label, the final
+     label, the confidence, the matched signals, and the human action.
+     ============================================================ */
+  function download(filename, text, mime){
+    try{
+      const blob = new Blob([text], { type: mime });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      // revoke on the next tick so the click is processed first
+      setTimeout(() => URL.revokeObjectURL(url), 0);
+      say("Exported " + records.length + " decisions as " + filename + ". The file was built in your browser.");
+    } catch(e){
+      say("Export could not start in this browser. Your decisions are still on the page.");
+    }
+  }
+
+  function csvCell(v){
+    const s = String(v == null ? "" : v);
+    // quote if it contains a comma, quote, or newline; double internal quotes
+    if(/[",\r\n]/.test(s)){ return '"' + s.replace(/"/g, '""') + '"'; }
+    return s;
+  }
+
+  function finalAction(r){
+    if(r.action === "confirmed") return "confirmed";
+    if(r.action === "overridden") return "overridden";
+    return "undecided";
+  }
+
+  function exportCSV(){
+    if(!records.length) return;
+    const header = ["line","text","proposed_label","final_label","confidence","matched_signals","human_action"];
+    const rows = records.map(r => [
+      r.i + 1,
+      r.text,
+      catByKey(r.proposedKey).label,
+      catByKey(r.currentKey).label,
+      r.confidence,
+      (r.signals || []).join("; "),
+      finalAction(r)
+    ].map(csvCell).join(","));
+    const csv = header.join(",") + "\r\n" + rows.join("\r\n") + "\r\n";
+    download("triage-decisions.csv", csv, "text/csv;charset=utf-8");
+  }
+
+  function exportJSON(){
+    if(!records.length) return;
+    const payload = {
+      tool: "Triage Desk (rule-based first-pass labeler)",
+      note: "Proposals are from a transparent client-side signal classifier, not a model. Final labels reflect human confirm/override.",
+      generated: new Date().toISOString(),
+      count: records.length,
+      decisions: records.map(r => ({
+        line: r.i + 1,
+        text: r.text,
+        proposed_label: catByKey(r.proposedKey).label,
+        final_label: catByKey(r.currentKey).label,
+        confidence: r.confidence,
+        matched_signals: r.signals || [],
+        human_action: finalAction(r)
+      }))
+    };
+    download("triage-decisions.json", JSON.stringify(payload, null, 2), "application/json");
+  }
+
+  /* ---------- Wiring ---------- */
+  if(goBtn) goBtn.addEventListener("click", runTriage);
+  if(sampleBtn) sampleBtn.addEventListener("click", () => {
+    if(ta){ ta.value = SAMPLE; ta.focus(); }
+    runTriage();
+  });
+  if(clearBtn) clearBtn.addEventListener("click", () => {
+    if(ta){ ta.value = ""; ta.focus(); }
+    records = [];
+    if(rowsEl) rowsEl.innerHTML = "";
+    root.classList.remove("has-run");
+    if(summaryEl) summaryEl.hidden = true;
+    if(exportBtn) exportBtn.hidden = true;
+    if(exportMenu) exportMenu.hidden = true;
+    if(emptyEl){
+      emptyEl.style.display = "";
+      emptyEl.textContent = "Press Triage to label your lines. Each row shows the proposed category, the confidence, and the signals that fired. You confirm or override every call.";
+    }
+    say("Cleared. Paste lines or load the sample, then press Triage.");
+  });
+
+  // Ctrl/Cmd+Enter in the textarea runs triage (keyboard convenience).
+  if(ta) ta.addEventListener("keydown", (e) => {
+    if((e.ctrlKey || e.metaKey) && e.key === "Enter"){ e.preventDefault(); runTriage(); }
+  });
+
+  // Export: the button reveals a small CSV / JSON group; the format
+  // buttons do the work. (A simple disclosure, no library.)
+  if(exportBtn) exportBtn.addEventListener("click", () => {
+    if(!exportMenu) { exportCSV(); return; }
+    const open = !exportMenu.hidden;
+    exportMenu.hidden = open;
+    exportBtn.setAttribute("aria-expanded", String(!open));
+    if(!open){ const f = exportMenu.querySelector("button"); if(f) f.focus(); }
+  });
+  if(exportCsv) exportCsv.addEventListener("click", exportCSV);
+  if(exportJson) exportJson.addEventListener("click", exportJSON);
+
+})();

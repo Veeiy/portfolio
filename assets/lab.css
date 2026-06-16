@@ -43,6 +43,7 @@
   color:var(--ink);font:inherit;font-size:14px;font-weight:600;border:1px solid var(--line);border-radius:11px;
   padding:11px 38px 11px 14px;min-height:44px}
 .con-select:hover{border-color:#37405a}
+.con-select:focus-visible,.trow-select:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:11px}
 
 /* segmented control: three real radio buttons */
 .segmented{display:inline-flex;background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:4px;gap:4px}
@@ -197,11 +198,130 @@
 }
 
 /* ============================================================
+   The real rollout: an explorable, depth-on-demand timeline.
+   Reuses the console's wave vocabulary (numbered dot, title +
+   role sub, and the SAME .gate-stamp / .gate-pass / .gate-warn /
+   .gdot pills defined above). Each wave is a native <details>, so
+   expand/collapse is keyboard- and screen-reader-operable with no
+   JS and collapsed by default. lab.js adds a scroll-reveal stagger
+   and stat chips on top; both have static fallbacks.
+   ============================================================ */
+.rollout-howto{display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap;color:var(--muted);font-size:13.5px;
+  line-height:1.6;max-width:820px;margin:0 0 22px;padding:14px 16px;background:var(--panel2);
+  border:1px solid var(--line);border-radius:12px}
+.rollout-howto-tag{flex:0 0 auto;font-size:10.5px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;
+  color:var(--accent);border:1px solid rgba(110,168,254,.3);border-radius:5px;padding:2px 8px;
+  margin-top:1px}
+
+/* the timeline: a single connector rail down the numbered dots */
+.rollout{list-style:none;margin:0;padding:0;position:relative}
+/* vertical rail: sits under the centre of the 28px dots (left:24px wrap pad is on .wrap, not here) */
+.rollout-wave{position:relative;padding:0 0 14px 0}
+.rollout-wave::before{content:"";position:absolute;left:13px;top:30px;bottom:-2px;width:2px;
+  background:linear-gradient(180deg,var(--accent),var(--accent2));opacity:.5}
+.rollout-wave:last-child::before{display:none}
+
+/* per-wave reveal: each step rises in on scroll, staggered by lab.js via --rw-i.
+   site.css owns the base .reveal on the <ol>; this adds a nested per-item lift that
+   lab.js triggers by adding .rw-in. Static + reduced-motion fallbacks show all. */
+.rollout-wave .rw-d{opacity:0;transform:translateY(16px);
+  transition:opacity .55s ease,transform .55s cubic-bezier(.22,1,.36,1);
+  transition-delay:calc(var(--rw-i, 0) * 80ms)}
+.rollout-wave.rw-in .rw-d{opacity:1;transform:none}
+
+/* the wave row (summary): the clickable header, reusing console dot + title shapes */
+.rw-d{background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid var(--line);
+  border-radius:var(--radius);overflow:hidden}
+.rw-sum{cursor:pointer;list-style:none;display:flex;align-items:center;gap:12px;padding:15px 18px;min-height:44px}
+.rw-sum::-webkit-details-marker{display:none}
+.rw-d[open]{border-color:#37405a}
+.rw-d[open] .rw-sum{border-bottom:1px solid var(--line)}
+.rw-sum:hover{background:rgba(110,168,254,.04)}
+/* numbered dot, same size/treatment as the console .wave-dot but lit by default
+   (these waves already happened, so they read as done) */
+.rw-dot{flex:0 0 auto;width:28px;height:28px;border-radius:50%;border:1.5px solid var(--accent);
+  display:inline-flex;align-items:center;justify-content:center;font-size:12.5px;font-weight:700;
+  color:var(--ink);background:var(--panel)}
+.rw-title{flex:1;min-width:0}
+.rw-name{display:block;color:var(--ink);font-size:14.5px;font-weight:600;letter-spacing:-.1px}
+.rw-sub{display:block;color:var(--dim);font-size:12px;margin-top:1px}
+/* the gate stamp is the console's pill; ensure it never shrinks in the flex row */
+.rw-stamp{flex:0 0 auto}
+/* + / x expander affordance; rotates to a x when open. aria handled by <details>. */
+.rw-chev{flex:0 0 auto;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;
+  color:var(--dim);font-size:18px;font-weight:400;line-height:1;border:1px solid var(--line);border-radius:7px;
+  transition:transform .25s ease,color .2s ease,border-color .2s ease}
+.rw-sum:hover .rw-chev{color:var(--ink);border-color:#37405a}
+.rw-d[open] .rw-chev{transform:rotate(45deg);color:var(--accent);border-color:rgba(110,168,254,.45)}
+
+/* the expanded body */
+.rw-body{padding:16px 18px 18px}
+.rw-body > p{color:var(--muted);font-size:14.5px;line-height:1.6;margin:0 0 12px;max-width:760px}
+.rw-body > p:last-child{margin-bottom:0}
+.rw-scores b{color:var(--ink);font-weight:700;font-variant-numeric:tabular-nums}
+
+/* wave-stat chips: the rollout's OWN record (agents dispatched, gate verdict).
+   lab.js re-renders these from a data array; the static markup is the fallback. */
+.rw-stats{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px;padding:0}
+.rw-stat{display:inline-flex;align-items:center;gap:8px;background:var(--panel2);border:1px solid var(--line);
+  border-radius:9px;padding:7px 12px}
+.rw-stat-k{color:var(--dim);font-size:11px;font-weight:700;letter-spacing:.4px;text-transform:uppercase}
+.rw-stat-v{color:var(--ink);font-size:13px;font-weight:700;font-variant-numeric:tabular-nums}
+.rw-stat-v.rw-v-pass{color:var(--ok)}
+.rw-stat-v.rw-v-warn{color:#f6c454}
+
+/* decision cards: a featured real call, expandable on its own. Nested <details>,
+   so keyboard works without JS. The tag colors borrow the gate palette. */
+.rw-dec{margin:12px 0 0}
+.rw-dec-d{background:var(--panel2);border:1px solid var(--line);border-radius:11px;overflow:hidden}
+.rw-dec-d[open]{border-color:#37405a}
+.rw-dec-sum{cursor:pointer;list-style:none;display:flex;align-items:center;gap:11px;padding:12px 14px;min-height:44px}
+.rw-dec-sum::-webkit-details-marker{display:none}
+.rw-dec-sum:hover{background:rgba(110,168,254,.04)}
+.rw-dec-h{flex:1;min-width:0;color:var(--ink);font-size:13.5px;font-weight:600;line-height:1.4}
+.rw-dec-body{color:var(--muted);font-size:13.5px;line-height:1.6;margin:0;padding:0 14px 14px;max-width:720px}
+/* small chevron variant for the nested decision rows */
+.rw-chev.sm{width:20px;height:20px;font-size:15px}
+.rw-dec-d[open] .rw-chev.sm{transform:rotate(45deg);color:var(--accent);border-color:rgba(110,168,254,.45)}
+/* decision tag pills: a labeled verdict on the call. Reuse the gate palette semantics:
+   verified/promoted/reframed read as green-ish "good", measured/caught as accent,
+   rejected/block as red (a thing that was correctly turned down). */
+.rw-dec-tag{flex:0 0 auto;font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;
+  border-radius:999px;padding:4px 10px;border:1px solid transparent;white-space:nowrap}
+.rw-dec-verify,.rw-dec-promote{color:var(--ok);background:rgba(67,214,146,.12);border-color:rgba(67,214,146,.4)}
+.rw-dec-reframe{color:var(--accent2);background:rgba(157,123,255,.12);border-color:rgba(157,123,255,.4)}
+.rw-dec-measure{color:var(--accent);background:rgba(110,168,254,.12);border-color:rgba(110,168,254,.4)}
+.rw-dec-block{color:#ff6b6b;background:rgba(255,107,107,.13);border-color:rgba(255,107,107,.45)}
+
+/* ---- Rollout mobile: <=480px. The row reflows so the stamp drops under the title,
+   nothing overflows, and the rail/indent stays sane. ---- */
+@media (max-width:480px){
+  .rollout-howto{padding:13px 13px;font-size:13px}
+  .rw-sum{flex-wrap:wrap;gap:10px 12px;padding:14px 14px}
+  /* title takes the rest of the first row next to the dot; stamp + chev share row two */
+  .rw-title{flex:1 1 auto}
+  .rw-chev{order:2}
+  .rw-stamp{order:3}
+  .rollout-wave::before{left:13px}
+  .rw-body{padding:14px 14px 16px}
+  .rw-dec-sum{flex-wrap:wrap;gap:8px 10px}
+  .rw-dec-h{flex:1 1 100%;order:3}
+}
+/* very narrow: keep the decision tag and chevron from crowding the heading */
+@media (max-width:360px){
+  .rw-stat{padding:6px 10px}
+  .rw-dec-sum{padding:11px 12px}
+}
+
+/* ============================================================
    Reduced motion: the console renders a COMPLETE, static,
    already-resolved run. No animation, no transitions, no pulse.
    Every wave is shown in its final state with its gate stamp;
    the safety-floor block is shown. Run / Reset still work
    (lab.js re-renders the same resolved snapshot, no sequencing).
+   The rollout timeline shows every wave's reveal at full strength
+   and keeps the expand/collapse working (it is native <details>);
+   only the motion is dropped.
    ============================================================ */
 @media (prefers-reduced-motion: reduce){
   .wave,.agent-node,.gate-stamp,.log-line,.wave-retry,.wave + .wave::before,.wave-dot,.an-pulse{
@@ -215,4 +335,186 @@
   .con-run:hover,.con-reset:hover,.con-continue:hover{transform:none}
   /* pulse dots are static (no infinite keyframe) */
   .agent-node.dispatched .an-pulse{background:var(--accent);box-shadow:none}
+  /* Rollout: no per-item lift, no chevron-rotate transition. Expanders still work,
+     the chevron still rotates to its open state (just instantly), content readable. */
+  .rollout-wave .rw-d{opacity:1;transform:none;transition:none}
+  .rw-chev,.rw-chev.sm{transition:none}
+  .rw-sum:hover,.rw-dec-sum:hover{background:transparent}
+}
+
+/* ============================================================
+   The Triage Desk: a real, working, client-side first-pass
+   labeler. Visitors paste lines; a transparent rule-based signal
+   classifier proposes a category + confidence + the matched
+   signals (the "show the work"); a human confirms or overrides
+   every row; decisions export to CSV/JSON via a Blob. Reuses the
+   console's container/honesty/control/segmented + the gate-stamp
+   confidence palette. Zero new design tokens.
+   ============================================================ */
+.triage{background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid var(--line);
+  border-radius:var(--radius);padding:24px 24px 22px}
+
+/* honesty caption: same treatment as the console's, sits first */
+.triage-honesty{display:block;color:var(--muted);font-size:13px;line-height:1.6;margin:0 0 22px;
+  max-width:860px;padding:14px 16px;background:var(--panel2);border:1px solid var(--line);border-radius:12px}
+.triage-honesty-tag{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;
+  color:var(--accent);border:1px solid rgba(110,168,254,.3);border-radius:5px;padding:2px 8px;margin-right:10px;
+  vertical-align:middle}
+
+/* ---- Input ---- */
+.triage-input{padding-bottom:20px;margin-bottom:20px;border-bottom:1px solid var(--line)}
+.triage-label{display:block;color:var(--ink);font-weight:600;font-size:13.5px;margin:0 0 3px}
+.triage-hint{color:var(--dim);font-size:12px;line-height:1.4;margin:0 0 10px}
+.triage-textarea{display:block;width:100%;resize:vertical;min-height:128px;
+  background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:11px;
+  padding:12px 14px;font:inherit;font-size:14px;line-height:1.55}
+.triage-textarea::placeholder{color:var(--dim);opacity:.85}
+.triage-textarea:hover{border-color:#37405a}
+.triage-textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-color:transparent}
+
+.triage-buttons{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.triage-run{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;
+  padding:11px 24px;border-radius:11px;font-weight:700;font-size:14px;cursor:pointer;
+  background:linear-gradient(90deg,var(--accent),var(--accent2));color:#0a0b0f;border:none}
+.triage-run:hover{transform:translateY(-1px)}
+.triage-ghost{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;min-height:44px;
+  padding:11px 18px;border-radius:11px;font-weight:600;font-size:13.5px;cursor:pointer;
+  background:transparent;color:var(--muted);border:1px solid var(--line)}
+.triage-ghost:hover{border-color:var(--accent);color:var(--ink)}
+.triage-ghost.sm{min-height:38px;padding:8px 14px;font-size:13px}
+
+/* ---- Summary strip: the tool's OWN counts ---- */
+.triage-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:0 0 20px}
+.triage-summary[hidden]{display:none}
+.tsum-cell{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:13px 16px}
+.tsum-k{display:block;color:var(--dim);font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;margin:0 0 6px}
+.tsum-v{color:var(--muted);font-size:14px;font-variant-numeric:tabular-nums}
+.tsum-v b{color:var(--ink);font-weight:700;font-size:20px;font-variant-numeric:tabular-nums}
+/* the review count tints amber when nonzero (low confidence floats up) */
+.triage-summary[data-review="some"] #tsum-review{color:#f6c454}
+
+/* ---- Results header: caption + export ---- */
+.triage-results-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 14px}
+.triage-pane-cap{flex:1 1 auto;color:var(--dim);font-size:12px;font-weight:700;letter-spacing:.6px;
+  text-transform:uppercase;margin:0}
+.triage-illus{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.4px;text-transform:none;
+  color:var(--dim);border:1px solid var(--line);border-radius:5px;padding:2px 7px;margin-left:8px;
+  vertical-align:middle}
+.triage-export{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;min-height:38px;
+  padding:8px 16px;border-radius:10px;font-weight:600;font-size:13px;cursor:pointer;
+  background:transparent;color:var(--muted);border:1px solid var(--line)}
+.triage-export:hover{border-color:var(--accent);color:var(--ink)}
+.triage-export[hidden]{display:none}
+.triage-export-menu{flex:0 0 auto;display:inline-flex;gap:8px}
+.triage-export-menu[hidden]{display:none}
+
+/* ---- Results list ---- */
+.triage-rows{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.triage-empty{color:var(--dim);font-size:13px;line-height:1.5;margin:2px 0 0}
+.triage.has-run .triage-empty{display:none}
+
+/* a triage row: confidence rail + body (text, signals, decision controls) */
+.trow{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:start;
+  background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:14px 16px;
+  opacity:0;transform:translateY(4px);transition:opacity .25s ease,transform .25s ease}
+.trow.show{opacity:1;transform:none}
+/* a row flagged for review (Unsure or low confidence) gets an amber left edge */
+.trow.is-review{border-left:3px solid #f6c454;padding-left:13px}
+.trow.is-confirmed{border-left:3px solid var(--ok);padding-left:13px}
+.trow.is-overridden{border-left:3px solid var(--accent2);padding-left:13px}
+
+/* index dot, mirrors the console wave-dot shape */
+.trow-idx{flex:0 0 auto;width:26px;height:26px;border-radius:50%;border:1.5px solid var(--line);
+  display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;
+  color:var(--dim);background:var(--panel);font-variant-numeric:tabular-nums}
+
+.trow-body{min-width:0}
+.trow-text{color:var(--ink);font-size:14px;line-height:1.5;margin:0 0 10px;word-break:break-word;overflow-wrap:anywhere}
+
+/* the proposal line: category pill + confidence pill (reuses gate-stamp palette) */
+.trow-proposed{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 9px}
+.trow-cat{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:700;letter-spacing:.3px;
+  border-radius:999px;padding:4px 12px;border:1px solid transparent}
+.trow-cat .cat-dot{width:7px;height:7px;border-radius:50%;flex:0 0 auto}
+/* category colors: legible, reuse the palette already on the page */
+.cat-bug{color:#ff6b6b;background:rgba(255,107,107,.13);border-color:rgba(255,107,107,.45)}
+.cat-bug .cat-dot{background:#ff6b6b}
+.cat-feature{color:var(--accent);background:rgba(110,168,254,.12);border-color:rgba(110,168,254,.4)}
+.cat-feature .cat-dot{background:var(--accent)}
+.cat-question{color:var(--accent2);background:rgba(157,123,255,.12);border-color:rgba(157,123,255,.4)}
+.cat-question .cat-dot{background:var(--accent2)}
+.cat-praise{color:var(--ok);background:rgba(67,214,146,.12);border-color:rgba(67,214,146,.4)}
+.cat-praise .cat-dot{background:var(--ok)}
+.cat-unsure{color:#f6c454;background:rgba(246,196,84,.12);border-color:rgba(246,196,84,.4)}
+.cat-unsure .cat-dot{background:#f6c454}
+
+/* confidence chip */
+.trow-conf{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;letter-spacing:.4px;
+  text-transform:uppercase;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:3px 10px;
+  font-variant-numeric:tabular-nums}
+.trow-conf.c-high{color:var(--ok);border-color:rgba(67,214,146,.4)}
+.trow-conf.c-med{color:var(--accent);border-color:rgba(110,168,254,.4)}
+.trow-conf.c-low{color:#f6c454;border-color:rgba(246,196,84,.4)}
+
+/* "why": the matched signals that fired */
+.trow-why{color:var(--muted);font-size:12.5px;line-height:1.5;margin:0 0 11px}
+.trow-why-k{color:var(--dim);font-weight:700}
+.trow-sig{display:inline-block;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:11.5px;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:6px;
+  padding:1px 7px;margin:2px 5px 0 0}
+.trow-why-none{color:var(--dim);font-style:italic}
+
+/* the human-in-the-loop controls: confirm + an override select */
+.trow-decide{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.trow-confirm{display:inline-flex;align-items:center;gap:7px;min-height:38px;padding:7px 14px;border-radius:9px;
+  cursor:pointer;background:transparent;color:var(--muted);border:1px solid var(--line);font:inherit;font-size:13px;
+  font-weight:600}
+.trow-confirm:hover{border-color:var(--ok);color:var(--ink)}
+.trow-confirm[aria-pressed="true"]{color:var(--ok);background:rgba(67,214,146,.12);
+  border-color:rgba(67,214,146,.45)}
+.trow-confirm .tc-check{width:8px;height:8px;border-radius:50%;background:currentColor;flex:0 0 auto;opacity:.5}
+.trow-confirm[aria-pressed="true"] .tc-check{opacity:1}
+.trow-override-lab{color:var(--dim);font-size:12px;font-weight:600}
+.trow-select{appearance:none;-webkit-appearance:none;cursor:pointer;
+  background:var(--panel) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path d='M1 1l5 5 5-5' fill='none' stroke='%239aa3b2' stroke-width='1.6' stroke-linecap='round'/></svg>") no-repeat right 12px center;
+  color:var(--ink);font:inherit;font-size:13px;font-weight:600;border:1px solid var(--line);border-radius:9px;
+  padding:8px 32px 8px 12px;min-height:38px}
+.trow-select:hover{border-color:#37405a}
+/* decided-state note (Confirmed / Overridden to X) */
+.trow-state{font-size:11.5px;font-weight:700;letter-spacing:.3px;text-transform:uppercase}
+.trow-state.s-confirmed{color:var(--ok)}
+.trow-state.s-overridden{color:var(--accent2)}
+
+/* ---- Triage mobile: <=480px. Rows reflow to a single column, no overflow. ---- */
+@media (max-width:480px){
+  .triage{padding:20px 14px 18px}
+  .triage-honesty{padding:13px 13px;font-size:12.5px}
+  .triage-summary{grid-template-columns:1fr 1fr;gap:10px}
+  .tsum-cell{display:flex;align-items:baseline;justify-content:space-between;padding:11px 13px}
+  .tsum-k{margin:0}
+  .triage-run{flex:1 1 auto}
+  /* row drops the index column; everything stacks and wraps */
+  .trow{grid-template-columns:1fr;gap:10px}
+  .trow-idx{display:none}
+  .triage-results-head{gap:10px}
+  .triage-pane-cap{flex:1 1 100%}
+  .trow-decide{gap:8px}
+  .trow-select{flex:1 1 auto}
+}
+/* very narrow: keep pills and the select from crowding */
+@media (max-width:360px){
+  .trow{padding:13px 12px}
+  .trow.is-review,.trow.is-confirmed,.trow.is-overridden{padding-left:11px}
+  .trow-confirm,.trow-select{font-size:12.5px}
+}
+
+/* ============================================================
+   Triage Desk reduced motion: the tool is fully functional with
+   no animation. Rows appear at full strength immediately (no
+   fade/lift), buttons do not lift on hover. Nothing about the
+   classify / confirm / override / export flow depends on motion.
+   ============================================================ */
+@media (prefers-reduced-motion: reduce){
+  .trow{opacity:1;transform:none;transition:none}
+  .triage-run:hover{transform:none}
 }

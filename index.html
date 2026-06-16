@@ -32,21 +32,48 @@
 
 <header>
   <canvas id="hero-canvas" aria-hidden="true"></canvas>
-  <svg id="hero-static" viewBox="0 0 600 200" preserveAspectRatio="xMidYMid meet" aria-hidden="true"
-       style="position:absolute;right:0;top:50%;transform:translateY(-50%);width:min(46%,520px);height:auto;z-index:0;opacity:.5;pointer-events:none">
-    <!-- static coordinator -> specialists -> auditor topology; no motion, no pulse -->
-    <line class="hs-link" x1="120" y1="100" x2="320" y2="62"></line>
-    <line class="hs-link" x1="120" y1="100" x2="320" y2="138"></line>
-    <line class="hs-link" x1="320" y1="62"  x2="490" y2="100"></line>
-    <line class="hs-link" x1="320" y1="138" x2="490" y2="100"></line>
-    <circle class="hs-ring" cx="120" cy="100" r="9"></circle><circle class="hs-node" cx="120" cy="100" r="3.4"></circle>
-    <circle class="hs-ring" cx="320" cy="62"  r="9"></circle><circle class="hs-node" cx="320" cy="62"  r="3.4"></circle>
-    <circle class="hs-ring" cx="320" cy="138" r="9"></circle><circle class="hs-node" cx="320" cy="138" r="3.4"></circle>
-    <circle class="hs-ring" cx="490" cy="100" r="9"></circle><circle class="hs-node" cx="490" cy="100" r="3.4"></circle>
-    <text class="hs-label" x="120" y="82">Coordinator</text>
-    <text class="hs-label" x="320" y="44">Specialist</text>
-    <text class="hs-label" x="320" y="158">Specialist</text>
-    <text class="hs-label" x="490" y="82">Auditor</text>
+  <svg id="hero-static" viewBox="0 0 620 210" preserveAspectRatio="xMidYMid meet"
+       role="img" aria-label="Diagram of an agent handoff cycle: the Coordinator dispatches a task to each Specialist, the Specialists return results to the Auditor, and the Auditor returns a pass verdict to the Coordinator, with a revise path back to a Specialist to iterate. Decorative."
+       style="position:absolute;right:0;top:50%;transform:translateY(-50%);width:min(48%,540px);height:auto;z-index:0;opacity:.55;pointer-events:none">
+    <!-- STATIC labeled handoff cycle shown only under reduced-motion: no motion, but
+         the full sequence (task -> result -> pass, with a revise loop) is communicated
+         with directional connectors, arrowheads and small flow labels. -->
+    <defs>
+      <marker id="hsArrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M0 0 L10 5 L0 10 z" fill="#6ea8fe"></path>
+      </marker>
+      <marker id="hsArrowOk" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M0 0 L10 5 L0 10 z" fill="#43d692"></path>
+      </marker>
+      <marker id="hsArrowAmber" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M0 0 L10 5 L0 10 z" fill="#f6c454"></path>
+      </marker>
+    </defs>
+    <!-- dispatch: Coordinator -> each Specialist (task) -->
+    <line class="hs-link" x1="108" y1="105" x2="298" y2="52" marker-end="url(#hsArrow)"></line>
+    <line class="hs-link" x1="108" y1="105" x2="298" y2="158" marker-end="url(#hsArrow)"></line>
+    <!-- return: each Specialist -> Auditor (result) -->
+    <line class="hs-link" x1="322" y1="52"  x2="486" y2="98" marker-end="url(#hsArrow)"></line>
+    <line class="hs-link" x1="322" y1="158" x2="486" y2="112" marker-end="url(#hsArrow)"></line>
+    <!-- gate: Auditor -> Coordinator (pass / done) -->
+    <line class="hs-link hs-pass" x1="496" y1="92" x2="122" y2="98" marker-end="url(#hsArrowOk)"></line>
+    <!-- iterate: Auditor -> a Specialist (revise) -->
+    <line class="hs-link hs-revise" x1="492" y1="118" x2="326" y2="164" marker-end="url(#hsArrowAmber)"></line>
+    <!-- nodes -->
+    <circle class="hs-ring" cx="108" cy="105" r="9"></circle><circle class="hs-node" cx="108" cy="105" r="3.6"></circle>
+    <circle class="hs-ring" cx="310" cy="52"  r="9"></circle><circle class="hs-node" cx="310" cy="52"  r="3.6"></circle>
+    <circle class="hs-ring" cx="310" cy="158" r="9"></circle><circle class="hs-node" cx="310" cy="158" r="3.6"></circle>
+    <circle class="hs-ring" cx="496" cy="105" r="9"></circle><circle class="hs-node" cx="496" cy="105" r="3.6"></circle>
+    <!-- role labels -->
+    <text class="hs-label" x="108" y="87">Coordinator</text>
+    <text class="hs-label" x="310" y="34">Specialist</text>
+    <text class="hs-label" x="310" y="180">Specialist</text>
+    <text class="hs-label" x="496" y="87">Auditor</text>
+    <!-- flow labels: the sequence stated in words -->
+    <text class="hs-flow" x="188" y="66">task &#8594;</text>
+    <text class="hs-flow" x="408" y="66">result &#8594;</text>
+    <text class="hs-flow hs-flow-ok" x="300" y="90">&#8592; pass</text>
+    <text class="hs-flow hs-flow-amber" x="402" y="150">revise &#8594;</text>
   </svg>
   <div class="wrap">
   <div class="eyebrow">Agentic systems · guardrails · real stakes</div>
@@ -57,7 +84,7 @@
     <a class="btn ghost" href="/contact">Contact</a>
     <a class="btn ghost" id="hero-gh" href="https://github.com/Veeiy" target="_blank" rel="noopener">GitHub →</a>
   </div>
-  <p class="open-to reveal"><b>Open to:</b> AI and agent engineering, system design, and technical program management.</p>
+  <p class="open-to reveal"><b>Open to:</b> AI and agent engineering, system design, technical program management, and data collection and buildout, including for autonomous vehicles.</p>
 </div></header>
 
 <section id="guardrails"><div class="wrap">
@@ -194,7 +221,7 @@
     <a class="btn ghost" href="mailto:bradtohaire@gmail.com">Email me</a>
     <a class="btn ghost" href="/about">How I build →</a>
   </div>
-  <p class="open-to reveal"><b>Open to:</b> AI and agent engineering, system design, and technical program management.</p>
+  <p class="open-to reveal"><b>Open to:</b> AI and agent engineering, system design, technical program management, and data collection and buildout, including for autonomous vehicles.</p>
 </div></section>
 
 </main>

@@ -280,7 +280,9 @@
 
         // 3) Move + draw tokens. Each is an eased glide along its hop; on arrival it
         //    notifies the state machine. Labels ride just above each token, faint.
-        const showLabels = w >= 720;
+        //    Labels are dropped below ~700px (phones / narrow tablets), where the
+        //    hero text fills the column, so they can never compete with the H1.
+        const showLabels = w >= 700;
         ctx.textAlign = "center"; ctx.textBaseline = "middle";
         const survivors = [];
         for(const tok of tokens){

@@ -101,7 +101,7 @@
       </div>
       <div class="meta-cell">
         <span class="meta-k">Dispatches</span>
-        <span class="meta-v"><b id="meta-used">0</b> of <span id="meta-budget">12</span></span>
+        <span class="meta-v"><b id="meta-used">0</b> of <span id="meta-budget">14</span></span>
       </div>
       <div class="meta-cell">
         <span class="meta-k">State</span>
@@ -132,20 +132,283 @@
   </div>
 </div></section>
 
-<!-- ===== EMPTY PLACEHOLDER: The real rollout (Build 2 fills this) ===== -->
+<!-- ===== The real rollout: an explorable, depth-on-demand timeline ===== -->
 <section id="rollout"><div class="wrap">
   <div class="sec-head reveal"><h2>The real rollout</h2><div class="rule"></div></div>
-  <p class="sec-intro reveal">A wave-by-wave walkthrough of how this site was actually built by orchestrating agents, with the real decisions opened up.</p>
-  <p class="lab-soon reveal"><span class="lab-soon-tag">Coming in this build</span> An explorable, animated timeline of the real rollout.</p>
-  <!-- BUILD 2: rollout explorable goes here. Section shell only, so the #rollout anchor exists. -->
+  <p class="sec-intro reveal">The clearest proof of the method is this site. It was built by orchestrating my own agents, with a human owning the decisions. Here is the actual rollout: the real waves, in order, and the real calls made along the way.</p>
+
+  <p class="rollout-howto reveal">
+    <span class="rollout-howto-tag">How to read this</span>
+    Each step below is a wave the orchestrator actually ran, gated by an auditor before the next began. Expand any wave to see what happened inside it and the decisions it forced. This is the rollout's own record, not a business metric.
+  </p>
+
+  <!-- The timeline. Each wave is a native details/summary disclosure, so expand and
+       collapse is keyboard- and screen-reader-operable with no JS, collapsed by default.
+       The summary reuses the console's wave vocabulary (numbered dot, title + role sub,
+       gate stamp). lab.js adds the small wave-stat chips from a data array and a
+       scroll-reveal stagger; both have static fallbacks so the section is fully usable
+       with JavaScript off. -->
+  <ol class="rollout reveal" id="rollout-timeline">
+
+    <!-- Wave 1: Ideation -->
+    <li class="rollout-wave" data-rw>
+      <details class="rw-d">
+        <summary class="rw-sum">
+          <span class="rw-dot" aria-hidden="true">1</span>
+          <span class="rw-title">
+            <span class="rw-name">Ideation</span>
+            <span class="rw-sub">think-tank, parallel</span>
+          </span>
+          <span class="gate-stamp gate-pass show rw-stamp"><span class="gdot"></span><span>Pass</span></span>
+          <span class="rw-chev" aria-hidden="true">+</span>
+        </summary>
+        <div class="rw-body">
+          <p class="rw-stats" data-rollout-stats><span class="rw-stat"><span class="rw-stat-k">Agents dispatched</span><span class="rw-stat-v">3</span></span><span class="rw-stat"><span class="rw-stat-k">Gate verdict</span><span class="rw-stat-v rw-v-pass">Pass</span></span></p>
+          <p>Several ideation agents explored different framings at the same time: one led on hands-on experience, one on credibility and proof, one on narrative. They worked independently, then their directions were compared side by side.</p>
+          <p>They converged on the same answer without being told to: lead with the operator identity. Someone who builds and runs real systems against real stakes, not someone who only describes them. Independent agents landing on the same lead is a strong signal, so that became the spine of the site.</p>
+        </div>
+      </details>
+    </li>
+
+    <!-- Wave 2: Synthesis + gate -->
+    <li class="rollout-wave" data-rw>
+      <details class="rw-d">
+        <summary class="rw-sum">
+          <span class="rw-dot" aria-hidden="true">2</span>
+          <span class="rw-title">
+            <span class="rw-name">Synthesis and gate</span>
+            <span class="rw-sub">orchestrator composes, desk-check</span>
+          </span>
+          <span class="gate-stamp gate-pass show rw-stamp"><span class="gdot"></span><span>Pass</span></span>
+          <span class="rw-chev" aria-hidden="true">+</span>
+        </summary>
+        <div class="rw-body">
+          <p class="rw-stats" data-rollout-stats><span class="rw-stat"><span class="rw-stat-k">Agents dispatched</span><span class="rw-stat-v">1</span></span><span class="rw-stat"><span class="rw-stat-k">Gate verdict</span><span class="rw-stat-v rw-v-pass">Pass</span></span></p>
+          <p>The orchestrator selected the composing concepts from the ideation wave and shaped them into one direction. Before anything was built, a desk-check went and read the actual public repos to confirm a claim the draft wanted to make.</p>
+          <div class="rw-dec" data-rw-dec>
+            <details class="rw-dec-d">
+              <summary class="rw-dec-sum">
+                <span class="rw-dec-tag rw-dec-verify">Verified</span>
+                <span class="rw-dec-h">A claim was checked against the repos, and it held</span>
+                <span class="rw-chev sm" aria-hidden="true">+</span>
+              </summary>
+              <p class="rw-dec-body">The draft claimed "16+ skills and agents." The desk-check read the public repos and confirmed the number was real, and if anything understated. The claim stayed because it was true and verifiable, not because it sounded good.</p>
+            </details>
+          </div>
+        </div>
+      </details>
+    </li>
+
+    <!-- Wave 3: Build -->
+    <li class="rollout-wave" data-rw>
+      <details class="rw-d">
+        <summary class="rw-sum">
+          <span class="rw-dot" aria-hidden="true">3</span>
+          <span class="rw-title">
+            <span class="rw-name">Build</span>
+            <span class="rw-sub">specialists, parallel</span>
+          </span>
+          <span class="gate-stamp gate-pass show rw-stamp"><span class="gdot"></span><span>Pass</span></span>
+          <span class="rw-chev" aria-hidden="true">+</span>
+        </summary>
+        <div class="rw-body">
+          <p class="rw-stats" data-rollout-stats><span class="rw-stat"><span class="rw-stat-k">Agents dispatched</span><span class="rw-stat-v">5</span></span><span class="rw-stat"><span class="rw-stat-k">Gate verdict</span><span class="rw-stat-v rw-v-pass">Pass</span></span></p>
+          <p>Build specialists each took a slice and implemented in parallel: the operator hero, the guardrail panel, the verify links to the real repos, the two production case studies, and the teardown that explains how the site holds together.</p>
+          <div class="rw-dec" data-rw-dec>
+            <details class="rw-dec-d">
+              <summary class="rw-dec-sum">
+                <span class="rw-dec-tag rw-dec-promote">Promoted</span>
+                <span class="rw-dec-h">Real proof was elevated from tiles to full case studies</span>
+                <span class="rw-chev sm" aria-hidden="true">+</span>
+              </summary>
+              <p class="rw-dec-body">The two production agents, with the +25% and +30% results, started as small tiles. They were promoted to full case studies because they are the strongest, most verifiable proof on the site. The strongest evidence earns the most room.</p>
+            </details>
+          </div>
+          <div class="rw-dec" data-rw-dec>
+            <details class="rw-dec-d">
+              <summary class="rw-dec-sum">
+                <span class="rw-dec-tag rw-dec-reframe">Reframed</span>
+                <span class="rw-dec-h">Claims were framed honestly, not inflated</span>
+                <span class="rw-chev sm" aria-hidden="true">+</span>
+              </summary>
+              <p class="rw-dec-body">Fleet work was framed as instrumented operations rather than a side hustle. Illustrative charts were labeled as illustrative. Only real, measured metrics were presented as fact. Where something was an estimate, it was shown as an estimate with its assumptions.</p>
+            </details>
+          </div>
+        </div>
+      </details>
+    </li>
+
+    <!-- Wave 4: Auditor gate -->
+    <li class="rollout-wave" data-rw>
+      <details class="rw-d">
+        <summary class="rw-sum">
+          <span class="rw-dot" aria-hidden="true">4</span>
+          <span class="rw-title">
+            <span class="rw-name">Auditor gate</span>
+            <span class="rw-sub">pass, warn, or block</span>
+          </span>
+          <span class="gate-stamp gate-warn show rw-stamp"><span class="gdot"></span><span>Warn</span></span>
+          <span class="rw-chev" aria-hidden="true">+</span>
+        </summary>
+        <div class="rw-body">
+          <p class="rw-stats" data-rollout-stats><span class="rw-stat"><span class="rw-stat-k">Agents dispatched</span><span class="rw-stat-v">1</span></span><span class="rw-stat"><span class="rw-stat-k">Gate verdict</span><span class="rw-stat-v rw-v-warn">Warn</span></span></p>
+          <p>Every wave was reviewed before the next one began. The auditor returns one of three verdicts: pass, warn, or block. Nothing moved forward on an unreviewed change. This wave is where two of the sharper calls on the whole build were made.</p>
+          <div class="rw-dec" data-rw-dec>
+            <details class="rw-dec-d">
+              <summary class="rw-dec-sum">
+                <span class="rw-dec-tag rw-dec-block">Rejected</span>
+                <span class="rw-dec-h">A false credential was turned down</span>
+                <span class="rw-chev sm" aria-hidden="true">+</span>
+              </summary>
+              <p class="rw-dec-body">A tester suggested adding a "CISA cert" for extra credibility. The gate rejected it because it was not true. Honesty over polish: a portfolio that bends the truth to look stronger is worth less than one that holds up to a reference check.</p>
+            </details>
+          </div>
+          <div class="rw-dec" data-rw-dec>
+            <details class="rw-dec-d">
+              <summary class="rw-dec-sum">
+                <span class="rw-dec-tag rw-dec-measure">Measured</span>
+                <span class="rw-dec-h">An accessibility issue was caught by measuring, not guessing</span>
+                <span class="rw-chev sm" aria-hidden="true">+</span>
+              </summary>
+              <p class="rw-dec-body">A contrast problem was found by measuring the real ratios in the browser, not eyeballing them. One text color sat at 4.07 to 1, under the 4.5 to 1 AA bar. It was fixed to 6.32 to 1. Measured, not asserted.</p>
+            </details>
+          </div>
+        </div>
+      </details>
+    </li>
+
+    <!-- Wave 5: Persona testing -->
+    <li class="rollout-wave" data-rw>
+      <details class="rw-d">
+        <summary class="rw-sum">
+          <span class="rw-dot" aria-hidden="true">5</span>
+          <span class="rw-title">
+            <span class="rw-name">Persona testing</span>
+            <span class="rw-sub">recruiter and engineering-lead personas</span>
+          </span>
+          <span class="gate-stamp gate-warn show rw-stamp"><span class="gdot"></span><span>Warn</span></span>
+          <span class="rw-chev" aria-hidden="true">+</span>
+        </summary>
+        <div class="rw-body">
+          <p class="rw-stats" data-rollout-stats><span class="rw-stat"><span class="rw-stat-k">Agents dispatched</span><span class="rw-stat-v">2</span></span><span class="rw-stat"><span class="rw-stat-k">Gate verdict</span><span class="rw-stat-v rw-v-warn">Warn</span></span></p>
+          <p>Two personas scored the result and clicked through it like real visitors: a recruiter and an engineering lead. Their first pass surfaced concrete fixes rather than vague impressions, which is the point of testing against a persona.</p>
+          <p class="rw-scores">First pass, then after the fixes were applied: the recruiter persona moved from <b>6</b> to <b>8.5</b>, and the engineering-lead persona from <b>7.5</b> to <b>8.4</b>. These are this project's own scores, shown as its record, not a benchmark.</p>
+        </div>
+      </details>
+    </li>
+
+    <!-- Wave 6: Iterate -->
+    <li class="rollout-wave" data-rw>
+      <details class="rw-d">
+        <summary class="rw-sum">
+          <span class="rw-dot" aria-hidden="true">6</span>
+          <span class="rw-title">
+            <span class="rw-name">Iterate</span>
+            <span class="rw-sub">apply fixes, re-gate</span>
+          </span>
+          <span class="gate-stamp gate-pass show rw-stamp"><span class="gdot"></span><span>Pass</span></span>
+          <span class="rw-chev" aria-hidden="true">+</span>
+        </summary>
+        <div class="rw-body">
+          <p class="rw-stats" data-rollout-stats><span class="rw-stat"><span class="rw-stat-k">Agents dispatched</span><span class="rw-stat-v">2</span></span><span class="rw-stat"><span class="rw-stat-k">Gate verdict</span><span class="rw-stat-v rw-v-pass">Pass</span></span></p>
+          <p>The fixes from the audit and the persona tests were applied, then the work was re-gated. Review and testing are part of the loop, not a phase bolted on at the end, so a finding turns into a fix and a re-check in the same cycle.</p>
+          <div class="rw-dec" data-rw-dec>
+            <details class="rw-dec-d">
+              <summary class="rw-dec-sum">
+                <span class="rw-dec-tag rw-dec-measure">Caught</span>
+                <span class="rw-dec-h">A determinism check caught a bug before it shipped</span>
+                <span class="rw-chev sm" aria-hidden="true">+</span>
+              </summary>
+              <p class="rw-dec-body">A headless determinism check on the Orchestrator Console caught that the run budget would clip before reaching the scripted safety-floor step. It was fixed before shipping, so the console you can run on this page always reaches the floor.</p>
+            </details>
+          </div>
+        </div>
+      </details>
+    </li>
+
+    <!-- Wave 7: Deploy -->
+    <li class="rollout-wave" data-rw>
+      <details class="rw-d">
+        <summary class="rw-sum">
+          <span class="rw-dot" aria-hidden="true">7</span>
+          <span class="rw-title">
+            <span class="rw-name">Deploy</span>
+            <span class="rw-sub">preview, verify, then promote</span>
+          </span>
+          <span class="gate-stamp gate-pass show rw-stamp"><span class="gdot"></span><span>Pass</span></span>
+          <span class="rw-chev" aria-hidden="true">+</span>
+        </summary>
+        <div class="rw-body">
+          <p class="rw-stats" data-rollout-stats><span class="rw-stat"><span class="rw-stat-k">Agents dispatched</span><span class="rw-stat-v">1</span></span><span class="rw-stat"><span class="rw-stat-k">Gate verdict</span><span class="rw-stat-v rw-v-pass">Pass</span></span></p>
+          <p>The site went to a preview first, was verified there, and only then was promoted to the live domain. Promoting to production is irreversible, so it stays a human decision: the run prepares it and a person makes the call.</p>
+        </div>
+      </details>
+    </li>
+
+  </ol>
 </div></section>
 
-<!-- ===== EMPTY PLACEHOLDER: Triage Desk (Build 2 fills this) ===== -->
+<!-- ===== The Triage Desk: a real, working, client-side first-pass labeler ===== -->
 <section id="triage"><div class="wrap">
   <div class="sec-head reveal"><h2>Triage Desk</h2><div class="rule"></div></div>
-  <p class="sec-intro reveal">A use-it-yourself tool: paste a batch of lines and watch a real client-side classifier auto-bucket them, with a human confirming every call.</p>
-  <p class="lab-soon reveal"><span class="lab-soon-tag">Coming in this build</span> An interactive triage tool that runs entirely in your browser.</p>
-  <!-- BUILD 2: Triage Desk tool goes here. Section shell only, so the #triage anchor exists. -->
+  <p class="sec-intro reveal">A use-it-yourself tool. Paste a batch of lines, one per line, and a real client-side classifier proposes a first-pass label for each, then a human confirms or overrides every call. This is the same first-pass-then-human pattern behind a production labeling pipeline I built, where a confirmed first pass lifted data-grading output by 25 percent. That number is from the real system, not this page. The counts below are this tool's own.</p>
+
+  <div class="triage reveal" id="triage-desk">
+    <!-- Honesty caption: required, visible, never implies live inference -->
+    <p class="triage-honesty">
+      <span class="triage-honesty-tag">How this works</span>
+      This is a demonstrator of the first-pass-then-human pattern. It uses a transparent rule-based classifier, a set of signal terms per category, not a live model and not AI. It runs entirely in your browser. Nothing you paste is sent anywhere or leaves this page. The same input always produces the same result, and every proposal is yours to confirm or override.
+    </p>
+
+    <!-- ===== Input ===== -->
+    <div class="triage-input">
+      <label class="triage-label" for="triage-text">Lines to triage</label>
+      <div class="triage-hint">One item per line. Paste real feedback, tickets, or notes, or load a labeled sample.</div>
+      <textarea id="triage-text" class="triage-textarea" rows="6" spellcheck="false"
+        placeholder="The app crashes when I tap export on iOS.&#10;Could you add a dark mode?&#10;How do I reset my password?&#10;Honestly the best tool I have used all year."></textarea>
+      <div class="triage-buttons">
+        <button type="button" class="triage-run" id="triage-go">Triage</button>
+        <button type="button" class="triage-ghost" id="triage-sample">Load sample</button>
+        <button type="button" class="triage-ghost" id="triage-clear">Clear</button>
+      </div>
+    </div>
+
+    <!-- ===== Summary strip: the tool's OWN counts (total / confirmed / overridden / review) ===== -->
+    <div class="triage-summary" id="triage-summary" hidden>
+      <div class="tsum-cell">
+        <span class="tsum-k">Lines</span>
+        <span class="tsum-v"><b id="tsum-total">0</b></span>
+      </div>
+      <div class="tsum-cell">
+        <span class="tsum-k">Needs review</span>
+        <span class="tsum-v"><b id="tsum-review">0</b></span>
+      </div>
+      <div class="tsum-cell">
+        <span class="tsum-k">Confirmed</span>
+        <span class="tsum-v"><b id="tsum-confirmed">0</b></span>
+      </div>
+      <div class="tsum-cell">
+        <span class="tsum-k">Overridden</span>
+        <span class="tsum-v"><b id="tsum-overridden">0</b></span>
+      </div>
+    </div>
+    <!-- aria-live region: announces triage results + running decision tallies to screen readers -->
+    <p class="visually-hidden" id="triage-aria" role="status" aria-live="polite"></p>
+
+    <!-- ===== Results ===== -->
+    <div class="triage-results-wrap">
+      <div class="triage-results-head">
+        <p class="triage-pane-cap">Proposed labels <span class="triage-illus">Rule-based, low confidence floats up</span></p>
+        <button type="button" class="triage-export" id="triage-export" hidden>Export decisions</button>
+        <div class="triage-export-menu" id="triage-export-menu" role="group" aria-label="Export format" hidden>
+          <button type="button" class="triage-ghost sm" id="triage-export-csv">CSV</button>
+          <button type="button" class="triage-ghost sm" id="triage-export-json">JSON</button>
+        </div>
+      </div>
+      <ol class="triage-rows" id="triage-rows" aria-live="off"></ol>
+      <p class="triage-empty" id="triage-empty">Press Triage to label your lines. Each row shows the proposed category, the confidence, and the signals that fired. You confirm or override every call.</p>
+    </div>
+  </div>
 </div></section>
 
 </main>
