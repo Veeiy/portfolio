@@ -23,6 +23,7 @@
     <a href="/">Home</a>
     <a href="/work">Work</a>
     <a href="/lab" aria-current="page">Lab</a>
+    <a href="/principles">Principles</a>
     <a href="/about">About</a>
     <a href="/contact">Contact</a>
     <a id="nav-gh" href="https://github.com/Veeiy" target="_blank" rel="noopener">GitHub</a>
@@ -50,6 +51,39 @@
       An interactive model of the orchestration engine I build. The control logic, gating, autonomy dials, run budget, and safety floor are real and run in your browser. The agent outputs shown are illustrative, not live model calls. Same inputs, same run, every time. Nothing is sent anywhere.
     </p>
 
+    <!-- ===== "What you are seeing" key: honest annotations naming the real mechanics
+         behind the console. These describe how the engine is actually built. The
+         control logic here is real and in-browser; the agent output text is
+         illustrative, as the caption above states. ===== -->
+    <div class="console-key" aria-label="What you are seeing">
+      <p class="console-key-head">
+        <span class="console-key-tag">What you are seeing</span>
+        The mechanics this console models, named honestly. The control logic is real; the agent text is illustrative.
+      </p>
+      <ul class="console-key-list">
+        <li class="console-key-item">
+          <span class="ck-term">Stop-reason loop</span>
+          <span class="ck-desc">The agent loop advances on the model's stop reason, tool use versus end turn, not by parsing the text or hitting an arbitrary step cap.</span>
+        </li>
+        <li class="console-key-item">
+          <span class="ck-term">Isolated subagents</span>
+          <span class="ck-desc">Each agent in a wave runs with its own context. The coordinator passes an explicit handoff in and reads a result out; subagents do not inherit the coordinator's history.</span>
+        </li>
+        <li class="console-key-item">
+          <span class="ck-term">Parallel within a wave</span>
+          <span class="ck-desc">Independent agents in the same wave are dispatched in parallel. The next wave waits on the gate, not on any single agent.</span>
+        </li>
+        <li class="console-key-item">
+          <span class="ck-term">Programmatic floor and gates</span>
+          <span class="ck-desc">The safety floor and the prerequisite gates are enforced in code, not requested in a prompt. They hold even at the highest authority tier.</span>
+        </li>
+        <li class="console-key-item">
+          <span class="ck-term">Tool choice: auto, any, or forced</span>
+          <span class="ck-desc">A step can let the model choose a tool freely, require it to call some tool, or force one specific tool, depending on how tightly that step is constrained.</span>
+        </li>
+      </ul>
+    </div>
+
     <!-- ===== Controls ===== -->
     <div class="console-controls" role="group" aria-label="Run configuration">
 
@@ -60,6 +94,8 @@
           <option value="portfolio">Build this portfolio site</option>
           <option value="labeling">First-pass labeling pipeline</option>
           <option value="product">Ship a product</option>
+          <option value="support">Customer support resolution agent</option>
+          <option value="extraction">Structured data extraction pipeline</option>
         </select>
       </div>
 

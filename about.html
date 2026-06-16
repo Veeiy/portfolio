@@ -21,6 +21,7 @@
     <a href="/">Home</a>
     <a href="/work">Work</a>
     <a href="/lab">Lab</a>
+    <a href="/principles">Principles</a>
     <a href="/about" aria-current="page">About</a>
     <a href="/contact">Contact</a>
     <a id="nav-gh" href="https://github.com/Veeiy" target="_blank" rel="noopener">GitHub</a>
@@ -137,6 +138,62 @@
       <p class="td-src">Curious how it holds together? View source on any page, then open <code>/assets/site.css</code> and <code>/assets/site.js</code>; it is all right there.</p>
     </div>
   </details>
+
+  <style>
+    /* scoped principles preview; tokens reused from site.css */
+    .prn-block{margin-top:26px;border:1px solid var(--line,#23262f);border-radius:14px;padding:22px 22px 20px;background:linear-gradient(180deg,rgba(110,168,254,.05),rgba(157,123,255,.03));}
+    .prn-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin:0 0 4px;}
+    .prn-head h3{margin:0;font-size:1.18rem;}
+    .prn-kicker{font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--accent,#6ea8fe);font-weight:600;}
+    .prn-lede{color:var(--dim,#8a92a6);max-width:760px;margin:6px 0 18px;font-size:.96rem;line-height:1.55;}
+    .prn-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px 22px;margin:0;padding:0;list-style:none;}
+    .prn-grid li{margin:0;padding:0 0 0 16px;position:relative;}
+    .prn-grid li::before{content:"";position:absolute;left:0;top:.5em;width:6px;height:6px;border-radius:2px;background:linear-gradient(135deg,var(--accent,#6ea8fe),var(--accent2,#9d7bff));}
+    .prn-grid .prn-h{display:block;font-weight:600;color:var(--fg,#e8ebf2);font-size:.94rem;margin-bottom:3px;}
+    .prn-grid .prn-b{display:block;color:var(--dim,#8a92a6);font-size:.88rem;line-height:1.5;}
+    .prn-cta{display:inline-flex;align-items:center;gap:8px;margin-top:20px;padding:11px 18px;border-radius:10px;font-weight:600;font-size:.95rem;color:#0a0b0f;background:linear-gradient(135deg,var(--accent,#6ea8fe),var(--accent2,#9d7bff));text-decoration:none;transition:transform .15s ease,box-shadow .15s ease;}
+    .prn-cta:hover{transform:translateY(-1px);box-shadow:0 6px 22px rgba(110,168,254,.28);}
+    .prn-cta:focus-visible{outline:2px solid var(--accent,#6ea8fe);outline-offset:3px;}
+    .prn-cta .prn-arrow{transition:transform .15s ease;}
+    .prn-cta:hover .prn-arrow{transform:translateX(3px);}
+    @media (max-width:640px){.prn-grid{grid-template-columns:1fr;}}
+    @media (prefers-reduced-motion:reduce){
+      .prn-cta,.prn-cta .prn-arrow{transition:none;}
+      .prn-cta:hover{transform:none;}
+      .prn-cta:hover .prn-arrow{transform:none;}
+    }
+  </style>
+
+  <div class="prn-block reveal">
+    <div class="prn-head">
+      <span class="prn-kicker">Principles</span>
+      <h3>The applied rules I build agents by</h3>
+    </div>
+    <p class="prn-lede">The methods above rest on a small set of engineering principles I hold consistently. The short version is here; the full reasoning, with the trade-offs behind each call, lives on the principles page.</p>
+    <ul class="prn-grid">
+      <li>
+        <span class="prn-h">Loops that advance on intent, not text</span>
+        <span class="prn-b">An agent loop steps on the model's own stop reason, not on parsing its prose or hitting an arbitrary cap. A coordinator routes to specialists, each with isolated context and an explicit handoff, dispatches independent work in parallel, and chooses a fixed task breakdown when the shape is known and a dynamic one when it is not.</span>
+      </li>
+      <li>
+        <span class="prn-h">Determinism where compliance must hold</span>
+        <span class="prn-b">Anything that must be guaranteed is enforced in code, with hooks, prerequisite gates, and a hard safety floor the system cannot cross. Prompt guidance is reserved for where probabilistic behavior is genuinely fine. I do not ask a model to promise what a gate can enforce.</span>
+      </li>
+      <li>
+        <span class="prn-h">Tools and interfaces designed, not assumed</span>
+        <span class="prn-b">Tools are picked by how clearly their descriptions read to the model, each agent gets only the scoped set it needs, and errors come back structured so the agent knows retryable from terminal. Tool choice is set deliberately, auto, any, or forced, to match the step.</span>
+      </li>
+      <li>
+        <span class="prn-h">Structured output that can be verified</span>
+        <span class="prn-b">Output lands as tool use against a JSON schema, with a few examples for consistency and explicit acceptance criteria instead of vague asks. Results are validated and retried on failure, and a separate reviewer checks the work, since independent review beats self-review.</span>
+      </li>
+      <li>
+        <span class="prn-h">Context kept honest end to end</span>
+        <span class="prn-b">Transactional facts are preserved outside lossy summaries so nothing critical gets lost in the middle, verbose tool output is trimmed before it crowds the window, and every claim keeps its line back to its source. Confidence is calibrated, and low-confidence calls route to a human.</span>
+      </li>
+    </ul>
+    <a class="prn-cta" href="/principles">See the principles I build by <span class="prn-arrow" aria-hidden="true">-&gt;</span></a>
+  </div>
 </div></section>
 
 <section id="data">

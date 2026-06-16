@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Principles · Brad O'Haire</title>
+<meta name="description" content="The principles I build agentic systems by: orchestration that advances on stop reason, deterministic guardrails, scoped tools with sharp descriptions, structured and verifiable output, and context that survives scale." />
+<link rel="canonical" href="https://bradohaire.com/principles" />
+<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+<meta name="theme-color" content="#0a0b0f" />
+<link rel="stylesheet" href="/assets/site.css" />
+<link rel="stylesheet" href="/assets/principles.css" />
+<script defer src="/assets/site.js"></script>
+<script defer src="/assets/principles.js"></script>
+</head>
+<body>
+
+<!-- ===== CANONICAL HEADER (identical markup on every page; update all copies together) ===== -->
+<a class="skip-link" href="#main">Skip to content</a>
+<nav><div class="wrap">
+  <a class="brand" href="/">Brad<span>.</span>OHaire</a>
+  <div class="navlinks">
+    <a href="/">Home</a>
+    <a href="/work">Work</a>
+    <a href="/lab">Lab</a>
+    <a href="/principles" aria-current="page">Principles</a>
+    <a href="/about">About</a>
+    <a href="/contact">Contact</a>
+    <a id="nav-gh" href="https://github.com/Veeiy" target="_blank" rel="noopener">GitHub</a>
+  </div>
+</div></nav>
+<!-- ===== /CANONICAL HEADER ===== -->
+
+<main id="main">
+
+<!-- ===== Intro: the principles I build by ===== -->
+<section id="pr-intro"><div class="wrap">
+  <div class="sec-head reveal"><h1>Principles I build by</h1><div class="rule"></div></div>
+  <p class="pr-lede reveal">Anyone can wire a model to a tool and call it an agent. The engineering is in the rules that hold when no one is watching: how the loop knows it is done, what the system is allowed to touch, how work is split, how output is checked, and what survives once the context gets long. These are the five principles every system on this site is built on, each stated plainly, tied to real work, and paired with the failure it exists to prevent.</p>
+
+  <!-- a compact, scannable index of the five; jump-links into the cards below -->
+  <ol class="pr-index reveal" id="pr-index" aria-label="The five principles">
+    <li><a href="#p1"><span class="pri-n" aria-hidden="true">01</span><span class="pri-t">Orchestration and the loop</span></a></li>
+    <li><a href="#p2"><span class="pri-n" aria-hidden="true">02</span><span class="pri-t">Deterministic guardrails over hope</span></a></li>
+    <li><a href="#p3"><span class="pri-n" aria-hidden="true">03</span><span class="pri-t">Tool and interface design</span></a></li>
+    <li><a href="#p4"><span class="pri-n" aria-hidden="true">04</span><span class="pri-t">Structured, verifiable output</span></a></li>
+    <li><a href="#p5"><span class="pri-n" aria-hidden="true">05</span><span class="pri-t">Context and reliability at scale</span></a></li>
+  </ol>
+</div></section>
+
+<!-- ===== The five principles ===== -->
+<section id="pr-themes"><div class="wrap">
+  <div class="sec-head reveal"><h2>The five</h2><div class="rule"></div></div>
+  <p class="sec-intro reveal">Each card states the principle in one line, how I apply it to the systems I actually run, and the anti-pattern it avoids. Expand any card for the applied detail. They are collapsed for a fast scan and fully readable open.</p>
+
+  <p class="pr-howto reveal">
+    <span class="pr-howto-tag">How to read this</span>
+    The orchestrator and think-tank that build my sites, the Lab Orchestrator Console, the two production agents on a robotics data program, and the guardrail safety floor are the systems referenced throughout. Expand a card to see how the principle lands in each.
+  </p>
+
+  <!-- Each principle is a native details/summary disclosure, so expand and collapse
+       is keyboard- and screen-reader-operable with no JS and collapsed by default.
+       principles.js adds a staggered scroll-reveal and wires the index active-state;
+       both have static fallbacks, so the section is fully usable with JavaScript off. -->
+  <ol class="pr-list reveal" id="pr-list">
+
+    <!-- 01 Orchestration and the loop -->
+    <li class="pr-card" id="p1" data-pr>
+      <details class="pr-d" open>
+        <summary class="pr-sum">
+          <span class="pr-n" aria-hidden="true">01</span>
+          <span class="pr-head">
+            <span class="pr-name">Orchestration and the loop</span>
+            <span class="pr-line">A coordinator routes to specialists, and the loop advances on the model's stop reason, not on parsed text or an arbitrary cap.</span>
+          </span>
+          <span class="pr-chev" aria-hidden="true">+</span>
+        </summary>
+        <div class="pr-body">
+          <div class="pr-applied">
+            <p class="pr-applied-k">How I apply it</p>
+            <ul class="pr-applied-list">
+              <li>A coordinator owns the plan and routes each task to the specialist built for it, instead of one model trying to do design, build, and review in one long sequence.</li>
+              <li>The loop turns on the stop reason the model returns. A tool-use stop means run the tool and continue; an end-turn means the step is genuinely finished. I never decide that by scanning the prose for a phrase like "all done."</li>
+              <li>Subagents run with their own isolated context and hand back an explicit, structured result, so one agent's scratch work never leaks into another's reasoning.</li>
+              <li>Independent work dispatches in parallel. On this site the ideation think-tank and the build specialists each fan out at once, then their outputs are gated together.</li>
+              <li>Decomposition is fixed when the shape of the work is known. Predictable multi-aspect jobs use prompt chaining with set stages; open-ended investigation gets a dynamic plan the coordinator adapts as it learns.</li>
+            </ul>
+          </div>
+          <p class="pr-anti">
+            <span class="pr-anti-tag">Anti-pattern</span>
+            Deciding when to stop by parsing natural language, or one model grinding through every role in sequence with no router and no clean handoff.
+          </p>
+        </div>
+      </details>
+    </li>
+
+    <!-- 02 Deterministic guardrails over hope -->
+    <li class="pr-card" id="p2" data-pr>
+      <details class="pr-d">
+        <summary class="pr-sum">
+          <span class="pr-n" aria-hidden="true">02</span>
+          <span class="pr-head">
+            <span class="pr-name">Deterministic guardrails over hope</span>
+            <span class="pr-line">Where compliance must be guaranteed, it is enforced in code, not requested in a prompt.</span>
+          </span>
+          <span class="pr-chev" aria-hidden="true">+</span>
+        </summary>
+        <div class="pr-body">
+          <div class="pr-applied">
+            <p class="pr-applied-k">How I apply it</p>
+            <ul class="pr-applied-list">
+              <li>Rules that cannot be allowed to fail are programmatic: hooks and prerequisite gates that run regardless of what the model intends. A gate that has to hold is not a sentence in a system prompt.</li>
+              <li>Prompt guidance is reserved for the places where probabilistic is acceptable: tone, phrasing, judgment calls. The cost of an occasional miss there is low.</li>
+              <li>Every system sits on a hard safety floor. Routine work runs on its own, consequential work waits for a human, and a short list of actions can never happen at all. The permission model on the home page is exactly this floor.</li>
+              <li>Tool calls and their results are intercepted and normalized at the boundary, so a malformed or out-of-policy action is caught and shaped before it ever takes effect.</li>
+            </ul>
+          </div>
+          <p class="pr-anti">
+            <span class="pr-anti-tag">Anti-pattern</span>
+            Trusting a prompt instruction to hold for rules with financial or irreversible consequences. "Please do not move money" is not a control.
+          </p>
+        </div>
+      </details>
+    </li>
+
+    <!-- 03 Tool and interface design -->
+    <li class="pr-card" id="p3" data-pr>
+      <details class="pr-d">
+        <summary class="pr-sum">
+          <span class="pr-n" aria-hidden="true">03</span>
+          <span class="pr-head">
+            <span class="pr-name">Tool and interface design</span>
+            <span class="pr-line">A model picks tools by their descriptions, so the description is the interface and it has to earn its place.</span>
+          </span>
+          <span class="pr-chev" aria-hidden="true">+</span>
+        </summary>
+        <div class="pr-body">
+          <div class="pr-applied">
+            <p class="pr-applied-k">How I apply it</p>
+            <ul class="pr-applied-list">
+              <li>Each tool description carries its inputs, its boundaries, and when to reach for it versus an alternative. The model is choosing from text, so vague text produces vague choices.</li>
+              <li>Every agent gets a scoped tool set sized to its job. Too many tools degrade selection, so a specialist sees only what its slice needs, not the whole catalog.</li>
+              <li>Errors come back structured, with a category and a retryable-or-not signal, so the caller can react correctly. A generic "operation failed" tells the model nothing it can act on.</li>
+              <li>Tool choice is set to match the task: auto when the model should decide, any when it must use some tool, forced when exactly one call is correct. The constraint is part of the design, not left to chance.</li>
+            </ul>
+          </div>
+          <p class="pr-anti">
+            <span class="pr-anti-tag">Anti-pattern</span>
+            Overlapping, vague tool descriptions that blur into each other, plus a uniform "operation failed" error that strips out everything the caller would need to recover.
+          </p>
+        </div>
+      </details>
+    </li>
+
+    <!-- 04 Structured, verifiable output -->
+    <li class="pr-card" id="p4" data-pr>
+      <details class="pr-d">
+        <summary class="pr-sum">
+          <span class="pr-n" aria-hidden="true">04</span>
+          <span class="pr-head">
+            <span class="pr-name">Structured, verifiable output</span>
+            <span class="pr-line">If a result has to be machine-read, its shape is guaranteed by a schema and checked by something other than the author.</span>
+          </span>
+          <span class="pr-chev" aria-hidden="true">+</span>
+        </summary>
+        <div class="pr-body">
+          <div class="pr-applied">
+            <p class="pr-applied-k">How I apply it</p>
+            <ul class="pr-applied-list">
+              <li>Output that downstream code depends on is produced through tool use with a JSON schema, so the structure is guaranteed rather than coaxed out of free text.</li>
+              <li>Few-shot examples lock in consistency and, more importantly, show the model how to judge the ambiguous cases that a rule alone cannot cover.</li>
+              <li>Criteria are explicit and categorical. "Pass, warn, or block against these stated conditions" beats "be conservative," because a vague instruction produces vague and unrepeatable verdicts.</li>
+              <li>Output is validated, and on a failure the specific error is fed back for a targeted retry, not a blind re-roll of the whole request.</li>
+              <li>An independent reviewer checks the work. The auditor that gates every wave on this site is a separate pass with its own context, because self-review in the same context grades its own homework.</li>
+            </ul>
+          </div>
+          <p class="pr-anti">
+            <span class="pr-anti-tag">Anti-pattern</span>
+            Filtering on a self-reported confidence score and reviewing the work in the same context that produced it. Both lean on the model to be its own honest judge.
+          </p>
+        </div>
+      </details>
+    </li>
+
+    <!-- 05 Context and reliability at scale -->
+    <li class="pr-card" id="p5" data-pr>
+      <details class="pr-d">
+        <summary class="pr-sum">
+          <span class="pr-n" aria-hidden="true">05</span>
+          <span class="pr-head">
+            <span class="pr-name">Context and reliability at scale</span>
+            <span class="pr-line">Long runs lose the middle, so the facts that matter are kept out of lossy summaries and confidence is calibrated, not assumed.</span>
+          </span>
+          <span class="pr-chev" aria-hidden="true">+</span>
+        </summary>
+        <div class="pr-body">
+          <div class="pr-applied">
+            <p class="pr-applied-k">How I apply it</p>
+            <ul class="pr-applied-list">
+              <li>Transactional facts (amounts, dates, identifiers) are preserved verbatim outside any summary. Models lose detail in the middle of long context, so the exact numbers live somewhere they cannot be paraphrased away.</li>
+              <li>Verbose tool output is trimmed at the source, before it piles up and crowds out the signal further down the run.</li>
+              <li>Claim-to-source provenance is carried through synthesis. A conclusion stays attached to the evidence it came from, so it can be checked rather than taken on faith.</li>
+              <li>Confidence is calibrated, and low-confidence work is routed to a human instead of being waved through. The first-pass labeling agent proposes, and a person confirms every call.</li>
+              <li>Error context propagates as structure, so a failure deep in the system arrives with enough detail to diagnose, not as a generic dead end.</li>
+            </ul>
+          </div>
+          <p class="pr-anti">
+            <span class="pr-anti-tag">Anti-pattern</span>
+            Progressive summarization that condenses away the exact figures that matter, then asks the model to act on the blurred version.
+          </p>
+        </div>
+      </details>
+    </li>
+
+  </ol>
+
+  <p class="pr-close reveal">These are general principles of building agentic systems, applied. The proof is not the list. It is that the systems on this site, including this site, were built under these rules and hold up to a look under the hood.</p>
+  <p class="pr-more reveal"><a href="/lab">See them running in the Lab →</a></p>
+</div></section>
+
+</main>
+
+<!-- ===== CANONICAL FOOTER (identical markup on every page; update all copies together) ===== -->
+<footer><div class="wrap">
+  <span>© 2026 Brad O'Haire</span>
+  <span><a href="/work">Work</a> · <a href="/about">About</a> · <a href="/contact">Contact</a> · <a id="foot-gh" href="https://github.com/Veeiy" target="_blank" rel="noopener">GitHub</a> · <a href="mailto:bradtohaire@gmail.com">Email</a></span>
+</div></footer>
+<!-- ===== /CANONICAL FOOTER ===== -->
+
+</body>
+</html>

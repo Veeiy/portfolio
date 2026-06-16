@@ -30,6 +30,19 @@
   color:var(--accent);border:1px solid rgba(110,168,254,.3);border-radius:5px;padding:2px 8px;margin-right:10px;
   vertical-align:middle}
 
+/* ---- "What you are seeing" key: honest annotations naming the real mechanics.
+   Static content (no interactive elements), styled to match the honesty caption.
+   Reuses existing tokens only; the term/desc contrast clears AA. ---- */
+.console-key{margin:0 0 22px;padding:16px 18px;background:var(--panel2);border:1px solid var(--line);border-radius:12px}
+.console-key-head{color:var(--muted);font-size:13px;line-height:1.6;margin:0 0 14px;max-width:860px}
+.console-key-tag{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;
+  color:var(--accent2);border:1px solid rgba(157,123,255,.35);border-radius:5px;padding:2px 8px;margin-right:10px;
+  vertical-align:middle}
+.console-key-list{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}
+.console-key-item{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px;min-width:0}
+.ck-term{display:block;color:var(--ink);font-size:12.5px;font-weight:700;letter-spacing:.2px;margin:0 0 5px}
+.ck-desc{display:block;color:var(--muted);font-size:12.5px;line-height:1.55;overflow-wrap:anywhere}
+
 /* ---- Controls ---- */
 .console-controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px;
   padding-bottom:20px;margin-bottom:20px;border-bottom:1px solid var(--line)}
@@ -178,6 +191,8 @@
 @media (max-width:480px){
   .console{padding:20px 14px 18px}
   .console-honesty{padding:13px 13px;font-size:12.5px}
+  .console-key{padding:13px 13px}
+  .console-key-list{grid-template-columns:1fr;gap:8px}
   .console-meta{grid-template-columns:1fr;gap:10px}
   .meta-cell{display:flex;align-items:baseline;justify-content:space-between;padding:11px 14px}
   .meta-k{margin:0}

@@ -177,6 +177,71 @@
           log:["reconcile pricing and re-audit the buy path",
                "staged in test mode; cleared for a human to launch"] }
       ]
+    },
+
+    support: {
+      name: "Customer support resolution agent",
+      budget: 14,
+      def: "a resolved ticket with identity verified, policy applied, and any money decision left to a human",
+      waves: [
+        { id:"W1", label:"Triage the request", sub:"intake, parallel",
+          agents:["Read the ticket","Classify and route"], gate:"PASS",
+          log:["read the customer's message and pull the intent",
+               "classify the request and route it to the right lane"] },
+        { id:"W2", label:"Verify identity", sub:"prerequisite gate before any account action",
+          agents:["Identity check","Account match"], gate:"BLOCK",
+          contradiction:{
+            what:"a refund was attempted before identity was verified",
+            fix:"hold the account action, run the identity check first, then proceed"
+          },
+          log:["the request asks for a refund on the account",
+               "prerequisite gate: no account action until identity is verified"] },
+        { id:"W3", label:"Resolve in parallel", sub:"lookup order, check policy",
+          agents:["Look up the order","Check the refund policy","Draft the reply"], gate:"WARN",
+          warn:"the policy is silent on this exact case; flagged to escalate, not auto-decided",
+          log:["look up the order and the policy at the same time",
+               "policy does not cover this exact case; mark it for a human"] },
+        { id:"W4", label:"Auditor gate and refund decision", sub:"resolve, or escalate to a human",
+          agents:["Auditor review","Escalation packet"], gate:"PASS",
+          floor:{
+            action:"Issue the refund to the customer's card",
+            why:"moving money is a hard floor; with policy silent, the refund is a human's call, not the run's"
+          },
+          log:["auditor clears the reply and the verified identity",
+               "policy was silent, so the money decision routes to a human"] }
+      ]
+    },
+
+    extraction: {
+      name: "Structured data extraction pipeline",
+      budget: 14,
+      def: "validated records that match the schema, staged for a human to commit to the system of record",
+      waves: [
+        { id:"W1", label:"Ingest documents", sub:"intake, parallel",
+          agents:["Parse files","Normalize text"], gate:"PASS",
+          log:["read the batch of documents in",
+               "normalize the text so every document looks the same"] },
+        { id:"W2", label:"Extract with a JSON schema", sub:"one agent per document, parallel",
+          agents:["Doc 1 to schema","Doc 2 to schema","Doc 3 to schema"], gate:"PASS",
+          log:["dispatch one extractor per document against the same schema",
+               "each returns fields typed to the schema, in parallel"] },
+        { id:"W3", label:"Validate", sub:"flag calculated-vs-stated mismatches",
+          agents:["Schema check","Cross-field math"], gate:"BLOCK",
+          contradiction:{
+            what:"a line total does not equal quantity times unit price (calculated vs stated mismatch)",
+            fix:"retry that document's extraction with the specific validation error fed back"
+          },
+          log:["validate every record against the schema",
+               "recompute totals and compare them to the stated values"] },
+        { id:"W4", label:"Auditor gate and commit", sub:"re-validate, then hand off to a human",
+          agents:["Auditor review","Stage for commit"], gate:"PASS",
+          floor:{
+            action:"Write the extracted records into the production system of record",
+            why:"an irreversible write to the system of record is a hard floor; a human commits, not the run"
+          },
+          log:["re-validate the corrected record; the mismatch is gone",
+               "records match the schema; staged for a human to commit"] }
+      ]
     }
   };
 
