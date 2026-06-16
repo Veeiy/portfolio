@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Instrumented fleet operations · Brad O'Haire</title>
+<meta name="description" content="Instrumented operations for a five-car Tesla fleet, run on Tessie telematics with data-driven turnaround and pricing decisions. The operator credential: real autonomous systems against real money, with a human on every call that carries liability." />
+<link rel="canonical" href="https://bradohaire.com/work/fleet-operations" />
+<link rel="stylesheet" href="/assets/site.css" />
+<script defer src="/assets/site.js"></script>
+</head>
+<body>
+
+<!-- ===== CANONICAL HEADER (identical markup on every page; update all copies together) ===== -->
+<a class="skip-link" href="#main">Skip to content</a>
+<nav><div class="wrap">
+  <a class="brand" href="/">Brad<span>.</span>OHaire</a>
+  <div class="navlinks">
+    <a href="/">Home</a>
+    <a href="/work" aria-current="page">Work</a>
+    <a href="/about">About</a>
+    <a href="/contact">Contact</a>
+    <a id="nav-gh" href="https://github.com/Veeiy" target="_blank" rel="noopener">GitHub</a>
+  </div>
+</div></nav>
+<!-- ===== /CANONICAL HEADER ===== -->
+
+<main id="main">
+
+<!-- 1. Eyebrow + headline.  2. One-line summary.  3. Outcome above the fold (qualitative).
+     Deliberately lighter page: operator credential, not an engineering artifact. -->
+<div class="cs-head"><div class="wrap">
+  <a class="cs-back" href="/work"><span aria-hidden="true">←</span> All work</a>
+  <div class="cs-eyebrow reveal"><span class="tag">Systems I run</span></div>
+  <h1 class="cs-h1 reveal">A five-car instrumented fleet run on live telemetry</h1>
+  <p class="cs-summary reveal">I operate a five-car fleet of instrumented Tesla vehicles, with Tessie telematics streaming the live signal that drives each operational decision.</p>
+  <div class="cs-outcome q reveal">
+    <p>The same discipline as the agent work, against real money and real liability: real-time data in, guardrails on what acts automatically, and a human on the calls that carry the risk. This is the operator credential that makes the guardrails philosophy concrete rather than theoretical.</p>
+  </div>
+</div></div>
+
+<div class="cs-body"><div class="wrap">
+
+  <!-- 4. Problem / context -->
+  <section class="reveal">
+    <h2>The problem</h2>
+    <p>Running a five-car fleet is a real-time operations problem with money on every decision. Turnaround between uses, pricing, and the condition of each vehicle all move continuously, and running it on intuition leaves value and safety on the table. The need was the same one the agent work answers: instrument the system so decisions run on live data, automate the parts that are safe to automate, and keep a human firmly on anything that moves money or cannot be undone.</p>
+  </section>
+
+  <!-- 5. Approach as decisions, not code -->
+  <section class="reveal">
+    <h2>Approach</h2>
+    <p>The fleet runs on Tessie telematics as the live signal, and turnaround and pricing decisions are made off that data rather than off guesswork. The system is decision-advisory by design: it surfaces what the data says and what it would recommend, and the human approves anything that carries money or is irreversible. It is the same capability-then-leash pattern as the agent work, applied to physical assets and real liability instead of a software action.</p>
+    <ul class="decisions">
+      <li>
+        <span class="d-cap">Run on the live signal.</span>
+        <span class="d-leash">Tessie telematics streams the real-time state of each vehicle, and that signal drives turnaround and pricing decisions. <b>The leash: data informs the call, it does not silently execute it.</b></span>
+      </li>
+      <li>
+        <span class="d-cap">Advise, do not transact.</span>
+        <span class="d-leash">The instrumentation recommends the turnaround and pricing move the data supports. <b>The leash: it stays decision-advisory, so a recommendation is not an action.</b></span>
+      </li>
+      <li>
+        <span class="d-cap">Keep the human on the money.</span>
+        <span class="d-leash">Operational signals are automated; consequential moves are not. <b>The leash: anything that moves money or is irreversible waits for the operator.</b></span>
+      </li>
+    </ul>
+  </section>
+
+  <!-- 7. Guardrails / what it is NOT allowed to do -->
+  <section class="reveal">
+    <div class="cs-guardrails">
+      <h2>Guardrails</h2>
+      <p class="gr-sub">What the system is structurally not allowed to do. This is the through-line: capability, then leash.</p>
+      <ul>
+        <li><span class="gr-no">No</span><span>It cannot <strong>move money on its own</strong>. The human approves anything financial.</span></li>
+        <li><span class="gr-no">No</span><span>It cannot take an <strong>irreversible action</strong> unattended. Those calls wait for the operator.</span></li>
+        <li><span class="gr-no">No</span><span>It does not <strong>act beyond advising</strong>. The system surfaces the decision; the human owns the risk.</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 9. Role -->
+  <section class="reveal">
+    <h2>My role</h2>
+    <p class="cs-role">I <strong>built and operate</strong> this fleet myself. It is my own venture, and it is where the guardrails philosophy meets real money and real liability.</p>
+  </section>
+
+  <!-- 10. Links / verify -->
+  <section class="reveal cs-links">
+    <h2>Links and verification</h2>
+    <p class="cs-nolink">This is a private operation, my own venture, so there is no public repo to link and no public metric to cite. It is included as the operator credential behind the guardrails philosophy: the same discipline as the agent work, applied against real money.</p>
+  </section>
+
+  <!-- 11. Prev / next cross-links -->
+  <nav class="cs-nav reveal" aria-label="More case studies">
+    <a href="/work/prediction-market-automation"><span class="cs-nav-dir">Previous case study</span><span class="cs-nav-title">← Prediction-Market Automation</span></a>
+    <a class="next" href="/work"><span class="cs-nav-dir">Back to index</span><span class="cs-nav-title">All work →</span></a>
+  </nav>
+
+</div></div>
+
+</main>
+
+<!-- ===== CANONICAL FOOTER (identical markup on every page; update all copies together) ===== -->
+<footer><div class="wrap">
+  <span>© 2026 Brad O'Haire</span>
+  <span><a href="/work">Work</a> · <a href="/about">About</a> · <a href="/contact">Contact</a> · <a id="foot-gh" href="https://github.com/Veeiy" target="_blank" rel="noopener">GitHub</a> · <a href="mailto:bradtohaire@gmail.com">Email</a></span>
+</div></footer>
+<!-- ===== /CANONICAL FOOTER ===== -->
+
+</body>
+</html>

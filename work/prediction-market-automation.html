@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Prediction-Market Automation · Brad O'Haire</title>
+<meta name="description" content="Scheduled, read-only samplers that build a time-series of Polymarket and Kalshi order books to test, with data not vibes, whether hourly prediction markets are ever market-makeable. Hard no-trade and no-write rails baked into every task." />
+<link rel="canonical" href="https://bradohaire.com/work/prediction-market-automation" />
+<link rel="stylesheet" href="/assets/site.css" />
+<script defer src="/assets/site.js"></script>
+</head>
+<body>
+
+<!-- ===== CANONICAL HEADER (identical markup on every page; update all copies together) ===== -->
+<a class="skip-link" href="#main">Skip to content</a>
+<nav><div class="wrap">
+  <a class="brand" href="/">Brad<span>.</span>OHaire</a>
+  <div class="navlinks">
+    <a href="/">Home</a>
+    <a href="/work" aria-current="page">Work</a>
+    <a href="/about">About</a>
+    <a href="/contact">Contact</a>
+    <a id="nav-gh" href="https://github.com/Veeiy" target="_blank" rel="noopener">GitHub</a>
+  </div>
+</div></nav>
+<!-- ===== /CANONICAL HEADER ===== -->
+
+<main id="main">
+
+<!-- 1. Eyebrow + headline.  2. One-line summary.  3. Outcome above the fold (qualitative). -->
+<div class="cs-head"><div class="wrap">
+  <a class="cs-back" href="/work"><span aria-hidden="true">←</span> All work</a>
+  <div class="cs-eyebrow reveal"><span class="tag">Automation · data</span></div>
+  <h1 class="cs-h1 reveal">Read-only samplers that test a market thesis with data, not vibes</h1>
+  <p class="cs-summary reveal">Scheduled, read-only samplers that build a time-series of Polymarket and Kalshi order books to test whether hourly prediction markets are ever actually market-makeable, with hard no-trade and no-write rails baked into every task.</p>
+  <div class="cs-outcome q reveal">
+    <p>A hypothesis-driven data pipeline where the safety rail is the point: a sampler stays a sampler. It is a research instrument built to answer one question with collected data, not a trading bot, and it is designed so it could never become one.</p>
+  </div>
+</div></div>
+
+<div class="cs-body"><div class="wrap">
+
+  <!-- 4. Problem / context -->
+  <section class="reveal">
+    <h2>The problem</h2>
+    <p>Hourly prediction markets look like they might be market-makeable, but "look like" is not an answer. Settling that question honestly needs a record of how the order books actually move over time, not a hunch and not a backtest on data that was never captured. The risk in building anything near a live market is obvious: the moment a tool can act, the temptation and the blast radius both appear. So the question had to be answered by observation alone, with collection that is structurally incapable of placing a trade or writing to a market.</p>
+  </section>
+
+  <!-- 5. Approach as decisions, not code -->
+  <section class="reveal">
+    <h2>Approach</h2>
+    <p>The design is a set of scheduled samplers that read public order-book data on a cadence and accumulate a time-series. The whole thing is built hypothesis-first: it exists to test one claim, whether hourly markets are ever market-makeable, and to let the data answer rather than a narrative. The defining decision is what the samplers are forbidden to do. They read, they record, and they cannot trade or write, because that rail is baked into every task rather than left to discipline.</p>
+    <ul class="decisions">
+      <li>
+        <span class="d-cap">Sample on a schedule, read-only.</span>
+        <span class="d-leash">Scheduled tasks pull Polymarket and Kalshi order books at intervals and build a time-series. <b>The leash: every task is read-only, so collection can never turn into action.</b></span>
+      </li>
+      <li>
+        <span class="d-cap">Test a hypothesis, do not chase a result.</span>
+        <span class="d-leash">The pipeline is designed around one question and lets the collected data answer it. <b>The leash: it is a research instrument, so there are no invented results to report, only what the data shows over time.</b></span>
+      </li>
+      <li>
+        <span class="d-cap">Respect the source.</span>
+        <span class="d-leash">The samplers pull at a measured cadence rather than hammering the endpoints. <b>The leash: they stay within rate limits, so observation never tips into abuse.</b></span>
+      </li>
+    </ul>
+  </section>
+
+  <!-- 6. What was built -->
+  <section class="reveal">
+    <h2>What was built</h2>
+    <p>A set of scheduled sampler tasks that capture Polymarket and Kalshi order books over time, accumulating the time-series needed to test the market-makeable question. The design is hypothesis-driven: the instrument is shaped by the question it exists to answer, and the no-trade, no-write rails are part of every task by construction. It is a research instrument first, so the outcome is the dataset and the method, not a claimed return.</p>
+  </section>
+
+  <!-- 7. Guardrails / what it is NOT allowed to do -->
+  <section class="reveal">
+    <div class="cs-guardrails">
+      <h2>Guardrails</h2>
+      <p class="gr-sub">What the system is structurally not allowed to do. This is the through-line: capability, then leash.</p>
+      <ul>
+        <li><span class="gr-no">No</span><span>It cannot <strong>place a trade</strong>. A hard no-trade rail is baked into every task by design.</span></li>
+        <li><span class="gr-no">No</span><span>It cannot <strong>write to a market</strong>. The samplers read and record only, never act.</span></li>
+        <li><span class="gr-no">No</span><span>It does not <strong>ignore rate limits</strong>. Collection stays within the limits the sources set.</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 8. Stack & tools -->
+  <section class="reveal">
+    <h2>Stack and tools</h2>
+    <div class="stack">
+      <span class="chip">Scheduled tasks</span>
+      <span class="chip">Python</span>
+      <span class="chip">No-trade rails</span>
+      <span class="chip">Read-only sampling</span>
+      <span class="chip">Time-series</span>
+    </div>
+  </section>
+
+  <!-- 9. Role -->
+  <section class="reveal">
+    <h2>My role</h2>
+    <p class="cs-role">I <strong>designed and built</strong> this research instrument, the scheduled samplers, the hypothesis-driven design, and the no-trade and no-write rails that bound every task.</p>
+  </section>
+
+  <!-- 10. Links / verify -->
+  <section class="reveal cs-links">
+    <h2>Links and verification</h2>
+    <p>This is an open-source project. The repository is public, so the architecture and guardrails described here can be inspected directly.</p>
+    <p><a class="cs-verify" href="https://github.com/Veeiy/prediction-market-automation" target="_blank" rel="noopener">verify <span aria-hidden="true">→</span></a></p>
+  </section>
+
+  <!-- 11. Prev / next cross-links -->
+  <nav class="cs-nav reveal" aria-label="More case studies">
+    <a href="/work/agent-skills"><span class="cs-nav-dir">Previous case study</span><span class="cs-nav-title">← Agent Skills</span></a>
+    <a class="next" href="/work/fleet-operations"><span class="cs-nav-dir">Next case study</span><span class="cs-nav-title">Instrumented fleet operations →</span></a>
+  </nav>
+
+</div></div>
+
+</main>
+
+<!-- ===== CANONICAL FOOTER (identical markup on every page; update all copies together) ===== -->
+<footer><div class="wrap">
+  <span>© 2026 Brad O'Haire</span>
+  <span><a href="/work">Work</a> · <a href="/about">About</a> · <a href="/contact">Contact</a> · <a id="foot-gh" href="https://github.com/Veeiy" target="_blank" rel="noopener">GitHub</a> · <a href="mailto:bradtohaire@gmail.com">Email</a></span>
+</div></footer>
+<!-- ===== /CANONICAL FOOTER ===== -->
+
+</body>
+</html>

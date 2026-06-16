@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>RCA auto-remediation agent · Brad O'Haire</title>
+<meta name="description" content="A production agent that reads root-cause-analysis tickets and runs scoped terminal commands for known failure modes inside a bounded, reversible envelope. 30% increase in data uptime. Bounded autonomy by design." />
+<link rel="canonical" href="https://bradohaire.com/work/rca-auto-remediation-agent" />
+<link rel="stylesheet" href="/assets/site.css" />
+<script defer src="/assets/site.js"></script>
+</head>
+<body>
+
+<!-- ===== CANONICAL HEADER (identical markup on every page; update all copies together) ===== -->
+<a class="skip-link" href="#main">Skip to content</a>
+<nav><div class="wrap">
+  <a class="brand" href="/">Brad<span>.</span>OHaire</a>
+  <div class="navlinks">
+    <a href="/">Home</a>
+    <a href="/work" aria-current="page">Work</a>
+    <a href="/about">About</a>
+    <a href="/contact">Contact</a>
+    <a id="nav-gh" href="https://github.com/Veeiy" target="_blank" rel="noopener">GitHub</a>
+  </div>
+</div></nav>
+<!-- ===== /CANONICAL HEADER ===== -->
+
+<main id="main">
+
+<!-- 1. Eyebrow + headline.  2. One-line summary.  3. Outcome above the fold. -->
+<div class="cs-head"><div class="wrap">
+  <a class="cs-back" href="/work"><span aria-hidden="true">←</span> All work</a>
+  <div class="cs-eyebrow reveal"><span class="tag prod">Production</span></div>
+  <h1 class="cs-h1 reveal">RCA auto-remediation agent that acts only inside a reversible envelope</h1>
+  <p class="cs-summary reveal">An agent that reads root-cause-analysis tickets and runs scoped terminal commands to resolve known failure modes, autonomous only inside a known, safe, reversible remediation envelope.</p>
+  <div class="cs-outcome reveal">
+    <b data-count="30" data-suffix="%">30%</b>
+    <span class="cs-outcome-label">increase in data uptime, measured in production on a humanoid robotics data program</span>
+  </div>
+</div></div>
+
+<div class="cs-body"><div class="wrap">
+
+  <!-- 4. Problem / context (de-identified) -->
+  <section class="reveal">
+    <h2>The problem</h2>
+    <p>On a humanoid robotics data program, working with node-cluster and egocentric-tracking data, a recurring set of failure modes kept knocking the pipeline offline. The fixes were well understood, but they waited on a human to read the root-cause-analysis ticket, recognize the failure, and run the same handful of commands. That wait was the cost: known problems with known fixes were still incurring full human-response latency, and uptime suffered for issues nobody actually needed to think about.</p>
+  </section>
+
+  <!-- 5. Approach as decisions, not code -->
+  <section class="reveal">
+    <h2>Approach</h2>
+    <p>The whole design is the envelope. The interesting engineering here is not making an agent run terminal commands; it is deciding exactly what it may fix on its own and what still needs a human. The agent is allowed to act autonomously, but only inside a bounded set of known failures with known, reversible fixes. Anything outside that envelope is not its call.</p>
+    <ul class="decisions">
+      <li>
+        <span class="d-cap">Autonomous, but only on known failure modes.</span>
+        <span class="d-leash">The agent reads an RCA ticket, matches it to a known failure, and runs the scoped fix. <b>The leash: an unrecognized failure is out of scope, full stop, and goes to a human.</b></span>
+      </li>
+      <li>
+        <span class="d-cap">Reversible only.</span>
+        <span class="d-leash">Every command in the envelope is one that can be undone. <b>The leash: if a fix is not safely reversible, it is not in the envelope and the agent cannot run it.</b></span>
+      </li>
+      <li>
+        <span class="d-cap">Scoped commands, not a free shell.</span>
+        <span class="d-leash">The agent runs a defined set of remediation commands, not arbitrary terminal access. <b>The leash: the boundary is the set of known fixes, and the agent halts at it rather than improvising.</b></span>
+      </li>
+    </ul>
+  </section>
+
+  <!-- 6. What was built -->
+  <section class="reveal">
+    <h2>What was built</h2>
+    <p>An agent that watches root-cause-analysis tickets, classifies each against a known set of failure modes, and runs the scoped, reversible remediation for the ones it recognizes. The remediation envelope, the set of known failures paired with their known, reversible fixes, is the core artifact; it is what makes the autonomy safe. Anything the agent does not recognize is escalated to a person instead of guessed at.</p>
+  </section>
+
+  <!-- 7. Guardrails / what it is NOT allowed to do -->
+  <section class="reveal">
+    <div class="cs-guardrails">
+      <h2>Guardrails</h2>
+      <p class="gr-sub">What the agent is structurally not allowed to do. This is the through-line: capability, then leash.</p>
+      <ul>
+        <li><span class="gr-no">No</span><span>It cannot act on an <strong>unknown failure mode</strong>. Anything outside the envelope is escalated to a human, never guessed.</span></li>
+        <li><span class="gr-no">No</span><span>It cannot run an <strong>irreversible command</strong>. If a fix cannot be safely undone, it is not in the envelope.</span></li>
+        <li><span class="gr-no">No</span><span>It does not get a <strong>free terminal</strong>. It runs a defined set of scoped remediations, not arbitrary commands.</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 8. Stack & tools -->
+  <section class="reveal">
+    <h2>Stack and tools</h2>
+    <div class="stack">
+      <span class="chip">Claude Code</span>
+      <span class="chip">Python</span>
+      <span class="chip">Scoped commands</span>
+      <span class="chip">Bounded autonomy</span>
+      <span class="chip">Reversible envelope</span>
+    </div>
+  </section>
+
+  <!-- 9. Role -->
+  <section class="reveal">
+    <h2>My role</h2>
+    <p class="cs-role">I <strong>designed and shipped</strong> this agent into production as part of my work leading data collection on the program.</p>
+  </section>
+
+  <!-- 10. Links / verify -->
+  <section class="reveal">
+    <h2>Links and verification</h2>
+    <p class="cs-nolink">This is professional production work on a humanoid robotics data program. It is de-identified and has no public repo, so there is nothing to link here. The 30% increase in data uptime is a real measured outcome, presented as fact.</p>
+  </section>
+
+  <!-- 11. Prev / next cross-links -->
+  <nav class="cs-nav reveal" aria-label="More case studies">
+    <a href="/work/first-pass-labeling-agent"><span class="cs-nav-dir">Previous case study</span><span class="cs-nav-title">← First-pass labeling agent</span></a>
+    <a class="next" href="/work/vantage-os"><span class="cs-nav-dir">Next case study</span><span class="cs-nav-title">Vantage OS →</span></a>
+  </nav>
+
+</div></div>
+
+</main>
+
+<!-- ===== CANONICAL FOOTER (identical markup on every page; update all copies together) ===== -->
+<footer><div class="wrap">
+  <span>© 2026 Brad O'Haire</span>
+  <span><a href="/work">Work</a> · <a href="/about">About</a> · <a href="/contact">Contact</a> · <a id="foot-gh" href="https://github.com/Veeiy" target="_blank" rel="noopener">GitHub</a> · <a href="mailto:bradtohaire@gmail.com">Email</a></span>
+</div></footer>
+<!-- ===== /CANONICAL FOOTER ===== -->
+
+</body>
+</html>

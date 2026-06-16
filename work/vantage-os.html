@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Vantage OS · Brad O'Haire</title>
+<meta name="description" content="A personal operating system built as a Claude Code plugin: a coordinator routes every request to the right skill or sub-agent, then gates real-world actions through a QA filter and a permissions-tier system before they reach the human. 8 agents, 10 skills, public and inspectable." />
+<link rel="canonical" href="https://bradohaire.com/work/vantage-os" />
+<link rel="stylesheet" href="/assets/site.css" />
+<script defer src="/assets/site.js"></script>
+</head>
+<body>
+
+<!-- ===== CANONICAL HEADER (identical markup on every page; update all copies together) ===== -->
+<a class="skip-link" href="#main">Skip to content</a>
+<nav><div class="wrap">
+  <a class="brand" href="/">Brad<span>.</span>OHaire</a>
+  <div class="navlinks">
+    <a href="/">Home</a>
+    <a href="/work" aria-current="page">Work</a>
+    <a href="/about">About</a>
+    <a href="/contact">Contact</a>
+    <a id="nav-gh" href="https://github.com/Veeiy" target="_blank" rel="noopener">GitHub</a>
+  </div>
+</div></nav>
+<!-- ===== /CANONICAL HEADER ===== -->
+
+<main id="main">
+
+<!-- 1. Eyebrow + headline.  2. One-line summary.  3. Outcome above the fold (qualitative). -->
+<div class="cs-head"><div class="wrap">
+  <a class="cs-back" href="/work"><span aria-hidden="true">←</span> All work</a>
+  <div class="cs-eyebrow reveal"><span class="tag">Multi-agent system</span></div>
+  <h1 class="cs-h1 reveal">A personal operating system that routes, gates, then hands to the human</h1>
+  <p class="cs-summary reveal">A Claude Code plugin where a coordinator routes every request to the right skill or sub-agent, then gates real-world actions through a QA filter and a permissions-tier system before they reach the human.</p>
+  <div class="cs-outcome q reveal">
+    <p>The largest of my open systems: 8 agents and 10 skills, plus state templates that carry context between sessions. Public and inspectable, and built so that nothing reaches the real world without passing the gate first.</p>
+  </div>
+</div></div>
+
+<div class="cs-body"><div class="wrap">
+
+  <!-- 4. Problem / context -->
+  <section class="reveal">
+    <h2>The problem</h2>
+    <p>Running several ventures at once, the bottleneck was not capability, it was coordination and safety. A single general assistant either tried to do everything itself and lost the thread, or it would happily take a real-world action, send a message, change a record, move on a decision, with no checkpoint between the suggestion and the consequence. What was missing was a layer that could route each request to the right specialist and, just as importantly, refuse to let any consequential action through until it had been checked and explicitly permitted.</p>
+  </section>
+
+  <!-- 5. Approach as decisions, not code -->
+  <section class="reveal">
+    <h2>Approach</h2>
+    <p>The design is a coordinator in front of a set of focused skills and sub-agents, with two gates standing between any agent and a real-world action. The coordinator decides who should handle a request; it does not do the work itself. Before anything leaves the system, it passes a QA filter and a permissions tier. The interesting part is not that it can act, it is that acting is the one thing it is not allowed to do on its own.</p>
+    <ul class="decisions">
+      <li>
+        <span class="d-cap">Route, do not do.</span>
+        <span class="d-leash">A coordinator reads each request and hands it to the right skill or sub-agent. <b>The leash: the coordinator dispatches and never improvises the work itself, so each job lands with the specialist built for it.</b></span>
+      </li>
+      <li>
+        <span class="d-cap">Gate every real-world action through QA.</span>
+        <span class="d-leash">A QA filter sits between the agents and any action that touches the outside world. <b>The leash: an action that fails the filter does not go out, full stop.</b></span>
+      </li>
+      <li>
+        <span class="d-cap">Tier the permissions, default to asking.</span>
+        <span class="d-leash">A permissions-tier system decides what may run on its own and what must wait for the human. <b>The leash: anything consequential or irreversible defaults to the human, not the machine.</b></span>
+      </li>
+    </ul>
+  </section>
+
+  <!-- 6. What was built -->
+  <section class="reveal">
+    <h2>What was built</h2>
+    <p>A Claude Code plugin made of 8 agents and 10 skills, coordinated by a single router, with state templates that hand context from one session to the next so the system has continuity instead of starting cold each time. The QA filter and the permissions-tier system are the core artifacts: they are what make the routing safe to hand a real decision. A worked-example venture vertical inside the plugin shows the whole pattern end to end, from request, to routing, to gate, to the human.</p>
+  </section>
+
+  <!-- 7. Guardrails / what it is NOT allowed to do -->
+  <section class="reveal">
+    <div class="cs-guardrails">
+      <h2>Guardrails</h2>
+      <p class="gr-sub">What the system is structurally not allowed to do. This is the through-line: capability, then leash.</p>
+      <ul>
+        <li><span class="gr-no">No</span><span>It cannot take a <strong>real-world action</strong> that skips the QA filter. Every outward action is checked before it leaves.</span></li>
+        <li><span class="gr-no">No</span><span>It cannot self-escalate its own <strong>permissions tier</strong>. Anything consequential defaults to the human.</span></li>
+        <li><span class="gr-no">No</span><span>It does not act <strong>before the human sees it</strong>. The gate sits in front of the consequence, not after.</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 8. Stack & tools -->
+  <section class="reveal">
+    <h2>Stack and tools</h2>
+    <div class="stack">
+      <span class="chip">Claude Code</span>
+      <span class="chip">Agent orchestration</span>
+      <span class="chip">Permissions tiers</span>
+      <span class="chip">QA filter</span>
+      <span class="chip">State templates</span>
+    </div>
+  </section>
+
+  <!-- 9. Role -->
+  <section class="reveal">
+    <h2>My role</h2>
+    <p class="cs-role">I <strong>designed and built</strong> this system end to end, the coordinator, the skills and sub-agents, and the QA and permissions gates that sit in front of every real-world action.</p>
+  </section>
+
+  <!-- 10. Links / verify -->
+  <section class="reveal cs-links">
+    <h2>Links and verification</h2>
+    <p>This is an open-source project. The repository is public, so the architecture and guardrails described here can be inspected directly.</p>
+    <p><a class="cs-verify" href="https://github.com/Veeiy/vantage-os" target="_blank" rel="noopener">verify <span aria-hidden="true">→</span></a></p>
+  </section>
+
+  <!-- 11. Prev / next cross-links -->
+  <nav class="cs-nav reveal" aria-label="More case studies">
+    <a href="/work/rca-auto-remediation-agent"><span class="cs-nav-dir">Previous case study</span><span class="cs-nav-title">← RCA auto-remediation agent</span></a>
+    <a class="next" href="/work/agent-skills"><span class="cs-nav-dir">Next case study</span><span class="cs-nav-title">Agent Skills →</span></a>
+  </nav>
+
+</div></div>
+
+</main>
+
+<!-- ===== CANONICAL FOOTER (identical markup on every page; update all copies together) ===== -->
+<footer><div class="wrap">
+  <span>© 2026 Brad O'Haire</span>
+  <span><a href="/work">Work</a> · <a href="/about">About</a> · <a href="/contact">Contact</a> · <a id="foot-gh" href="https://github.com/Veeiy" target="_blank" rel="noopener">GitHub</a> · <a href="mailto:bradtohaire@gmail.com">Email</a></span>
+</div></footer>
+<!-- ===== /CANONICAL FOOTER ===== -->
+
+</body>
+</html>

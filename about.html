@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>About · Brad O'Haire</title>
+<meta name="description" content="How Brad O'Haire builds: coordinator-and-specialist agent systems, control before capability, feasibility before code, and a repeatable audited build loop. With a teardown of this site." />
+<link rel="canonical" href="https://bradohaire.com/about" />
+<link rel="stylesheet" href="/assets/site.css" />
+<script defer src="/assets/site.js"></script>
+</head>
+<body>
+
+<!-- ===== CANONICAL HEADER (identical markup on every page; update all copies together) ===== -->
+<a class="skip-link" href="#main">Skip to content</a>
+<nav><div class="wrap">
+  <a class="brand" href="/">Brad<span>.</span>OHaire</a>
+  <div class="navlinks">
+    <a href="/">Home</a>
+    <a href="/work">Work</a>
+    <a href="/about" aria-current="page">About</a>
+    <a href="/contact">Contact</a>
+    <a id="nav-gh" href="https://github.com/Veeiy" target="_blank" rel="noopener">GitHub</a>
+  </div>
+</div></nav>
+<!-- ===== /CANONICAL HEADER ===== -->
+
+<main id="main">
+
+<section id="about"><div class="wrap about">
+  <div class="sec-head reveal"><h1>About</h1><div class="rule"></div></div>
+  <p class="reveal">I'm <strong>Brad O'Haire</strong>, currently a Data Collection Lead on a humanoid robotics data program, building toward technical program management and AI research engineering. I run several ventures on the side, and the throughline in all of it is the same: <strong>turn messy, multi-threaded work into systems that route, gate, and ship.</strong></p>
+  <p class="reveal d1">My day job is data. I lead collection on a robotics program, where the work is getting clean, well-labeled, repeatable data out of a messy physical process and keeping the pipeline honest end to end. On that program I have shipped two agents into production with real, measured outcomes, and I treat the agent work the way I treat the data: as pipelines with guardrails. Collect carefully, act inside a known envelope, and never let a read-only job quietly turn into a write.</p>
+  <p class="reveal d2">The repos here are real working systems, genericized for public release. Every one was audited for secrets and personal data before it went up. I care about guardrails as much as capability. The interesting part of an agent isn't what it <em>can</em> do, it's what it's allowed to do and how that's enforced. I also operate a five-car fleet of instrumented Tesla vehicles on live telematics, which keeps the discipline concrete: real-time data in, guardrails on what acts automatically, a human on the calls that carry liability.</p>
+</div></section>
+
+<section id="approach"><div class="wrap">
+  <div class="sec-head reveal"><h2>How I build</h2><div class="rule"></div></div>
+  <p class="sec-intro reveal">A breakdown of the thinking and implementation behind the agentic work, written for hiring managers and teams. The methods and the decisions, not the prompt internals.</p>
+
+  <div class="flow reveal" id="flow">
+    <p class="flow-cap">How I run a build</p>
+    <svg viewBox="0 0 720 150" role="img" aria-label="Process diagram of an orchestrated build loop: Research, Ideate, Build, Audit, Test, Ship, in sequence, with a feedback loop from Audit and Test back to Build to iterate. Methodology illustration only.">
+      <defs>
+        <linearGradient id="flowGrad" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color="var(--accent)"></stop>
+          <stop offset="1" stop-color="var(--accent2)"></stop>
+        </linearGradient>
+        <marker id="flowArrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M0 0 L10 5 L0 10 z" fill="var(--accent2)"></path>
+        </marker>
+      </defs>
+
+      <!-- forward connectors between stage centers (y=52), drawn left to right -->
+      <path class="flow-link" data-link d="M98 52 L126 52"></path>
+      <path class="flow-link" data-link d="M222 52 L250 52"></path>
+      <path class="flow-link" data-link d="M346 52 L374 52"></path>
+      <path class="flow-link" data-link d="M470 52 L498 52"></path>
+      <path class="flow-link" data-link d="M594 52 L622 52"></path>
+
+      <!-- feedback / iterate loop: from under Test+Audit back to Build -->
+      <path class="flow-loop" data-loop marker-end="url(#flowArrow)"
+            d="M546 78 C546 120, 298 120, 298 80"></path>
+      <text class="flow-loop-label" x="422" y="138" text-anchor="middle">Iterate</text>
+
+      <!-- stages -->
+      <g class="stage" data-stage><rect x="4"   y="32" width="92" height="40" rx="11"></rect><circle cx="50"  cy="20" r="4"></circle><text x="50"  y="57" text-anchor="middle">Research</text></g>
+      <g class="stage" data-stage><rect x="128" y="32" width="92" height="40" rx="11"></rect><circle cx="174" cy="20" r="4"></circle><text x="174" y="57" text-anchor="middle">Ideate</text></g>
+      <g class="stage" data-stage><rect x="252" y="32" width="92" height="40" rx="11"></rect><circle cx="298" cy="20" r="4"></circle><text x="298" y="57" text-anchor="middle">Build</text></g>
+      <g class="stage" data-stage><rect x="376" y="32" width="92" height="40" rx="11"></rect><circle cx="422" cy="20" r="4"></circle><text x="422" y="57" text-anchor="middle">Audit</text></g>
+      <g class="stage" data-stage><rect x="500" y="32" width="92" height="40" rx="11"></rect><circle cx="546" cy="20" r="4"></circle><text x="546" y="57" text-anchor="middle">Test</text></g>
+      <g class="stage" data-stage><rect x="624" y="32" width="92" height="40" rx="11"></rect><circle cx="670" cy="20" r="4"></circle><text x="670" y="57" text-anchor="middle">Ship</text></g>
+    </svg>
+  </div>
+
+  <div class="grid">
+
+    <div class="card reveal">
+      <span class="tag">Architecture</span>
+      <h3>Coordinator and specialists</h3>
+      <p>I design multi-agent systems as a coordinator that routes each request to the right specialist, then composes their output. A mission is decomposed into waves: independent work runs in parallel, dependent work gates on the wave before it. It is the difference between one model doing everything and a team with a conductor.</p>
+    </div>
+
+    <div class="card reveal d1">
+      <span class="tag">Guardrails</span>
+      <h3>Control before capability</h3>
+      <p>Every system carries a safety floor it cannot cross: no moving money, no touching secrets, no irreversible action that was not asked for. Autonomy is two dials, how much a human stays in the loop and how far the system can reach, set per run. A run budget guarantees it halts on a known boundary instead of looping forever.</p>
+    </div>
+
+    <div class="card reveal d2">
+      <span class="tag">Judgment</span>
+      <h3>Feasibility before code</h3>
+      <p>Before building, I pressure-test the idea: what is genuinely buildable, where the API and platform constraints sit, and where the legal and compliance surface is. On one product line I cut high-liability ideas and honestly reframed another once I confirmed the integration it implied did not exist. Knowing what not to build is part of the work.</p>
+    </div>
+
+    <div class="card reveal d3">
+      <span class="tag">Delivery</span>
+      <h3>Repeatable, audited, shipped</h3>
+      <p>The same engine that runs a research brief can ship a storefront or an internal tool, because each run is driven by a mission blueprint rather than hard-coded to one job. Every build is scaffolded from a shared template, gated wave by wave by an auditor that returns pass, warn, or block, and checked against an evaluation list before it is called done.</p>
+    </div>
+
+  </div>
+
+  <details class="teardown reveal">
+    <summary><span class="chev" aria-hidden="true">▸</span><span class="td-head"><span>How this site is built</span><span class="td-teaser">This site is a work sample too. See how it holds together.</span></span><span class="td-tag">For engineers</span></summary>
+    <div class="teardown-body">
+      <p>This site is its own work sample. A small multi-page static site, vanilla HTML, CSS, and JavaScript, no build step and no framework. Every page is one HTML file that links a single shared stylesheet and a single shared script, and it all degrades gracefully if JavaScript never runs: the content is in the markup, and the motion is progressive enhancement on top.</p>
+      <ul>
+        <li><b>One stylesheet, one script, shared.</b> All of the design tokens and components live in <code>/assets/site.css</code>, and all behavior in <code>/assets/site.js</code>, linked by every page. A token change propagates everywhere. The header and footer are duplicated per page on purpose, since the site is buildless, with one canonical markup block kept in sync.</li>
+        <li><b>The script runs safely on every page.</b> Each initializer null-checks its own root element and no-ops when absent, so a subpage that has no hero canvas, no process diagram, and no charts runs the same shared script with zero console errors. One file, doing hero, guardrail, count-up, and chart work only where those nodes exist.</li>
+        <li><b>One animation engine.</b> The hero network and its faint echo in the data section share a single <code>nodeField</code> factory: one <code>requestAnimationFrame</code> loop per instance, a capped node count that scales with viewport area, and a safety contract where <code>start()</code> is idempotent so at most one frame is ever in flight. The same loop carries the labeled coordinator, specialist, and auditor roles and the request-and-return pulse.</li>
+        <li><b>It pauses when it should.</b> The loop stops on a hidden tab through the Page Visibility API and resumes only when the tab is visible again, so a backgrounded page costs nothing. Pointer reactivity is opt-in and only attaches where a fine hover pointer exists, so touch devices carry no pointer cost.</li>
+        <li><b>Reduced motion is honored everywhere.</b> A single <code>prefers-reduced-motion</code> check gates every animated path: the canvases never start, the count-ups and bars jump to their final values, the process diagram renders fully lit, and the guardrail verdicts all show at once. Nothing depends on motion to be readable.</li>
+        <li><b>Hand-rolled data-viz.</b> The line chart, the emphasis bars, and the process diagram are inline SVG and CSS with a little path math, no chart library and no images. Each is clearly labeled illustrative where the numbers are illustrative.</li>
+        <li><b>Accessibility baked in.</b> <code>:focus-visible</code> outlines, a skip link, keyboard-operable controls, semantic landmarks, clean URLs, and no horizontal overflow on a narrow phone.</li>
+      </ul>
+      <p class="td-src">Curious how it holds together? View source on any page, then open <code>/assets/site.css</code> and <code>/assets/site.js</code>; it is all right there.</p>
+    </div>
+  </details>
+</div></section>
+
+<section id="data">
+  <canvas id="data-echo" aria-hidden="true"></canvas>
+  <div class="wrap">
+  <div class="sec-head reveal"><h2>Data craft</h2><div class="rule"></div></div>
+  <p class="data-lede reveal">My day job is data, and so is most of what I build on the side. I treat data work the way I treat agents: as pipelines with guardrails. Collect carefully, sample on a schedule, analyze with a hypothesis in hand, and never let a read-only job quietly turn into a write. The two visualizations below are clearly labeled illustrative; they stand in for the shape of the work, not measured results. The real measured outcomes live on the <a class="verify" href="/work" style="font-size:inherit">work pages</a>.</p>
+
+  <div class="data-cols">
+    <div class="card reveal">
+      <span class="tag">Collection</span>
+      <h3>Data Collection Lead, robotics</h3>
+      <p>My current role is leading data collection on a robotics program. The job is getting clean, well-labeled, repeatable data out of a messy physical process, and keeping the pipeline honest end to end.</p>
+    </div>
+    <div class="card reveal d1">
+      <span class="tag">Sampling</span>
+      <h3>Read-only market samplers</h3>
+      <p>I build scheduled samplers that snapshot Polymarket and Kalshi order books into a time-series. The work is hypothesis-driven, and every task ships with hard no-trade and no-write rails so a sampler stays a sampler.</p>
+      <div class="links"><a href="/work/prediction-market-automation">Read the case study →</a></div>
+    </div>
+    <div class="card reveal d2">
+      <span class="tag">Operations</span>
+      <h3>Instrumented fleet operations</h3>
+      <p>I operate a five-car fleet of instrumented Tesla vehicles, with Tessie telematics streaming the live signal that drives each operational decision. It is the same discipline as the agent work: real-time data in, guardrails on what acts automatically, a human on the calls that carry liability.</p>
+      <div class="links"><a href="/work/fleet-operations">Read the case study →</a></div>
+    </div>
+  </div>
+
+  <div class="viz-grid">
+    <div class="viz reveal" id="viz-series">
+      <h3>Order-book mid-price sampling<span class="illustrative">Illustrative</span></h3>
+      <p class="viz-sub">This stands in for the kind of order-book mid-price series my read-only samplers capture across Polymarket and Kalshi over a session. Sample data drawn to show the pattern, not real measured prices.</p>
+      <svg viewBox="0 0 520 240" role="img" aria-label="Illustrative animated multi-series line chart of sampled order-book mid-prices over time. Sample data only.">
+        <g stroke="var(--line)" stroke-width="1">
+          <line x1="40" y1="20"  x2="510" y2="20"></line>
+          <line x1="40" y1="70"  x2="510" y2="70"></line>
+          <line x1="40" y1="120" x2="510" y2="120"></line>
+          <line x1="40" y1="170" x2="510" y2="170"></line>
+          <line x1="40" y1="210" x2="510" y2="210"></line>
+        </g>
+        <g fill="var(--dim)" font-size="10" text-anchor="end">
+          <text x="34" y="24">1.00</text>
+          <text x="34" y="124">0.50</text>
+          <text x="34" y="214">0.00</text>
+        </g>
+        <path id="series-a" fill="none" stroke="var(--accent)"  stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path id="series-b" fill="none" stroke="var(--accent2)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path id="series-c" fill="none" stroke="var(--ok)"      stroke-width="2"   stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1 6"></path>
+      </svg>
+      <div class="legend">
+        <span><i style="background:var(--accent)"></i>Market A mid</span>
+        <span><i style="background:var(--accent2)"></i>Market B mid</span>
+        <span><i style="background:var(--ok)"></i>Spread proxy</span>
+      </div>
+    </div>
+
+    <div class="viz reveal d1" id="viz-bars">
+      <h3>Where the data work goes<span class="illustrative">Illustrative</span></h3>
+      <p class="viz-sub">These bars stand in for how my emphasis splits across the data work, from collection through guardrails, in the samplers and collection pipelines I build. Relative emphasis, not a measured metric.</p>
+      <div class="bars">
+        <div class="bar-row"><span class="bar-label">Collection</span><span class="bar-track"><span class="bar-fill" data-pct="82"></span></span><span class="bar-val">82</span></div>
+        <div class="bar-row"><span class="bar-label">Sampling</span><span class="bar-track"><span class="bar-fill" data-pct="70"></span></span><span class="bar-val">70</span></div>
+        <div class="bar-row"><span class="bar-label">Cleaning</span><span class="bar-track"><span class="bar-fill" data-pct="64"></span></span><span class="bar-val">64</span></div>
+        <div class="bar-row"><span class="bar-label">Analysis</span><span class="bar-track"><span class="bar-fill" data-pct="48"></span></span><span class="bar-val">48</span></div>
+        <div class="bar-row"><span class="bar-label">Guardrails</span><span class="bar-track"><span class="bar-fill" data-pct="58"></span></span><span class="bar-val">58</span></div>
+      </div>
+      <p class="viz-sub" style="margin-top:16px">The numbers are relative weights on a 0 to 100 scale, not hours or counts. They are here to show emphasis: collection and clean sampling carry most of the weight, and guardrails are never an afterthought.</p>
+    </div>
+  </div>
+</div></section>
+
+</main>
+
+<!-- ===== CANONICAL FOOTER (identical markup on every page; update all copies together) ===== -->
+<footer><div class="wrap">
+  <span>© 2026 Brad O'Haire</span>
+  <span><a href="/work">Work</a> · <a href="/about">About</a> · <a href="/contact">Contact</a> · <a id="foot-gh" href="https://github.com/Veeiy" target="_blank" rel="noopener">GitHub</a> · <a href="mailto:bradtohaire@gmail.com">Email</a></span>
+</div></footer>
+<!-- ===== /CANONICAL FOOTER ===== -->
+
+</body>
+</html>

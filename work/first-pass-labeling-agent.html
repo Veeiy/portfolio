@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>First-pass labeling agent · Brad O'Haire</title>
+<meta name="description" content="A production agent that auto-buckets unlabeled data into first-pass categories so human labelers work a triaged queue. 25% increase in data grading output. The agent does the first pass; a human owns every decision." />
+<link rel="canonical" href="https://bradohaire.com/work/first-pass-labeling-agent" />
+<link rel="stylesheet" href="/assets/site.css" />
+<script defer src="/assets/site.js"></script>
+</head>
+<body>
+
+<!-- ===== CANONICAL HEADER (identical markup on every page; update all copies together) ===== -->
+<a class="skip-link" href="#main">Skip to content</a>
+<nav><div class="wrap">
+  <a class="brand" href="/">Brad<span>.</span>OHaire</a>
+  <div class="navlinks">
+    <a href="/">Home</a>
+    <a href="/work" aria-current="page">Work</a>
+    <a href="/about">About</a>
+    <a href="/contact">Contact</a>
+    <a id="nav-gh" href="https://github.com/Veeiy" target="_blank" rel="noopener">GitHub</a>
+  </div>
+</div></nav>
+<!-- ===== /CANONICAL HEADER ===== -->
+
+<main id="main">
+
+<!-- 1. Eyebrow + headline.  2. One-line summary.  3. Outcome above the fold. -->
+<div class="cs-head"><div class="wrap">
+  <a class="cs-back" href="/work"><span aria-hidden="true">←</span> All work</a>
+  <div class="cs-eyebrow reveal"><span class="tag prod">Production</span></div>
+  <h1 class="cs-h1 reveal">First-pass labeling agent that triages the queue so humans grade faster</h1>
+  <p class="cs-summary reveal">An agent that auto-buckets incoming unlabeled data into first-pass categories, so human labelers open a triaged queue instead of raw input, and a person confirms every call.</p>
+  <div class="cs-outcome reveal">
+    <b data-count="25" data-suffix="%">25%</b>
+    <span class="cs-outcome-label">increase in data grading output, measured in production on a humanoid robotics data program</span>
+  </div>
+</div></div>
+
+<div class="cs-body"><div class="wrap">
+
+  <!-- 4. Problem / context (de-identified) -->
+  <section class="reveal">
+    <h2>The problem</h2>
+    <p>On a humanoid robotics data program, working with node-cluster and egocentric-tracking data, the labeling pipeline started every item from raw, unsorted input. Labelers spent a large share of their time just deciding what a thing was before they could grade it, and that sorting cost scaled linearly with volume. The bottleneck was not labeler skill, it was that every item arrived with zero structure, so the expensive human judgment was being spent on cheap triage instead of the calls that actually needed a person.</p>
+  </section>
+
+  <!-- 5. Approach as decisions, not code -->
+  <section class="reveal">
+    <h2>Approach</h2>
+    <p>The design decision was to put an agent in front of the queue to do the cheap sorting, and to keep the human on the part that carries the judgment. The agent never grades and never finalizes; it proposes a first-pass category, and the labeler opens a pre-sorted queue and confirms or overrides every item.</p>
+    <ul class="decisions">
+      <li>
+        <span class="d-cap">Triage, do not decide.</span>
+        <span class="d-leash">The agent buckets incoming data into a first-pass category. <b>The leash: it proposes only, and a person confirms every call before anything is final.</b></span>
+      </li>
+      <li>
+        <span class="d-cap">Pre-sort the queue, do not shrink the review.</span>
+        <span class="d-leash">Labelers open a triaged queue instead of raw input, so attention goes to the hard items. <b>The leash: every item still passes a human, so the review surface never gets quietly cut.</b></span>
+      </li>
+      <li>
+        <span class="d-cap">Make overrides cheap and visible.</span>
+        <span class="d-leash">A wrong first-pass guess costs one correction, not a re-sort from scratch. <b>The leash: the human stays the source of truth, and the agent's guess is always a suggestion the person can reject.</b></span>
+      </li>
+    </ul>
+  </section>
+
+  <!-- 6. What was built -->
+  <section class="reveal">
+    <h2>What was built</h2>
+    <p>A first-pass classification agent wired into the existing labeling workflow, plus the triaged queue it feeds. The agent reads incoming unlabeled items, assigns a first-pass category, and hands a pre-sorted queue to the labelers. The human-confirm step is part of the workflow, not bolted on after: nothing the agent proposes becomes a label until a person accepts it.</p>
+  </section>
+
+  <!-- 7. Guardrails / what it is NOT allowed to do -->
+  <section class="reveal">
+    <div class="cs-guardrails">
+      <h2>Guardrails</h2>
+      <p class="gr-sub">What the agent is structurally not allowed to do. This is the through-line: capability, then leash.</p>
+      <ul>
+        <li><span class="gr-no">No</span><span>It cannot <strong>finalize a label</strong>. Every call is a proposal that a human confirms or overrides.</span></li>
+        <li><span class="gr-no">No</span><span>It cannot <strong>remove the human review step</strong>. The triaged queue speeds the work; it does not replace the person.</span></li>
+        <li><span class="gr-no">No</span><span>It cannot <strong>silently change the dataset</strong>. The agent writes a first-pass suggestion, never a graded result.</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 8. Stack & tools -->
+  <section class="reveal">
+    <h2>Stack and tools</h2>
+    <div class="stack">
+      <span class="chip">Claude Code</span>
+      <span class="chip">Python</span>
+      <span class="chip">Classification</span>
+      <span class="chip">Human-in-the-loop</span>
+      <span class="chip">Triage queue</span>
+    </div>
+  </section>
+
+  <!-- 9. Role -->
+  <section class="reveal">
+    <h2>My role</h2>
+    <p class="cs-role">I <strong>designed and shipped</strong> this agent into production as part of my work leading data collection on the program.</p>
+  </section>
+
+  <!-- 10. Links / verify -->
+  <section class="reveal">
+    <h2>Links and verification</h2>
+    <p class="cs-nolink">This is professional production work on a humanoid robotics data program. It is de-identified and has no public repo, so there is nothing to link here. The 25% increase in data grading output is a real measured outcome, presented as fact.</p>
+  </section>
+
+  <!-- 11. Prev / next cross-links -->
+  <nav class="cs-nav reveal" aria-label="More case studies">
+    <a href="/work"><span class="cs-nav-dir">Index</span><span class="cs-nav-title">All work</span></a>
+    <a class="next" href="/work/rca-auto-remediation-agent"><span class="cs-nav-dir">Next case study</span><span class="cs-nav-title">RCA auto-remediation agent →</span></a>
+  </nav>
+
+</div></div>
+
+</main>
+
+<!-- ===== CANONICAL FOOTER (identical markup on every page; update all copies together) ===== -->
+<footer><div class="wrap">
+  <span>© 2026 Brad O'Haire</span>
+  <span><a href="/work">Work</a> · <a href="/about">About</a> · <a href="/contact">Contact</a> · <a id="foot-gh" href="https://github.com/Veeiy" target="_blank" rel="noopener">GitHub</a> · <a href="mailto:bradtohaire@gmail.com">Email</a></span>
+</div></footer>
+<!-- ===== /CANONICAL FOOTER ===== -->
+
+</body>
+</html>

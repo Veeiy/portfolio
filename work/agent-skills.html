@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Agent Skills · Brad O'Haire</title>
+<meta name="description" content="Two standalone agentic skills: an optimizer that finds the single highest-leverage move, and a wave-based orchestrator that plans a mission into a DAG of parallel sub-agents gated by an auditor. 7 agents, standalone and public." />
+<link rel="canonical" href="https://bradohaire.com/work/agent-skills" />
+<link rel="stylesheet" href="/assets/site.css" />
+<script defer src="/assets/site.js"></script>
+</head>
+<body>
+
+<!-- ===== CANONICAL HEADER (identical markup on every page; update all copies together) ===== -->
+<a class="skip-link" href="#main">Skip to content</a>
+<nav><div class="wrap">
+  <a class="brand" href="/">Brad<span>.</span>OHaire</a>
+  <div class="navlinks">
+    <a href="/">Home</a>
+    <a href="/work" aria-current="page">Work</a>
+    <a href="/about">About</a>
+    <a href="/contact">Contact</a>
+    <a id="nav-gh" href="https://github.com/Veeiy" target="_blank" rel="noopener">GitHub</a>
+  </div>
+</div></nav>
+<!-- ===== /CANONICAL HEADER ===== -->
+
+<main id="main">
+
+<!-- 1. Eyebrow + headline.  2. One-line summary.  3. Outcome above the fold (qualitative). -->
+<div class="cs-head"><div class="wrap">
+  <a class="cs-back" href="/work"><span aria-hidden="true">←</span> All work</a>
+  <div class="cs-eyebrow reveal"><span class="tag">Prompt engineering</span></div>
+  <h1 class="cs-h1 reveal">Two agentic skills: find the highest-leverage move, then plan the wave</h1>
+  <p class="cs-summary reveal">An optimizer that finds the single highest-leverage move in any context, and an orchestrator that plans a mission into a wave-based DAG of parallel sub-agents, gated by an auditor.</p>
+  <div class="cs-outcome q reveal">
+    <p>Role separation and autonomy tiers done deliberately, across 7 agents, standalone and public. Two skills that show the same discipline from opposite ends: one narrows a whole situation to a single move, the other fans a mission out across parallel agents and gates the result.</p>
+  </div>
+</div></div>
+
+<div class="cs-body"><div class="wrap">
+
+  <!-- 4. Problem / context -->
+  <section class="reveal">
+    <h2>The problem</h2>
+    <p>Two recurring failure modes show up when you point agents at real work. The first is doing too much at once: a long, undirected effort that never names the one move that actually matters. The second is the opposite, a single agent trying to carry a whole multi-step mission alone, with no separation of roles and no checkpoint, so it drifts or loops with nothing to stop it. These two skills are deliberate answers to each: one forces focus down to a single highest-leverage move, the other spreads the work across parallel sub-agents and puts an auditor in the path.</p>
+  </section>
+
+  <!-- 5. Approach as decisions, not code -->
+  <section class="reveal">
+    <h2>Approach</h2>
+    <p>The two skills are built as standalone tools with explicit role separation and autonomy tiers, not one monolith. The optimizer reads a whole context and returns the single move with the most leverage, rather than a long list. The orchestrator plans a mission into a wave-based DAG, runs sub-agents in parallel where it is safe to, and routes the output through an auditor before a wave is allowed to count as done. Capability is the easy half; the design work is the gates and the stopping rules.</p>
+    <ul class="decisions">
+      <li>
+        <span class="d-cap">Find one move, not a backlog.</span>
+        <span class="d-leash">The optimizer reads the full context and names the single highest-leverage action. <b>The leash: it surfaces the move for a human to take, rather than firing it off itself.</b></span>
+      </li>
+      <li>
+        <span class="d-cap">Plan in waves, run in parallel.</span>
+        <span class="d-leash">The orchestrator decomposes a mission into a DAG and runs independent sub-agents at the same time. <b>The leash: each wave is gated by an auditor before the next one is allowed to start.</b></span>
+      </li>
+      <li>
+        <span class="d-cap">Separate the roles, tier the autonomy.</span>
+        <span class="d-leash">Each agent has a defined role and a defined level of independence. <b>The leash: a hard safety floor and a run budget bound the whole thing, so it cannot quietly run away.</b></span>
+      </li>
+    </ul>
+  </section>
+
+  <!-- 6. What was built -->
+  <section class="reveal">
+    <h2>What was built</h2>
+    <p>Two standalone skills, spanning 7 agents in total. The optimizer is a single-purpose skill that collapses a situation to its highest-leverage move. The orchestrator is a wave-based planner that turns a mission into a DAG of parallel sub-agents with an auditor in the path. The role separation, the autonomy tiers, and the auditor gate are the deliberate parts: they are what keep a parallel, multi-agent run honest and bounded instead of sprawling.</p>
+  </section>
+
+  <!-- 7. Guardrails / what it is NOT allowed to do -->
+  <section class="reveal">
+    <div class="cs-guardrails">
+      <h2>Guardrails</h2>
+      <p class="gr-sub">What the system is structurally not allowed to do. This is the through-line: capability, then leash.</p>
+      <ul>
+        <li><span class="gr-no">No</span><span>It cannot let a wave <strong>count as done unaudited</strong>. An auditor gates each wave before the next begins.</span></li>
+        <li><span class="gr-no">No</span><span>It cannot <strong>run without limit</strong>. A run budget stops a runaway loop before it spirals.</span></li>
+        <li><span class="gr-no">No</span><span>It cannot drop below the <strong>hard safety floor</strong>. That floor binds every agent regardless of tier.</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 8. Stack & tools -->
+  <section class="reveal">
+    <h2>Stack and tools</h2>
+    <div class="stack">
+      <span class="chip">Claude Code</span>
+      <span class="chip">DAG orchestration</span>
+      <span class="chip">Autonomy tiers</span>
+      <span class="chip">Auditor gating</span>
+      <span class="chip">Run budget</span>
+    </div>
+  </section>
+
+  <!-- 9. Role -->
+  <section class="reveal">
+    <h2>My role</h2>
+    <p class="cs-role">I <strong>designed and built</strong> both skills, the optimizer and the wave-based orchestrator, including the role separation, the autonomy tiers, and the auditor gate that bounds each run.</p>
+  </section>
+
+  <!-- 10. Links / verify -->
+  <section class="reveal cs-links">
+    <h2>Links and verification</h2>
+    <p>This is an open-source project. The repository is public, so the architecture and guardrails described here can be inspected directly.</p>
+    <p><a class="cs-verify" href="https://github.com/Veeiy/agent-skills" target="_blank" rel="noopener">verify <span aria-hidden="true">→</span></a></p>
+  </section>
+
+  <!-- 11. Prev / next cross-links -->
+  <nav class="cs-nav reveal" aria-label="More case studies">
+    <a href="/work/vantage-os"><span class="cs-nav-dir">Previous case study</span><span class="cs-nav-title">← Vantage OS</span></a>
+    <a class="next" href="/work/prediction-market-automation"><span class="cs-nav-dir">Next case study</span><span class="cs-nav-title">Prediction-Market Automation →</span></a>
+  </nav>
+
+</div></div>
+
+</main>
+
+<!-- ===== CANONICAL FOOTER (identical markup on every page; update all copies together) ===== -->
+<footer><div class="wrap">
+  <span>© 2026 Brad O'Haire</span>
+  <span><a href="/work">Work</a> · <a href="/about">About</a> · <a href="/contact">Contact</a> · <a id="foot-gh" href="https://github.com/Veeiy" target="_blank" rel="noopener">GitHub</a> · <a href="mailto:bradtohaire@gmail.com">Email</a></span>
+</div></footer>
+<!-- ===== /CANONICAL FOOTER ===== -->
+
+</body>
+</html>
