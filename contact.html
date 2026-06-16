@@ -31,8 +31,25 @@
 
 <main id="main">
 <section><div class="wrap about">
+  <style>
+    /* scoped contact styles (ct-) so they cannot collide with site.css; tokens reused.
+       The credential line mirrors the about-page treatment, and the channel cards
+       reuse the shared .grid + .card components from site.css. */
+    .ct-cred{display:inline-flex;align-items:baseline;gap:9px;margin:2px 0 4px;padding:8px 14px;
+      border:1px solid var(--line,#23262f);border-radius:12px;
+      background:linear-gradient(180deg,rgba(110,168,254,.06),rgba(157,123,255,.03));max-width:100%;}
+    .ct-cred .ct-dot{flex:none;width:7px;height:7px;border-radius:50%;align-self:center;
+      background:linear-gradient(135deg,var(--accent,#6ea8fe),var(--accent2,#9d7bff));}
+    .ct-cred .ct-txt{font-size:.92rem;line-height:1.45;color:var(--fg,#e8ebf2);}
+    .ct-cred .ct-name{font-weight:600;}
+    .ct-cred .ct-sub{color:var(--dim,#8a92a6);}
+    /* the secondary tag colour for the resume/work cards, reusing the .outcome.q accent */
+    .card .tag.ct-alt{color:var(--accent,#6ea8fe);background:rgba(110,168,254,.1);border-color:rgba(110,168,254,.25);}
+  </style>
+
   <div class="sec-head reveal"><h1>Contact</h1><div class="rule"></div></div>
-  <p class="reveal">The fastest way to reach me is email. The code is on GitHub, public and inspectable. I read everything and reply to anything that is a real fit.</p>
+  <p class="reveal">The fastest way to reach me is email, and the code is on GitHub, public and inspectable. If you want the short version of who you would be hiring, the resume and the work are one click away. I read everything and reply to anything that is a real fit.</p>
+  <p class="reveal"><span class="ct-cred"><span class="ct-dot" aria-hidden="true"></span><span class="ct-txt"><span class="ct-name">Claude Certified Architect (Foundations)</span><span class="ct-sub">, issued by Anthropic.</span></span></span></p>
 
   <div class="grid reveal" style="margin-top:8px">
     <a class="card" href="mailto:bradtohaire@gmail.com">
@@ -48,6 +65,20 @@
       <p>The open-source systems behind the case studies: Vantage OS, Agent Skills, and the read-only market samplers. Public and verifiable.</p>
       <div class="links"><span>View the repos →</span></div>
     </a>
+
+    <a class="card" href="/resume">
+      <span class="tag ct-alt">Resume</span>
+      <h3>One-page resume</h3>
+      <p>An impact-based one-pager with the production agents, the open-source systems, and what I am open to. Print friendly, ready to save as a PDF.</p>
+      <div class="links"><span>View the resume →</span></div>
+    </a>
+
+    <a class="card" href="/work">
+      <span class="tag ct-alt">Work</span>
+      <h3>Selected work</h3>
+      <p>The full case studies behind the resume: the two production agents with measured outcomes, plus the multi-agent systems and the data craft.</p>
+      <div class="links"><span>See the work →</span></div>
+    </a>
   </div>
 
   <p class="open-to reveal" style="margin-top:28px;font-size:15.5px"><b>Open to:</b> AI and agent engineering, system design, technical program management, and data collection and buildout, including for autonomous vehicles.</p>
@@ -57,7 +88,7 @@
 <!-- ===== CANONICAL FOOTER (identical markup on every page; update all copies together) ===== -->
 <footer><div class="wrap">
   <span>© 2026 Brad O'Haire</span>
-  <span><a href="/work">Work</a> · <a href="/about">About</a> · <a href="/contact">Contact</a> · <a id="foot-gh" href="https://github.com/Veeiy" target="_blank" rel="noopener">GitHub</a> · <a href="mailto:bradtohaire@gmail.com">Email</a></span>
+  <span><a href="/work">Work</a> · <a href="/about">About</a> · <a href="/contact">Contact</a> · <a href="/resume">Resume</a> · <a id="foot-gh" href="https://github.com/Veeiy" target="_blank" rel="noopener">GitHub</a> · <a href="mailto:bradtohaire@gmail.com">Email</a></span>
 </div></footer>
 <!-- ===== /CANONICAL FOOTER ===== -->
 

@@ -149,3 +149,78 @@
   .pr-index a:hover{transform:none}
   .pr-sum:hover{background:transparent}
 }
+
+/* ============================================================
+   Deep dive: "How the safety floor actually works".
+   The code-level proof behind principle 02. Reuses the tokens
+   and the panel / amber / red callout vocabulary already on the
+   page so it reads as part of the same system. The illustrative
+   code block scrolls INTERNALLY (overflow-x:auto) and never
+   widens the page on mobile.
+   ============================================================ */
+#pr-deepdive{padding-top:0}
+.dd-kicker{color:var(--muted);font-size:clamp(15px,2vw,17px);line-height:1.6;max-width:760px;margin:-6px 0 0}
+
+/* the narrative paragraphs */
+.dd-narrative{max-width:760px;margin:22px 0 0;display:flex;flex-direction:column;gap:14px}
+.dd-narrative p{color:var(--muted);font-size:15px;line-height:1.7;margin:0}
+.dd-narrative b{color:var(--ink);font-weight:600}
+
+/* ---- the illustrative code block ---- */
+.dd-code{margin:26px 0 0;background:linear-gradient(180deg,var(--panel),var(--panel2));
+  border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.dd-code-cap{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:14px 18px;
+  border-bottom:1px solid var(--line);background:rgba(110,168,254,.04)}
+.dd-code-tag{flex:0 0 auto;font-size:10.5px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;
+  color:var(--accent);background:rgba(110,168,254,.12);border:1px solid rgba(110,168,254,.4);
+  border-radius:999px;padding:4px 11px;white-space:nowrap}
+.dd-code-note{color:var(--dim);font-size:12.5px;line-height:1.5;min-width:0}
+
+/* the pre is the horizontal scroll container, so a long line scrolls inside
+   the box and never pushes the page wider. tabindex on the <pre> makes the
+   scroll region keyboard-reachable; site.css gives it a focus-visible ring. */
+.dd-code pre{margin:0;padding:18px 20px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.dd-code pre:focus-visible{outline:2px solid var(--accent);outline-offset:-2px;border-radius:0 0 var(--radius) var(--radius)}
+.dd-code code{display:block;white-space:pre;
+  font-family:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  font-size:13px;line-height:1.7;color:#e7e9ee;tab-size:2}
+/* syntax tints, all checked for AA contrast on the dark panel */
+.dd-code .c-k{color:#9d7bff;font-weight:600}   /* keywords  */
+.dd-code .c-f{color:#6ea8fe}                    /* fn names  */
+.dd-code .c-s{color:#7fd6a8}                    /* strings   */
+.dd-code .c-c{color:#9aa3b5;font-style:italic}  /* comments, lifted above --dim for readable AA */
+
+/* ---- tradeoffs + failure-mode subhead ---- */
+.dd-subhead{color:var(--ink);font-size:16px;font-weight:700;letter-spacing:-.2px;margin:30px 0 0}
+
+/* two-up on wide, single column when it gets tight (well before the 480 break) */
+.dd-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:14px 0 0;align-items:start}
+@media (max-width:760px){.dd-grid{grid-template-columns:1fr}}
+
+.dd-block{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+.dd-tradeoff{border-left:3px solid var(--accent2)}
+.dd-failure{border-left:3px solid #ff6b6b}
+.dd-block-tag{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;
+  border-radius:999px;padding:4px 11px;margin:0 0 12px}
+.dd-tag-amber{color:var(--accent2);background:rgba(157,123,255,.12);border:1px solid rgba(157,123,255,.4)}
+.dd-tag-red{color:#ff6b6b;background:rgba(255,107,107,.12);border:1px solid rgba(255,107,107,.4)}
+.dd-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:11px}
+.dd-list li{position:relative;color:var(--muted);font-size:14px;line-height:1.6;padding-left:18px}
+.dd-list li::before{content:"";position:absolute;left:2px;top:8px;width:6px;height:6px;border-radius:2px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2))}
+.dd-list li b{color:var(--ink);font-weight:600}
+
+/* ---- deep-dive mobile <=480px: tighten padding, nothing overflows ---- */
+@media (max-width:480px){
+  .dd-code-cap{padding:13px 14px}
+  .dd-code pre{padding:15px 14px}
+  .dd-code code{font-size:12.5px}
+  .dd-block{padding:14px 14px}
+  .dd-list li{font-size:13.5px}
+}
+
+/* deep-dive reveals ride the shared .reveal in site.css; this only ensures
+   the code block and callouts never animate under reduced motion. */
+@media (prefers-reduced-motion: reduce){
+  .dd-code,.dd-block{transition:none}
+}

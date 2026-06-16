@@ -232,6 +232,67 @@
     </li>
 
   </ol>
+</div></section>
+
+<!-- ===== Deep dive: how the safety floor actually works =====
+     Sits after the five themes as the code-level proof behind principle 02
+     (Deterministic guardrails over hope). Generic, publicly-known agentic
+     engineering presented as Brad's applied approach. The snippet is an
+     ILLUSTRATIVE pattern, not any real framework or prompt text. -->
+<section id="pr-deepdive"><div class="wrap">
+  <div class="sec-head reveal"><h2>How the safety floor actually works</h2><div class="rule"></div></div>
+  <p class="dd-kicker reveal">A deeper look at principle 02. Where consequences are financial or irreversible, a rule does not live in a prompt. It lives in code that runs before the action does.</p>
+
+  <div class="dd-narrative reveal">
+    <p>A language model is probabilistic. Ask it nicely to never move money and it will comply almost always, and almost always is precisely the wrong bar when the failure is a real charge or a deleted record. So the guarantee is moved out of the prose and into an interception layer. Every tool call the model proposes is routed through a hook that runs after the model decides but before the action executes. The hook reads the call, checks it against an explicit policy, and returns one of three verdicts: allowed, needs human approval, or blocked. The model never gets a vote on whether the gate runs.</p>
+    <p>The policy is boring on purpose. Money movement is blocked. Irreversible actions, deletes, sends, anything that cannot be walked back, are blocked or escalated. Anything over a configured threshold needs a human. Everything else passes. Because the check is deterministic code rather than a request, it holds at the same rate every time, on the worst run and the best one, regardless of how the prompt was phrased or how the conversation drifted. That is the whole point: probabilistic compliance is fine for tone and phrasing, where an occasional miss is cheap. It is not fine for the small set of actions where one miss is the only one that matters.</p>
+    <p>This is the same floor shown on the home page, stated in code. Routine work runs on its own, consequential work waits for a person, and a short list of actions can never happen at all. The pattern below is illustrative, generic pseudocode, not a production implementation, but it shows the shape: classify the call, then act on the class.</p>
+  </div>
+
+  <figure class="dd-code reveal">
+    <figcaption class="dd-code-cap">
+      <span class="dd-code-tag">Illustrative pattern</span>
+      <span class="dd-code-note">Generic pseudocode, not production code or any specific framework. The point is the shape: classify, then gate.</span>
+    </figcaption>
+    <pre tabindex="0" aria-label="Illustrative pseudocode: a hook that classifies and gates a proposed tool call"><code><span class="c-c"># PostToolUse-style hook: runs after the model picks a call,</span>
+<span class="c-c"># before that call is allowed to execute.</span>
+<span class="c-k">def</span> <span class="c-f">gate</span>(call):
+    <span class="c-k">if</span> moves_money(call) <span class="c-k">or</span> is_irreversible(call):
+        <span class="c-k">return</span> Block(reason=<span class="c-s">"hard floor: money or irreversible"</span>,
+                     call=call.name, category=<span class="c-s">"denied"</span>)
+    <span class="c-k">if</span> amount_of(call) > APPROVAL_THRESHOLD:
+        <span class="c-k">return</span> Escalate(reason=<span class="c-s">"over threshold, needs a human"</span>,
+                        call=call.name, category=<span class="c-s">"approval"</span>)
+    <span class="c-k">return</span> Allow(category=<span class="c-s">"auto"</span>)
+
+<span class="c-c"># The runtime, not the model, decides what to do with the verdict.</span>
+verdict = gate(proposed_call)
+<span class="c-k">if</span> verdict.category == <span class="c-s">"denied"</span>:
+    halt(verdict.reason)        <span class="c-c"># never reaches the tool</span>
+<span class="c-k">elif</span> verdict.category == <span class="c-s">"approval"</span>:
+    wait_for_human(verdict)     <span class="c-c"># pause until a person signs off</span>
+<span class="c-k">else</span>:
+    execute(proposed_call)      <span class="c-c"># routine work proceeds</span></code></pre>
+  </figure>
+
+  <p class="dd-subhead reveal">Where this is the wrong tool</p>
+  <div class="dd-grid">
+    <div class="dd-block dd-tradeoff reveal">
+      <span class="dd-block-tag dd-tag-amber">Tradeoffs</span>
+      <ul class="dd-list">
+        <li><b>It is overkill for simple work.</b> A single-step task with no side effects does not need a coordinator and a gate in front of every call. Wrapping a one-shot read in this machinery just adds moving parts that can themselves break.</li>
+        <li><b>Gating has a cost.</b> Every checked call adds a hop, and human-approval steps add real latency measured in minutes or hours, not milliseconds. Gate everything and a fast job becomes a slow one for no safety gain.</li>
+        <li><b>The coordinator can become the bottleneck.</b> Route every decision through one central node and it caps throughput. I mitigate that by dispatching independent work in parallel, scoping each agent so it carries less, and gating only the consequential steps. The read-only and reversible majority runs ungated; the floor sits on the actions that can actually hurt.</li>
+      </ul>
+    </div>
+    <div class="dd-block dd-failure reveal">
+      <span class="dd-block-tag dd-tag-red">Failure modes</span>
+      <ul class="dd-list">
+        <li><b>A misconfigured gate fails open or fails closed.</b> Fail open and a dangerous call slips through; fail closed and safe work is blocked and the system stalls. Neither is acceptable silently, so the verdict and its reason are logged on every call, and the design defaults to deny on an unrecognized action rather than waving it through.</li>
+        <li><b>How I test that the floor holds.</b> The gate is covered by its own cases: known-dangerous calls must return a block, over-threshold calls must escalate, and routine calls must pass. The blocked and escalated paths are asserted directly, because a floor you never test against a real violation is a floor you only assume is there.</li>
+      </ul>
+    </div>
+  </div>
 
   <p class="pr-close reveal">These are general principles of building agentic systems, applied. The proof is not the list. It is that the systems on this site, including this site, were built under these rules and hold up to a look under the hood.</p>
   <p class="pr-more reveal"><a href="/lab">See them running in the Lab →</a></p>
@@ -242,7 +303,7 @@
 <!-- ===== CANONICAL FOOTER (identical markup on every page; update all copies together) ===== -->
 <footer><div class="wrap">
   <span>© 2026 Brad O'Haire</span>
-  <span><a href="/work">Work</a> · <a href="/about">About</a> · <a href="/contact">Contact</a> · <a id="foot-gh" href="https://github.com/Veeiy" target="_blank" rel="noopener">GitHub</a> · <a href="mailto:bradtohaire@gmail.com">Email</a></span>
+  <span><a href="/work">Work</a> · <a href="/about">About</a> · <a href="/contact">Contact</a> · <a href="/resume">Resume</a> · <a id="foot-gh" href="https://github.com/Veeiy" target="_blank" rel="noopener">GitHub</a> · <a href="mailto:bradtohaire@gmail.com">Email</a></span>
 </div></footer>
 <!-- ===== /CANONICAL FOOTER ===== -->
 
