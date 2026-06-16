@@ -82,18 +82,24 @@
     const o = Object.assign({
       area:22000, min:14, max:42,   // density: nodes ~= w*h/area, clamped [min,max]
       linkDist:130, linkAlpha:0.35, // link reach (px) and peak opacity
-      dotAlpha:0.7, dotR:1.6,       // node fill opacity and radius
+      dotAlpha:0.7, dotR:1.6,       // node fill opacity and radius (base; stars vary per node)
       speed:0.25,                   // drift speed
       interactive:false,            // attach pointer reactivity?
       influence:120, pull:0.045, maxBoost:0.9, // cursor radius, attraction, velocity clamp near pointer
       roles:false,                  // promote a few nodes to labeled architecture roles + one pulse
-      ambient:false,                // site-wide backdrop variant: softer dots, no node glow pass
-      glow:true                     // soft additive glow under nodes for depth (off for the flat ambient)
+      ambient:false,                // site-wide backdrop variant: softer points, lighter links
+      glow:true,                    // soft additive glow under points for depth
+      stars:true,                   // render points as varied glowing stars with a soft twinkle
+      twinkleShare:0.5,             // fraction of stars that gently vary in brightness
+      starGlow:2.6                  // halo radius multiplier around each star core
     }, opts||{});
-    if(o.ambient) o.glow = false;   // the ambient layer stays flat and cheap
     let w=0, h=0, dpr=Math.min(window.devicePixelRatio||1, 2), nodes=[];
     // Pointer is in CSS px, canvas-local. null = no active pointer (touch / left the field).
     let ptr = null;
+    // A field-level, frame-rate-independent clock (sum of dt) that drives the
+    // gentle star twinkle. Advanced every frame in step(), so it ticks on the
+    // plain ambient field too, not only on the roles hero.
+    let skyClock = 0;
 
     /* ---- Orchestration handoff cycle (hero only, opt-in via roles:true) ----
        A few nodes are promoted to a labeled Coordinator -> Specialists -> Auditor
@@ -203,14 +209,22 @@
       const target = Math.min(o.max, Math.max(o.min, Math.round((w*h)/o.area)));
       nodes = [];
       for(let i=0;i<target;i++){
-        // z is a depth factor in 0.45..1: nearer nodes (z->1) are larger,
-        // brighter and drift a little faster; farther nodes (z->0.45) recede.
+        // z is a depth factor in 0.45..1: nearer stars (z->1) are larger,
+        // brighter and drift a little faster; farther stars (z->0.45) recede.
         // This gives the field real layering/parallax without adding nodes.
         const z = 0.45 + Math.random()*0.55;
+        // Per-star variety so the field reads as a real sky, not a uniform grid:
+        //   mag    a brightness magnitude in ~0.55..1.15 (a few bright, many faint),
+        //   rJit   a small radius jitter so star sizes are not all identical,
+        //   twPh   a random phase, twAmp the per-star twinkle depth (0 = steady).
+        // Only a subset twinkles, and only when stars mode is on.
+        const mag = 0.55 + Math.pow(Math.random(), 1.7)*0.6;
+        const twinkles = o.stars && (Math.random() < o.twinkleShare);
         nodes.push({
           x:Math.random()*w, y:Math.random()*h,
           vx:(Math.random()-.5)*o.speed*z, vy:(Math.random()-.5)*o.speed*z,
-          z:z
+          z:z, mag:mag, rJit:0.8 + Math.random()*0.8,
+          twPh:Math.random()*Math.PI*2, twAmp:twinkles ? 0.18 + Math.random()*0.22 : 0
         });
       }
       if(o.roles){
@@ -224,6 +238,7 @@
     // frame-rate independent. Called by the shared ticker, never self-arming.
     function step(dt){
       dt = dt || 1;
+      skyClock += dt; // advance the twinkle clock every frame (all fields)
       ctx.clearRect(0,0,w,h);
       for(const n of nodes){
         // Soft cursor nudge: a gentle pull within the radius, eased by distance, capped.
@@ -247,13 +262,19 @@
         if(n.x<0||n.x>w) n.vx*=-1;
         if(n.y<0||n.y>h) n.vy*=-1;
         n.x=n.x<0?0:n.x>w?w:n.x; n.y=n.y<0?0:n.y>h?h:n.y;
+        // Per-star brightness for this frame: depth * magnitude, modulated by a
+        // slow twinkle on the subset that twinkles (twAmp 0 leaves it steady).
+        // Computed once here and reused by both the link pass and the star pass.
+        const tw = n.twAmp ? (1 + n.twAmp*Math.sin(skyClock*0.05 + n.twPh)) : 1;
+        n.bri = (0.55 + 0.45*(n.z||1)) * (n.mag||1) * tw;
       }
-      // Links: a true per-segment gradient from one node's accent tint to the
-      // other's, with a smooth (quadratic) distance falloff so connections fade
-      // in and out gently rather than popping. Nearer (deeper z) pairs read a
-      // touch stronger, which reinforces the layering. lineWidth 1 keeps it
-      // crisp; rounded caps soften the joints. This is the same O(n^2) pass as
-      // before over a hard-capped node count, so cost is unchanged.
+      // Constellation links: faint, thin lines between nearby stars whose opacity
+      // scales with proximity (quadratic falloff) so the links read as constellations
+      // forming and dissolving as the stars drift, never popping. The opacity also
+      // scales with the two endpoint stars' brightness, so a line between two bright
+      // stars reads a touch stronger and the faint background stays quiet. Per-segment
+      // gradient between the two accent tints; hairline width keeps text readable.
+      // Same O(n^2) pass over a hard-capped star count, so cost is unchanged.
       ctx.lineCap = "round";
       for(let i=0;i<nodes.length;i++){
         const a=nodes[i];
@@ -263,39 +284,58 @@
           const dx=a.x-b.x, dy=a.y-b.y, d=Math.hypot(dx,dy);
           if(d<o.linkDist){
             const fall=1-d/o.linkDist;            // 1 close .. 0 at reach
-            const depth=((a.z||1)+(b.z||1))*0.5;  // average depth of the pair
-            const alpha=fall*fall*o.linkAlpha*(0.6+0.4*depth);
+            const lum=Math.min(1,((a.bri||1)+(b.bri||1))*0.5); // mean star brightness
+            const alpha=fall*fall*o.linkAlpha*(0.45+0.55*lum);
+            if(alpha < 0.004) continue;           // skip imperceptible links (cheap)
             const tb = w ? b.x/w : 0.5;
             const g = ctx.createLinearGradient(a.x,a.y,b.x,b.y);
             g.addColorStop(0,"rgba("+mix(ta)+","+alpha.toFixed(3)+")");
             g.addColorStop(1,"rgba("+mix(tb)+","+alpha.toFixed(3)+")");
             ctx.strokeStyle=g;
-            ctx.lineWidth=0.6+0.7*depth;          // far links hairline, near a bit fuller
+            ctx.lineWidth=0.5+0.4*lum;            // thin hairlines, faint links stay readable
             ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
           }
         }
       }
       // Nodes: gradient blend by x-position, sized and brightened by depth. On
-      // the hero/echo a soft additive glow sits under each node for a sense of
-      // light and depth; the ambient backdrop skips the glow (o.glow=false) to
-      // stay flat and cheap on every page.
-      if(o.glow) ctx.globalCompositeOperation = "lighter";
-      for(const n of nodes){
-        const t=w?n.x/w:0.5, z=n.z||1, col=mix(t);
-        if(o.glow){
-          const gr=o.dotR*(3.2+1.6*z);
+      // Stars. Each star is drawn in two parts: a soft additive halo tinted to
+      // the brand accent (blended by x-position), then a crisp near-white core
+      // that carries a faint accent tint, so the points read as glowing starlight
+      // over the dark sky. Size and brightness vary per star (depth, magnitude,
+      // twinkle), giving the field the look of a real night sky rather than a
+      // uniform dot grid. The halo pass uses "lighter" so overlapping glows add
+      // like light; it is skipped when o.glow is off to stay cheap.
+      if(o.glow){
+        ctx.globalCompositeOperation = "lighter";
+        for(const n of nodes){
+          const t=w?n.x/w:0.5, z=n.z||1, col=mix(t);
+          const bri=n.bri||1;
+          const gr=o.dotR*o.starGlow*(1.6+1.4*z)*(0.7+0.5*(n.mag||1));
           const rg=ctx.createRadialGradient(n.x,n.y,0,n.x,n.y,gr);
-          rg.addColorStop(0,"rgba("+col+","+(0.16*z).toFixed(3)+")");
+          rg.addColorStop(0,"rgba("+col+","+(0.22*bri).toFixed(3)+")");
+          rg.addColorStop(0.4,"rgba("+col+","+(0.07*bri).toFixed(3)+")");
           rg.addColorStop(1,"rgba("+col+",0)");
           ctx.fillStyle=rg;
           ctx.beginPath(); ctx.arc(n.x,n.y,gr,0,Math.PI*2); ctx.fill();
         }
+        ctx.globalCompositeOperation = "source-over";
       }
-      if(o.glow) ctx.globalCompositeOperation = "source-over";
+      // Star cores: near-white with a light accent tint, so they look like points
+      // of starlight, not flat blue dots. Radius and opacity carry the per-star
+      // size jitter and brightness. Opacity is clamped so the brightest stars stay
+      // subtle enough to never compete with body text.
       for(const n of nodes){
-        const t=w?n.x/w:0.5, z=n.z||1;
-        ctx.fillStyle="rgba("+mix(t)+","+(o.dotAlpha*(0.55+0.45*z)).toFixed(3)+")";
-        ctx.beginPath(); ctx.arc(n.x,n.y,o.dotR*(0.7+0.5*z),0,Math.PI*2); ctx.fill();
+        const t=w?n.x/w:0.5, z=n.z||1, col=mix(t);
+        const bri=n.bri||1;
+        const r=o.dotR*(0.55+0.55*z)*(n.rJit||1);
+        const a=Math.min(0.92, o.dotAlpha*bri);
+        // a soft accent-tinted white: most of the way to white, kept tinted.
+        const cs=col.split(",");
+        const wr=Math.round(+cs[0]+(255-+cs[0])*0.6);
+        const wg=Math.round(+cs[1]+(255-+cs[1])*0.6);
+        const wb=Math.round(+cs[2]+(255-+cs[2])*0.6);
+        ctx.fillStyle="rgba("+wr+","+wg+","+wb+","+a.toFixed(3)+")";
+        ctx.beginPath(); ctx.arc(n.x,n.y,r,0,Math.PI*2); ctx.fill();
       }
 
       // ---- Orchestration handoff cycle (hero only) ----
@@ -504,17 +544,22 @@
 
   /* ---------- Site-wide ambient backdrop (every page) ----------
      Injects ONE fixed, full-viewport canvas as the first child of <body>, then
-     runs a faint, drift-only version of the same node-network on it. No html
-     file is touched. The canvas is aria-hidden, pointer-events:none, and lives
-     at z-index:-1 (behind all content, above the page background), so it can
-     never affect layout, scroll, overflow, or text legibility. It shares the
-     single page rAF via the ticker, and is never created under reduced-motion.
-     The field is deliberately sparse and very low opacity: quiet depth, not a
-     focal point. The CSS keeps it subtle and masks its top band on the home
-     page so it composes cleanly with the brighter hero canvas. */
+     runs a faint, drift-only night-sky starfield on it. No html file is touched.
+     The canvas is aria-hidden, pointer-events:none, and lives at z-index:-1
+     (behind all content, above the page background), so it can never affect
+     layout, scroll, overflow, or text legibility. It shares the single page rAF
+     via the ticker, and is never created under reduced-motion.
+
+     CONSISTENCY: the field parameters are IDENTICAL on every page, including the
+     home page. The home hero is a separate, brighter canvas inside the header;
+     below it (and on every other page) this same quiet starfield carries through,
+     so the background reads the same everywhere instead of being prominent only
+     on home. The CSS gives the layer one even, full-viewport opacity on all pages
+     and only eases the very top band under the home hero so the two layers
+     compose as one sky rather than competing. */
   (function ambientBackdrop(){
     const hero = document.getElementById("hero-canvas");
-    // Flag the home page so CSS can fade the ambient layer under the hero.
+    // Flag the home page so CSS can ease the ambient layer under the hero only.
     if(hero && document.body){ document.body.classList.add("has-hero"); }
     // Skip the work entirely under reduced-motion (no canvas, nothing to clean up).
     if(reduceMotion || !document.body) return;
@@ -524,29 +569,31 @@
     c.setAttribute("aria-hidden", "true");
     // First child so it paints behind the skip-link, nav, main and footer.
     document.body.insertBefore(c, document.body.firstChild);
-    // Very faint, sparse, slow. Pages with a hero get a touch sparser still so
-    // the hero stays the clear focal layer; content pages get the gentle ambient.
+    // A calm, sparse, slow starfield. Same on every page so the sky is consistent.
+    // Star count is capped and scaled by viewport area, so it stays cheap on phones.
     nodeField(c, {
-      area: hero ? 52000 : 46000,
-      min: 10, max: hero ? 26 : 34,
-      linkDist: 150, linkAlpha: 0.10, dotAlpha: 0.30, dotR: 1.3,
-      speed: 0.12, interactive: false, ambient: true
+      area: 30000, min: 14, max: 60,
+      linkDist: 150, linkAlpha: 0.12, dotAlpha: 0.42, dotR: 1.25,
+      speed: 0.10, interactive: false, glow: true, starGlow: 2.8, twinkleShare: 0.55
     });
   })();
 
-  // Hero: cursor-reactive, the centerpiece motion. The labeled Coordinator ->
-  // Specialists -> Auditor handoff CYCLE is the focus, so the drifting field
-  // behind it is kept sparse and faint and never competes with the flow.
+  // Hero: cursor-reactive, the featured constellation CLUSTER. Same star visual
+  // language as the site-wide sky, but brighter and a little denser so the hero
+  // reads as the focal cluster within the same night sky. The labeled Coordinator
+  // -> Specialists -> Auditor handoff CYCLE (roles:true) layers on top of the stars
+  // and remains the meaningful focus; the drifting stars behind it never compete.
   // getElementById returns null on pages without the hero; nodeField no-ops on null.
   nodeField(document.getElementById("hero-canvas"), {
     interactive:true, roles:true,
-    area:32000, max:24, linkAlpha:0.18, dotAlpha:0.45, dotR:1.4, speed:0.18
+    area:30000, max:30, linkDist:140, linkAlpha:0.16, dotAlpha:0.62, dotR:1.5,
+    speed:0.16, starGlow:3.0, twinkleShare:0.5
   });
-  // Data section: a faint, dimmer, sparser echo of the same motif. Not interactive.
+  // Data section: a fainter, sparser echo of the same starfield. Not interactive.
   // Only present on /about; null elsewhere, so this no-ops cleanly.
   nodeField(document.getElementById("data-echo"), {
-    area:30000, min:8, max:20, linkDist:120, linkAlpha:0.22,
-    dotAlpha:0.5, dotR:1.3, speed:0.18, interactive:false
+    area:30000, min:8, max:22, linkDist:120, linkAlpha:0.16,
+    dotAlpha:0.5, dotR:1.3, speed:0.16, interactive:false, starGlow:2.6, twinkleShare:0.5
   });
 
   /* ---------- Scroll reveal ---------- */

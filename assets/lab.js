@@ -242,6 +242,70 @@
           log:["re-validate the corrected record; the mismatch is gone",
                "records match the schema; staged for a human to commit"] }
       ]
+    },
+
+    research: {
+      name: "Multi-agent research system",
+      budget: 14,
+      def: "a cited report, staged for a human to review and publish",
+      waves: [
+        { id:"W1", label:"Frame the question", sub:"plan, parallel",
+          agents:["Scope the question","Plan the sources"], gate:"PASS",
+          log:["break the question into sub-questions",
+               "plan which sources answer which part"] },
+        { id:"W2", label:"Research in parallel", sub:"one agent per source type",
+          agents:["Web search agent","Document analysis agent"], gate:"PASS",
+          log:["dispatch a web search agent and a document analysis agent at once",
+               "each gathers evidence for its assigned sub-questions"] },
+        { id:"W3", label:"Synthesis with citations", sub:"compose, attach sources",
+          agents:["Compose findings","Attach citations"], gate:"BLOCK",
+          contradiction:{
+            what:"one finding is thinly sourced and contradicts another source",
+            fix:"route back for another research pass; reconcile the claim or drop it, then re-cite"
+          },
+          log:["compose the findings into a single draft",
+               "attach a citation to every claim"] },
+        { id:"W4", label:"Auditor gate and deliver", sub:"clear the citations, then hand off",
+          agents:["Auditor review","Stage the report"], gate:"PASS",
+          floor:{
+            action:"Auto-publish the report to an external channel",
+            why:"posting externally is irreversible; publishing is a human's call, never the run's"
+          },
+          log:["auditor confirms every claim is now sourced and consistent",
+               "report is cited and staged; a human reviews before it goes out"] }
+      ]
+    },
+
+    review: {
+      name: "CI/CD code review",
+      budget: 14,
+      def: "review feedback posted as comments, with merge and deploy left to a human",
+      waves: [
+        { id:"W1", label:"Ingest the diff", sub:"intake, parallel",
+          agents:["Read the PR diff","Map changed files"], gate:"PASS",
+          log:["read the pull-request diff in",
+               "map which files and tests the change touches"] },
+        { id:"W2", label:"Review and generate tests", sub:"one agent per file, plus tests",
+          agents:["File review A","File review B","Test generation"], gate:"PASS",
+          log:["dispatch a reviewer per changed file in parallel",
+               "generate tests that cover the new behavior"] },
+        { id:"W3", label:"Auditor gate", sub:"pass, warn, or block; tuned for low false positives",
+          agents:["Severity triage","Confirm findings"], gate:"BLOCK",
+          contradiction:{
+            what:"a flagged blocker is a false positive the tests actually cover",
+            fix:"re-check against the generated tests; downgrade the false positive, keep the real findings"
+          },
+          log:["triage each finding by severity",
+               "the gate is tuned to minimize false positives, so weak flags are re-checked"] },
+        { id:"W4", label:"Post the review", sub:"comment, then leave merge to a human",
+          agents:["Compose comments","Post to the PR"], gate:"PASS",
+          floor:{
+            action:"Auto-merge the pull request and push to production",
+            why:"merging and shipping to production is irreversible and needs human approval, at every tier"
+          },
+          log:["compose the confirmed findings into review comments",
+               "feedback posted; the merge and the deploy stay a human decision"] }
+      ]
     }
   };
 

@@ -77,6 +77,276 @@
     <p>A first-pass classification agent wired into the existing labeling workflow, plus the triaged queue it feeds. The agent reads incoming unlabeled items, assigns a first-pass category, and hands a pre-sorted queue to the labelers. The human-confirm step is part of the workflow, not bolted on after: nothing the agent proposes becomes a label until a person accepts it.</p>
   </section>
 
+  <!-- 6a. Representative pass: anonymized illustration of the human-in-the-loop shape -->
+  <section class="reveal">
+    <style>
+      /* Scoped styles for the representative-pass worksheet. pf- prefix, this file only. */
+      .pf-pass{
+        margin-top:8px;
+        border:1px solid var(--line);
+        border-radius:var(--radius);
+        background:var(--panel);
+        padding:22px;
+      }
+      .pf-pass-cap{
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap:12px;
+        flex-wrap:wrap;
+        margin:0 0 6px;
+        font-weight:700;
+        font-size:15px;
+        color:var(--ink);
+        letter-spacing:.01em;
+      }
+      .pf-pass-tag{
+        font-weight:600;
+        font-size:11px;
+        letter-spacing:.07em;
+        text-transform:uppercase;
+        color:#cdd9ff;
+        border:1px solid rgba(110,168,254,.45);
+        background:rgba(110,168,254,.12);
+        padding:4px 9px;
+        border-radius:999px;
+        white-space:nowrap;
+      }
+      .pf-pass-honesty{
+        margin:0 0 18px;
+        font-size:13.5px;
+        line-height:1.55;
+        color:var(--dim);
+      }
+      .pf-pass-honesty b{ color:var(--muted); }
+
+      /* Legend */
+      .pf-pass-legend{
+        display:flex;
+        flex-wrap:wrap;
+        gap:10px 18px;
+        margin:0 0 16px;
+        padding:0;
+        list-style:none;
+        font-size:12.5px;
+        color:var(--dim);
+      }
+      .pf-pass-legend li{ display:flex; align-items:center; gap:7px; }
+      .pf-verdict{
+        display:inline-flex;
+        align-items:center;
+        gap:6px;
+        font-weight:600;
+        font-size:12px;
+        line-height:1;
+        padding:5px 10px;
+        border-radius:999px;
+        white-space:nowrap;
+      }
+      .pf-verdict::before{
+        content:"";
+        width:7px; height:7px;
+        border-radius:50%;
+        flex:none;
+      }
+      .pf-confirmed{
+        color:#9defc5;
+        background:rgba(67,214,146,.12);
+        border:1px solid rgba(67,214,146,.5);
+      }
+      .pf-confirmed::before{ background:var(--ok); }
+      .pf-overridden{
+        color:#ffd9a8;
+        background:rgba(245,176,90,.12);
+        border:1px solid rgba(245,176,90,.55);
+      }
+      .pf-overridden::before{ background:#f5b05a; }
+
+      /* Table */
+      .pf-pass-tablewrap{ margin:0; }
+      .pf-pass-table{
+        width:100%;
+        border-collapse:collapse;
+        font-size:14px;
+        color:var(--ink);
+      }
+      .pf-pass-table caption{
+        caption-side:bottom;
+        margin-top:14px;
+        font-size:12.5px;
+        line-height:1.5;
+        color:var(--dim);
+        text-align:left;
+      }
+      .pf-pass-table thead th{
+        text-align:left;
+        font-size:11.5px;
+        font-weight:600;
+        letter-spacing:.06em;
+        text-transform:uppercase;
+        color:var(--dim);
+        padding:0 14px 10px;
+        border-bottom:1px solid var(--line);
+        white-space:nowrap;
+      }
+      .pf-pass-table tbody td{
+        padding:13px 14px;
+        border-bottom:1px solid var(--line);
+        vertical-align:middle;
+      }
+      .pf-pass-table tbody tr:last-child td{ border-bottom:0; }
+      .pf-item{ font-weight:600; color:var(--ink); white-space:nowrap; }
+      .pf-cat{ color:var(--muted); }
+
+      /* Confidence cell: number plus a thin bar */
+      .pf-conf{ min-width:120px; }
+      .pf-conf-num{
+        display:block;
+        font-variant-numeric:tabular-nums;
+        font-size:13px;
+        color:var(--muted);
+        margin-bottom:5px;
+      }
+      .pf-conf-bar{
+        height:5px;
+        border-radius:3px;
+        background:var(--line);
+        overflow:hidden;
+      }
+      .pf-conf-fill{
+        display:block;
+        height:100%;
+        border-radius:3px;
+        background:linear-gradient(90deg,var(--accent),var(--accent2));
+      }
+      .pf-col-verdict{ text-align:right; white-space:nowrap; }
+
+      /* Mobile reflow: table becomes stacked cards, no horizontal scroll */
+      @media (max-width:560px){
+        .pf-pass{ padding:18px; }
+        .pf-pass-table thead{
+          position:absolute;
+          width:1px; height:1px;
+          padding:0; margin:-1px;
+          overflow:hidden; clip:rect(0 0 0 0);
+          white-space:nowrap; border:0;
+        }
+        .pf-pass-table tbody tr{
+          display:block;
+          border:1px solid var(--line);
+          border-radius:12px;
+          background:var(--panel2);
+          padding:12px 14px;
+          margin-bottom:10px;
+        }
+        .pf-pass-table tbody tr:last-child{ margin-bottom:0; }
+        .pf-pass-table tbody td{
+          display:flex;
+          align-items:center;
+          justify-content:space-between;
+          gap:16px;
+          padding:7px 0;
+          border-bottom:0;
+        }
+        .pf-pass-table tbody td::before{
+          content:attr(data-label);
+          font-size:11px;
+          font-weight:600;
+          letter-spacing:.05em;
+          text-transform:uppercase;
+          color:var(--dim);
+          flex:none;
+        }
+        .pf-item, .pf-cat{ white-space:normal; text-align:right; }
+        .pf-conf{ min-width:0; flex:1; }
+        .pf-conf-row{ display:flex; flex-direction:column; align-items:flex-end; gap:5px; width:100%; }
+        .pf-conf-num{ margin-bottom:0; }
+        .pf-conf-bar{ width:90px; }
+        .pf-col-verdict{ text-align:right; }
+      }
+
+      .pf-pass :focus-visible{
+        outline:2px solid var(--accent);
+        outline-offset:3px;
+        border-radius:6px;
+      }
+      @media (prefers-reduced-motion:reduce){
+        .pf-pass *{ transition:none !important; animation:none !important; }
+      }
+    </style>
+
+    <h2>What a labeling pass looks like</h2>
+    <p>The shape of the work, made concrete. Below is a small representative worksheet: the agent proposes a first-pass category and a confidence, and a person confirms or overrides every row. Two are overridden on purpose, because the human owning the call is the whole point.</p>
+
+    <div class="pf-pass">
+      <p class="pf-pass-cap">Representative pass<span class="pf-pass-tag">Anonymized sample</span></p>
+      <p class="pf-pass-honesty"><b>Representative and anonymized. This illustrates the workflow and output shape, not real program data.</b> Item names, categories, and confidence values are made up to show how a pass reads. They are not a leaked export and are not a business metric. The only measured result is the 25% increase in data grading output stated above.</p>
+
+      <ul class="pf-pass-legend" aria-hidden="true">
+        <li><span class="pf-verdict pf-confirmed">Confirmed</span> human accepted the first-pass call</li>
+        <li><span class="pf-verdict pf-overridden">Overridden</span> human changed the call</li>
+      </ul>
+
+      <div class="pf-pass-tablewrap" role="region" aria-label="Representative anonymized labeling pass" tabindex="0">
+        <table class="pf-pass-table">
+          <caption>Generic placeholder items. Categories shown are Accept, Re-segment, Discard, and Needs review. Confidence is the agent's own first-pass score, not an accuracy claim.</caption>
+          <thead>
+            <tr>
+              <th scope="col">Item</th>
+              <th scope="col">First-pass category</th>
+              <th scope="col">Confidence</th>
+              <th scope="col" class="pf-col-verdict">Human verdict</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td data-label="Item"><span class="pf-item">Clip 0481</span></td>
+              <td data-label="Category"><span class="pf-cat">Accept</span></td>
+              <td data-label="Confidence" class="pf-conf"><span class="pf-conf-row"><span class="pf-conf-num">0.94</span><span class="pf-conf-bar"><span class="pf-conf-fill" style="width:94%"></span></span></span></td>
+              <td data-label="Verdict" class="pf-col-verdict"><span class="pf-verdict pf-confirmed">Confirmed</span></td>
+            </tr>
+            <tr>
+              <td data-label="Item"><span class="pf-item">Segment A-12</span></td>
+              <td data-label="Category"><span class="pf-cat">Re-segment</span></td>
+              <td data-label="Confidence" class="pf-conf"><span class="pf-conf-row"><span class="pf-conf-num">0.71</span><span class="pf-conf-bar"><span class="pf-conf-fill" style="width:71%"></span></span></span></td>
+              <td data-label="Verdict" class="pf-col-verdict"><span class="pf-verdict pf-confirmed">Confirmed</span></td>
+            </tr>
+            <tr>
+              <td data-label="Item"><span class="pf-item">Clip 0517</span></td>
+              <td data-label="Category"><span class="pf-cat">Discard</span></td>
+              <td data-label="Confidence" class="pf-conf"><span class="pf-conf-row"><span class="pf-conf-num">0.58</span><span class="pf-conf-bar"><span class="pf-conf-fill" style="width:58%"></span></span></span></td>
+              <td data-label="Verdict" class="pf-col-verdict"><span class="pf-verdict pf-overridden">Overridden</span></td>
+            </tr>
+            <tr>
+              <td data-label="Item"><span class="pf-item">Segment B-07</span></td>
+              <td data-label="Category"><span class="pf-cat">Accept</span></td>
+              <td data-label="Confidence" class="pf-conf"><span class="pf-conf-row"><span class="pf-conf-num">0.88</span><span class="pf-conf-bar"><span class="pf-conf-fill" style="width:88%"></span></span></span></td>
+              <td data-label="Verdict" class="pf-col-verdict"><span class="pf-verdict pf-confirmed">Confirmed</span></td>
+            </tr>
+            <tr>
+              <td data-label="Item"><span class="pf-item">Clip 0533</span></td>
+              <td data-label="Category"><span class="pf-cat">Needs review</span></td>
+              <td data-label="Confidence" class="pf-conf"><span class="pf-conf-row"><span class="pf-conf-num">0.49</span><span class="pf-conf-bar"><span class="pf-conf-fill" style="width:49%"></span></span></span></td>
+              <td data-label="Verdict" class="pf-col-verdict"><span class="pf-verdict pf-confirmed">Confirmed</span></td>
+            </tr>
+            <tr>
+              <td data-label="Item"><span class="pf-item">Segment C-21</span></td>
+              <td data-label="Category"><span class="pf-cat">Re-segment</span></td>
+              <td data-label="Confidence" class="pf-conf"><span class="pf-conf-row"><span class="pf-conf-num">0.63</span><span class="pf-conf-bar"><span class="pf-conf-fill" style="width:63%"></span></span></span></td>
+              <td data-label="Verdict" class="pf-col-verdict"><span class="pf-verdict pf-overridden">Overridden</span></td>
+            </tr>
+            <tr>
+              <td data-label="Item"><span class="pf-item">Clip 0560</span></td>
+              <td data-label="Category"><span class="pf-cat">Accept</span></td>
+              <td data-label="Confidence" class="pf-conf"><span class="pf-conf-row"><span class="pf-conf-num">0.91</span><span class="pf-conf-bar"><span class="pf-conf-fill" style="width:91%"></span></span></span></td>
+              <td data-label="Verdict" class="pf-col-verdict"><span class="pf-verdict pf-confirmed">Confirmed</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
   <!-- 6b. Interactive demo: the pattern on synthetic data (honest, self-scoring) -->
   <section class="reveal">
     <h2>See it on synthetic data</h2>

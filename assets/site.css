@@ -54,22 +54,28 @@ nav .wrap{display:flex;align-items:center;justify-content:space-between;height:6
 /* ============================================================
    Site-wide ambient backdrop (injected by site.js on every page).
    A single fixed, full-viewport canvas that sits BEHIND all content:
-   fixed so it never adds scroll height or horizontal overflow, very low
-   opacity so text stays fully legible, pointer-events:none and aria-hidden
-   so it is inert and invisible to assistive tech. The accent-gradient field
-   it draws is the same motif as the hero, kept faint here as quiet depth.
-   On the home page (which carries the brighter hero canvas) the body gets
-   .has-hero, which fades the ambient layer at the top so the two layers read
-   as one intentional composition instead of competing. */
+   fixed so it never adds scroll height or horizontal overflow, low opacity
+   so text stays fully legible, pointer-events:none and aria-hidden so it is
+   inert and invisible to assistive tech. It draws a faint night-sky starfield
+   (drifting, lightly twinkling stars joined by constellation links), the same
+   star language as the hero, kept quiet here as ambient depth.
+
+   CONSISTENCY: the layer carries the SAME on every page. It uses ONE flat,
+   even, full-viewport opacity with NO directional mask, so the sky has the
+   same density and brightness top-to-bottom and page-to-page (the old radial
+   mask anchored at the top-right made the field uneven and made content pages
+   feel different from home). The only per-page exception is the home hero:
+   .has-hero eases just the top band so the bright hero cluster is not crowded,
+   then the same starfield resumes immediately below, keeping the sky unified. */
 #ambient-bg{position:fixed;inset:0;width:100vw;height:100vh;z-index:-1;
-  opacity:.5;pointer-events:none;
-  -webkit-mask-image:radial-gradient(120% 120% at 80% 0%,#000 0%,#000 60%,rgba(0,0,0,.65) 100%);
-  mask-image:radial-gradient(120% 120% at 80% 0%,#000 0%,#000 60%,rgba(0,0,0,.65) 100%)}
-/* On pages that already have the prominent hero, dim the top band of the
-   ambient layer so it never crowds the hero cycle, then ease it back in below. */
+  opacity:.62;pointer-events:none}
+/* Home only: gently fade the top band (the hero's vertical span) so the bright
+   hero constellation stays the focal cluster, then bring the ambient sky fully
+   in just below the hero. The fade is short so the field still carries down the
+   whole page exactly like every other page. */
 body.has-hero #ambient-bg{
-  -webkit-mask-image:linear-gradient(180deg,transparent 0,rgba(0,0,0,.55) 70vh,#000 110vh);
-  mask-image:linear-gradient(180deg,transparent 0,rgba(0,0,0,.55) 70vh,#000 110vh)}
+  -webkit-mask-image:linear-gradient(180deg,rgba(0,0,0,.28) 0,rgba(0,0,0,.72) 32vh,#000 64vh);
+  mask-image:linear-gradient(180deg,rgba(0,0,0,.28) 0,rgba(0,0,0,.72) 32vh,#000 64vh)}
 
 /* hero */
 header{position:relative;padding:88px 0 56px;overflow:hidden}
@@ -622,11 +628,35 @@ footer a{color:var(--muted)} footer a:hover{color:var(--ink)}
   .reveal{opacity:1;transform:none;transition:none}
   .bar-fill{transition:none}
   .btn:hover, .card:hover{transform:none}
-  /* All animated canvases stay hidden and static under reduced-motion. The
-     ambient backdrop renders nothing (site.js also never starts it here), so
-     no motion appears anywhere and the page background alone shows through. */
+  /* All animated canvases stay hidden under reduced-motion. site.js also never
+     starts the ambient field here, so no motion appears anywhere. */
   #hero-canvas, #data-echo, #ambient-bg{display:none}
-  /* In their place, the static labeled orchestration diagram appears (no motion). */
+  /* In place of the animated sky, render a STATIC starfield in pure CSS so the
+     night-sky look is still present but completely still (no drift, no twinkle,
+     no links that move). It is a fixed, full-viewport layer behind all content
+     (z-index:-1, pointer-events:none) built from layered radial-gradient points
+     of varied size and brightness, tinted toward the brand accents over the dark
+     background. Fixed + inert means it cannot shift layout, add scroll height,
+     cause horizontal overflow, or touch text legibility. The constellation links
+     are intentionally omitted in the static fallback to keep it calm and clean. */
+  body::before{
+    content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+    background-repeat:no-repeat;
+    background-image:
+      radial-gradient(1.6px 1.6px at 12% 18%, rgba(231,233,238,.85), transparent 60%),
+      radial-gradient(1.4px 1.4px at 78% 12%, rgba(110,168,254,.80), transparent 60%),
+      radial-gradient(2px 2px at 42% 30%, rgba(255,255,255,.70), transparent 60%),
+      radial-gradient(1.2px 1.2px at 64% 44%, rgba(157,123,255,.75), transparent 60%),
+      radial-gradient(1.5px 1.5px at 88% 62%, rgba(231,233,238,.65), transparent 60%),
+      radial-gradient(1.2px 1.2px at 22% 56%, rgba(110,168,254,.60), transparent 60%),
+      radial-gradient(1.8px 1.8px at 33% 78%, rgba(255,255,255,.62), transparent 60%),
+      radial-gradient(1.2px 1.2px at 56% 70%, rgba(157,123,255,.55), transparent 60%),
+      radial-gradient(1.3px 1.3px at 72% 84%, rgba(231,233,238,.55), transparent 60%),
+      radial-gradient(1.1px 1.1px at 9% 88%, rgba(110,168,254,.50), transparent 60%),
+      radial-gradient(1.6px 1.6px at 92% 34%, rgba(255,255,255,.55), transparent 60%),
+      radial-gradient(1.1px 1.1px at 50% 14%, rgba(157,123,255,.50), transparent 60%);
+    opacity:.6}
+  /* The animated hero is hidden; the static labeled orchestration diagram appears. */
   #hero-static{display:block}
   /* Process diagram: show the full diagram immediately, fully lit, no draw/transition. */
   .flow .flow-link, .flow .flow-loop{transition:none}
@@ -742,15 +772,14 @@ footer a{color:var(--muted)} footer a:hover{color:var(--ink)}
   .data-cols{grid-template-columns:repeat(3,minmax(0,1fr))}
 }
 
-/* (8) Ambient backdrop on tall pages: the fixed #ambient-bg mask faded
-   from a point at 80% 0% and bottomed out at .65 opacity, which on a
-   long page leaves the lower viewport visibly flatter than the top.
-   Carry the field fully down so there is no flat dead band low on tall
-   pages. The hero pages keep their own top fade via body.has-hero
-   (declared earlier), so this only adjusts the default mask floor. */
-#ambient-bg{
-  -webkit-mask-image:radial-gradient(140% 130% at 80% 0%,#000 0%,#000 72%,rgba(0,0,0,.82) 100%);
-  mask-image:radial-gradient(140% 130% at 80% 0%,#000 0%,#000 72%,rgba(0,0,0,.82) 100%)}
+/* (8) Ambient backdrop consistency: the starfield canvas is fixed to the
+   viewport and drawn with one flat, even opacity (set on #ambient-bg above)
+   and no directional mask, so the sky reads the same top-to-bottom and on
+   every page regardless of page height. A previous radial mask anchored at
+   80% 0% lived here and made the field uneven on tall content pages; it is
+   intentionally removed so there is a single, consistent ambient sky. The
+   home hero keeps only its short top-band ease via body.has-hero (declared
+   earlier). Nothing further to override here. */
 
 /* Safety: never let these pinned multi-column grids force horizontal
    overflow on very narrow phones. Below 480px everything is one column.
