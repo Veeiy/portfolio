@@ -705,9 +705,14 @@ footer a{color:var(--muted)} footer a:hover{color:var(--ink)}
    empty beside it. Groups are tagged in source by their card count
    via :has(); a no-:has() fallback covers older engines below. */
 @supports selector(:has(*)){
-  /* two-card group: side by side from 640px, never a 1+1 orphan row */
+  /* two-card group: one column on phones so the headline production
+     cards get full width, side by side from 640px, never a 1+1 orphan row */
   .work-group .grid:has(> .card:nth-child(2):last-child){
-    grid-template-columns:repeat(2,minmax(0,1fr))}
+    grid-template-columns:1fr}
+  @media (min-width:640px){
+    .work-group .grid:has(> .card:nth-child(2):last-child){
+      grid-template-columns:repeat(2,minmax(0,1fr))}
+  }
   /* three-card group: one column to 900px, then 3-across (skips the
      2-column tablet state that would strand the third card) */
   .work-group .grid:has(> .card:nth-child(3):last-child){

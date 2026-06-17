@@ -678,7 +678,10 @@
       const suffix = el.dataset.suffix || "";
       // Guard against bad/missing data: never render "NaN", leave the tile as authored.
       if(isNaN(target)){ return; }
-      if(reduceMotion){ el.textContent = target + suffix; return; }
+      // Reduced motion OR a hidden tab: rAF will not advance to completion, so a
+      // started animation would freeze at the in-flight floor value (e.g. "1%") on a
+      // headline proof metric. Commit the true value now; animate only when visible.
+      if(reduceMotion || document.hidden){ el.textContent = target + suffix; return; }
       const dur = 1100, t0 = performance.now();
       function tick(now){
         const p = Math.min(1, (now - t0)/dur);
