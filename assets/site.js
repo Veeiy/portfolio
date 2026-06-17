@@ -524,6 +524,16 @@
     function stop(){ ticker.remove(step); }
 
     resize();
+    // Paint ONE full frame synchronously, before the rAF loop is consulted, so
+    // the constellation is on screen immediately on load. The shared ticker gates
+    // its rAF on document.hidden (correct: it pauses animation for a backgrounded
+    // tab), but that gate also used to suppress the very first paint, leaving a
+    // background-loaded or unfocused tab showing a blank canvas until it gained
+    // focus. Drawing here with dt=0 lays down the initial layout with no motion
+    // advance (drift, twinkle and the handoff clock all scale by dt), so the
+    // field never flashes blank and is screenshot-able regardless of focus; the
+    // rAF loop then animates from this exact frame once the tab is visible.
+    step(0);
     start();
     window.addEventListener("resize", () => { resize(); });
 
@@ -573,8 +583,8 @@
     // Star count is capped and scaled by viewport area, so it stays cheap on phones.
     nodeField(c, {
       area: 30000, min: 14, max: 60,
-      linkDist: 150, linkAlpha: 0.12, dotAlpha: 0.42, dotR: 1.25,
-      speed: 0.10, interactive: false, glow: true, starGlow: 2.8, twinkleShare: 0.55
+      linkDist: 155, linkAlpha: 0.24, dotAlpha: 0.64, dotR: 1.45,
+      speed: 0.10, interactive: false, glow: true, starGlow: 3.2, twinkleShare: 0.55
     });
   })();
 
@@ -586,8 +596,8 @@
   // getElementById returns null on pages without the hero; nodeField no-ops on null.
   nodeField(document.getElementById("hero-canvas"), {
     interactive:true, roles:true,
-    area:30000, max:30, linkDist:140, linkAlpha:0.16, dotAlpha:0.62, dotR:1.5,
-    speed:0.16, starGlow:3.0, twinkleShare:0.5
+    area:30000, max:30, linkDist:145, linkAlpha:0.22, dotAlpha:0.72, dotR:1.6,
+    speed:0.16, starGlow:3.2, twinkleShare:0.5
   });
   // Data section: a fainter, sparser echo of the same starfield. Not interactive.
   // Only present on /about; null elsewhere, so this no-ops cleanly.
