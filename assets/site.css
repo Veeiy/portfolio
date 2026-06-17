@@ -719,19 +719,42 @@ footer a{color:var(--muted)} footer a:hover{color:var(--ink)}
   /* lone-card group (e.g. Operations): hold the single card to a
      natural ~half-to-third width and left-align it, so it reads as a
      deliberate single item, not a full-width banner with a dead zone */
-  .work-group .grid:has(> .card:only-child){
+  .work-group:not(.work-group--feature) .grid:has(> .card:only-child){
     grid-template-columns:minmax(0,420px);justify-content:start}
 }
 /* Fallback for engines without :has(): keep the work-group grids on a
    sane card-width track so the lone card cannot bleed full width and
    the multi-card groups wrap without a stranded trailing card. */
 @supports not selector(:has(*)){
-  .work-group .grid{grid-template-columns:repeat(auto-fit,minmax(300px,360px));
+  .work-group:not(.work-group--feature) .grid{
+    grid-template-columns:repeat(auto-fit,minmax(300px,360px));
     justify-content:start}
   @media (max-width:639px){
-    .work-group .grid{grid-template-columns:1fr}
+    .work-group:not(.work-group--feature) .grid{grid-template-columns:1fr}
   }
 }
+
+/* (2b) Operations feature group: a single case study rendered as a full-width
+   card so it fills the row with no dead space. The grid is one full-bleed
+   column; the card itself uses a horizontal split (copy on the left, the
+   outcome + chips + read-link on the right) that collapses to a single
+   stacked column on phones. Scoped to .work-group--feature so the Production
+   (2-up) and Open-source (3-up) grids are untouched. */
+.work-group--feature .grid{grid-template-columns:1fr;justify-content:stretch}
+.feature-card{display:grid;grid-template-columns:1fr;gap:18px}
+@media (min-width:760px){
+  .feature-card{grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);
+    gap:32px;align-items:center}
+}
+.feature-card-main{display:flex;flex-direction:column;min-width:0}
+.feature-card-main p{margin-bottom:0}
+.feature-card-aside{display:flex;flex-direction:column;align-items:flex-start;min-width:0}
+@media (min-width:760px){
+  /* right column reads as a tidy block, aligned to the divider edge */
+  .feature-card-aside{border-left:1px solid var(--line);padding-left:32px;align-self:stretch;justify-content:center}
+}
+/* the outcome chip already has margin-bottom:14px; keep the stack/link rhythm */
+.feature-card-aside .stack{margin-bottom:14px}
 
 /* (3) Contact page: two contact cards. Cap to two columns and cap the
    container width so the pair feels like an intentional, centered block

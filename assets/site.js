@@ -683,7 +683,13 @@
       function tick(now){
         const p = Math.min(1, (now - t0)/dur);
         const eased = 1 - Math.pow(1 - p, 3);
-        el.textContent = Math.round(target * eased) + suffix;
+        // Floor the in-flight value so a headline proof metric never flashes a
+        // misleading 0 (e.g. "0%") on the first frame. For a positive target the
+        // count starts at 1 and ramps up; for a non-positive target we leave the
+        // rounded value as-is. The final frame below always lands on the real value.
+        let v = Math.round(target * eased);
+        if(target >= 1 && v < 1){ v = 1; }
+        el.textContent = v + suffix;
         if(p < 1) requestAnimationFrame(tick);
         else el.textContent = target + suffix;
       }
