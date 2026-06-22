@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Start here · Brad O'Haire</title>
+<meta name="description" content="A plain-English introduction to Brad O'Haire's work: AI that does real work under strict safety rules, explained without jargon, with links to the full technical breakdowns." />
+<link rel="canonical" href="https://bradohaire.com/start" />
+<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+<meta name="theme-color" content="#0a0b0f" />
+<link rel="stylesheet" href="/assets/site.css" />
+<script defer src="/assets/site.js"></script>
+</head>
+<body>
+
+<!-- ===== CANONICAL HEADER (identical markup on every page; update all copies together) ===== -->
+<a class="skip-link" href="#main">Skip to content</a>
+<nav><div class="wrap">
+  <a class="brand" href="/">Brad<span>.</span>OHaire</a>
+  <div class="navlinks">
+    <a href="/">Home</a>
+    <a href="/start" aria-current="page">Start here</a>
+    <a href="/work">Work</a>
+    <a href="/lab">Lab</a>
+    <a href="/principles">Principles</a>
+    <a href="/about">About</a>
+    <a href="/contact">Contact</a>
+    <a id="nav-gh" href="https://github.com/Veeiy" target="_blank" rel="noopener">GitHub</a>
+  </div>
+</div></nav>
+<!-- ===== /CANONICAL HEADER ===== -->
+
+<main id="main">
+<section><div class="wrap about">
+  <style>
+    /* scoped plain-language styles (st-) so they cannot collide with site.css; tokens reused.
+       This page is the novice on-ramp: no jargon, a general idea first, then links into the
+       full technical case studies for anyone who wants the depth. */
+    .st-intro{color:var(--muted);font-size:clamp(16px,2vw,18px);max-width:720px;margin:14px 0 0}
+    .st-body{max-width:720px}
+    .st-body p{color:var(--ink);font-size:16px;line-height:1.75;margin:18px 0 0}
+    .st-analogy{margin:22px 0 0;padding:16px 18px;border-left:3px solid var(--accent);
+      border-radius:0 12px 12px 0;background:rgba(110,168,254,.06);
+      color:var(--muted);font-size:15.5px;line-height:1.65}
+    .st-analogy b{color:var(--ink)}
+    .st-h2{font-size:20px;letter-spacing:-.2px;color:var(--ink);margin:40px 0 0}
+    .st-sub{color:var(--dim);font-size:14.5px;margin:6px 0 0}
+    .st-gloss{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+      gap:16px 26px;margin:18px 0 0;padding:0}
+    .st-gloss div{margin:0}
+    .st-gloss dt{font-weight:600;color:var(--ink);font-size:15px;margin:0 0 4px}
+    .st-gloss dd{margin:0;color:var(--dim);font-size:14px;line-height:1.55}
+    .st-list{list-style:none;margin:18px 0 0;padding:0;display:grid;gap:14px}
+    .st-item{border:1px solid var(--line);border-radius:14px;padding:20px 22px;
+      background:linear-gradient(180deg,var(--panel),var(--panel2))}
+    .st-item h3{margin:0;font-size:16.5px;color:var(--ink);letter-spacing:-.2px}
+    .st-item p{margin:8px 0 0;color:var(--muted);font-size:15px;line-height:1.65}
+    .st-item .st-link{display:inline-block;margin:12px 0 0;font-size:14px;font-weight:600;
+      color:var(--accent);text-decoration:none}
+    .st-item .st-link:hover{text-decoration:underline}
+    .st-cta{display:flex;flex-wrap:wrap;gap:12px;margin:22px 0 0}
+    @media (max-width:560px){ .st-item{padding:16px 18px} }
+  </style>
+
+  <div class="sec-head reveal"><h1>Start here</h1><div class="rule"></div></div>
+  <p class="st-intro reveal">A plain-English tour for anyone who does not work in AI. No jargon, no demos. Every project at the bottom links to its full technical breakdown if you want the depth.</p>
+
+  <div class="st-body">
+    <h2 class="st-h2 reveal">What I actually do</h2>
+    <div class="reveal">
+      <p>Most people have used AI that answers questions in a chat box, like ChatGPT. I build the step up from that: AI that <b>does the work</b>. These are software helpers that take real actions on their own, such as sorting through huge piles of data, fixing computer problems, or running the day-to-day admin of a business.</p>
+      <p>The hard part, and the part I am known for, is <b>safety</b>. An AI that can act can also do damage. So I write the strict rules for what each helper may do by itself, what it must check with a human first, and what it can never do at all, like spending money or deleting something it cannot get back. The craft is making these helpers useful enough to trust and bounded enough to be safe.</p>
+      <p class="st-analogy">Think of it as hiring a sharp new employee. The skill is not just teaching them the job. It is writing the exact handbook of what they may and may not do, and then proving they follow it.</p>
+    </div>
+
+    <h2 class="st-h2 reveal">A few words, defined</h2>
+    <p class="st-sub reveal">The terms you will see around the rest of the site, in one line each.</p>
+    <dl class="st-gloss reveal">
+      <div><dt>Agent</dt><dd>An AI that can take actions to finish a task, not just chat about it.</dd></div>
+      <div><dt>Agentic system</dt><dd>Several agents working together, each with a defined job, aimed at one goal.</dd></div>
+      <div><dt>Coordinator and specialists</dt><dd>A lead agent hands work to focused helper agents, then checks and combines what they produce.</dd></div>
+      <div><dt>Guardrails</dt><dd>The hard rules for what an agent may do on its own, what needs a human, and what is never allowed.</dd></div>
+    </dl>
+
+    <h2 class="st-h2 reveal">The work, in plain terms</h2>
+    <p class="st-sub reveal">Six real systems. One plain sentence each, then the full breakdown if you want it.</p>
+    <ul class="st-list reveal">
+      <li class="st-item">
+        <h3>Sorting data so people start ahead</h3>
+        <p>A helper sorts a huge pile of unlabeled data into a tidy, pre-sorted queue, so the people reviewing it begin with a head start instead of a blank page. A person still confirms every call. It lifted the team's data-grading output by 25%.</p>
+        <a class="st-link" href="/work/first-pass-labeling-agent">See the full breakdown →</a>
+      </li>
+      <li class="st-item">
+        <h3>Fixing known problems on its own</h3>
+        <p>When a known system problem shows up, a helper runs the approved fix by itself, but only fixes on its allowed list, and only ones that can be undone. It raised system uptime by 30%.</p>
+        <a class="st-link" href="/work/rca-auto-remediation-agent">See the full breakdown →</a>
+      </li>
+      <li class="st-item">
+        <h3>A command center for running projects with AI</h3>
+        <p>A lead router sends each request to the right helper, and nothing that touches the real world goes through until it passes a quality check and a permission level. It is the largest of my open-source systems.</p>
+        <a class="st-link" href="/work/vantage-os">See the full breakdown →</a>
+      </li>
+      <li class="st-item">
+        <h3>Two reusable skills for AI</h3>
+        <p>One looks at a messy situation and finds the single most valuable thing to do next. The other breaks a big job into pieces, runs several helpers at once, and checks the result before moving on.</p>
+        <a class="st-link" href="/work/agent-skills">See the full breakdown →</a>
+      </li>
+      <li class="st-item">
+        <h3>Watching markets to answer one question</h3>
+        <p>A tool that quietly watches and records how online prediction markets move over time, so one question can be answered with real data instead of a hunch. By design it can only watch and record. It can never place a bet or move money.</p>
+        <a class="st-link" href="/work/prediction-market-automation">See the full breakdown →</a>
+      </li>
+      <li class="st-item">
+        <h3>A team of helpers running my car-rental back office</h3>
+        <p>A set of helpers runs the admin of my car-rental business, the scheduling, the messaging, and the paperwork, so it takes far less of my time and money to operate.</p>
+        <a class="st-link" href="/work/fleet-operations">See the full breakdown →</a>
+      </li>
+    </ul>
+
+    <h2 class="st-h2 reveal">Want the technical version?</h2>
+    <p class="st-sub reveal">Everything above is the simple view. The real depth, the decisions, the guardrails, and the code, lives here.</p>
+    <div class="st-cta reveal">
+      <a class="btn primary" href="/work">See the full work</a>
+      <a class="btn ghost" href="/resume">Read the resume</a>
+    </div>
+  </div>
+</div></section>
+</main>
+
+<!-- ===== CANONICAL FOOTER (identical markup on every page; update all copies together) ===== -->
+<footer><div class="wrap">
+  <span>© 2026 Brad O'Haire</span>
+  <span><a href="/work">Work</a> · <a href="/about">About</a> · <a href="/contact">Contact</a> · <a href="/resume">Resume</a> · <a id="foot-gh" href="https://github.com/Veeiy" target="_blank" rel="noopener">GitHub</a> · <a href="https://www.linkedin.com/in/brad-o-haire" target="_blank" rel="noopener">LinkedIn</a> · <a href="mailto:bradohairework@gmail.com">Email</a></span>
+</div></footer>
+<!-- ===== /CANONICAL FOOTER ===== -->
+
+</body>
+</html>
