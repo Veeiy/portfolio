@@ -122,14 +122,14 @@
        Role indices: 0 Coordinator, 1 Specialist A, 2 Specialist B, 3 Auditor. */
     let roleNodes = [];   // pinned role anchors, indexed as above
     let labelAlpha = 0;   // eases 0 -> 1 over the first cycle so labels do not pop in
-    const SPECIALISTS = [1,2]; // role indices that do work
-    const AUDITOR = 3, COORD = 0;
+    const SPECIALISTS = [1,2,3,4]; // role indices that do work
+    const AUDITOR = 5, COORD = 0;
     // Verdict palette: pass = brand green (--ok), revise = amber (matches the
     // guardrail "needs approval" pill). Tokens otherwise use the accent blend.
     const OK_RGB = [67,214,146];     // --ok  #43d692
     const AMBER_RGB = [246,196,84];  //       #f6c454
     // One token in flight along a connector. color: "accent" | "ok" | "amber".
-    // A capped pool: at most one per specialist plus one verdict token = <= 4.
+    // A capped pool: at most one per specialist plus one verdict token, with headroom.
     let tokens = [];            // active tokens this frame
     const TOKEN_SPEED = 0.018;  // fraction of the hop per frame (slow, readable)
     // Per-specialist work progress 0..1 (the filling arc); -1 means "not working".
@@ -151,24 +151,26 @@
       // labels never sit on the H1 or lede. On narrow viewports the text fills the width,
       // so labels are suppressed entirely (see the width guard in step()).
       roleNodes = [
-        { x:w*0.60, y:h*0.20, name:"Coordinator" },
-        { x:w*0.82, y:h*0.34, name:"Specialist" },
-        { x:w*0.82, y:h*0.74, name:"Specialist" },
-        { x:w*0.94, y:h*0.54, name:"Auditor" }
+        { x:w*0.62, y:h*0.22, name:"Coordinator" },
+        { x:w*0.76, y:h*0.12, name:"Specialist" },
+        { x:w*0.87, y:h*0.34, name:"Specialist" },
+        { x:w*0.87, y:h*0.66, name:"Specialist" },
+        { x:w*0.74, y:h*0.88, name:"Specialist" },
+        { x:w*0.96, y:h*0.50, name:"Auditor" }
       ];
     }
     // Mix toward a fixed rgb target (used for the green/amber verdict tokens).
     function rgbStr(c){ return c[0]+","+c[1]+","+c[2]; }
     // Spawn a labeled token traveling from role index a to role index b.
     function addToken(a, b, label, color){
-      if(tokens.length >= 5) return; // hard cap, never overflow the pool
+      if(tokens.length >= 12) return; // hard cap, never overflow the pool
       tokens.push({ a:a, b:b, t:0, label:label, color:color||"accent" });
     }
     // Begin a fresh cycle: decide pass vs revise, dispatch a task to each specialist.
     function startCycle(){
       cycleCount++;
       cyc.revise = (cycleCount % 3 === 0);        // ~1 in 3 cycles iterate
-      cyc.reviseTarget = (cycleCount % 2 === 0) ? 2 : 1; // alternate which specialist
+      cyc.reviseTarget = SPECIALISTS[cycleCount % SPECIALISTS.length]; // rotate which specialist
       cyc.reworked = false;
       cyc.phase = "dispatch";
       cyc.pending = SPECIALISTS.length;
