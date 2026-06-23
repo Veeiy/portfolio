@@ -582,9 +582,9 @@
     // A calm, sparse, slow starfield. Same on every page so the sky is consistent.
     // Star count is capped and scaled by viewport area, so it stays cheap on phones.
     nodeField(c, {
-      area: 30000, min: 14, max: 60,
-      linkDist: 155, linkAlpha: 0.24, dotAlpha: 0.64, dotR: 1.45,
-      speed: 0.10, interactive: false, glow: true, starGlow: 3.2, twinkleShare: 0.55
+      area: 30000, min: 18, max: 72,
+      linkDist: 165, linkAlpha: 0.36, dotAlpha: 0.82, dotR: 1.6,
+      speed: 0.10, interactive: false, glow: true, starGlow: 3.4, twinkleShare: 0.6
     });
   })();
 
@@ -596,8 +596,8 @@
   // getElementById returns null on pages without the hero; nodeField no-ops on null.
   nodeField(document.getElementById("hero-canvas"), {
     interactive:true, roles:true,
-    area:30000, max:30, linkDist:145, linkAlpha:0.22, dotAlpha:0.72, dotR:1.6,
-    speed:0.16, starGlow:3.2, twinkleShare:0.5
+    area:30000, max:38, linkDist:155, linkAlpha:0.36, dotAlpha:0.86, dotR:1.7,
+    speed:0.16, starGlow:3.4, twinkleShare:0.5
   });
   // Data section: a fainter, sparser echo of the same starfield. Not interactive.
   // Only present on /about; null elsewhere, so this no-ops cleanly.
