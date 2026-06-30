@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Production agent systems · Brad O'Haire</title>
+<meta name="description" content="Brad O'Haire designs and runs production agentic systems with guardrails for a humanoid robotics program: multi-agent work where capability is bounded by hard safety limits, with a human on every consequential decision." />
+<link rel="canonical" href="https://bradohaire.com/work/production-systems" />
+<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+<meta name="theme-color" content="#0a0b0f" />
+<link rel="stylesheet" href="/assets/site.css" />
+<script defer src="/assets/site.js"></script>
+</head>
+<body>
+
+<!-- ===== CANONICAL HEADER (identical markup on every page; update all copies together) ===== -->
+<a class="skip-link" href="#main">Skip to content</a>
+<nav><div class="wrap">
+  <a class="brand" href="/">Brad<span>.</span>OHaire</a>
+  <div class="navlinks">
+    <a href="/">Home</a>
+    <a href="/start">Start here</a>
+    <a href="/work" aria-current="page">Work</a>
+    <a href="/lab">Lab</a>
+    <a href="/principles">Principles</a>
+    <a href="/about">About</a>
+    <a href="/contact">Contact</a>
+    <a id="nav-gh" href="https://github.com/Veeiy" target="_blank" rel="noopener">GitHub</a>
+  </div>
+</div></nav>
+<!-- ===== /CANONICAL HEADER ===== -->
+
+<main id="main">
+
+<!-- 1. Eyebrow + headline.  2. One-line summary.  3. Outcome above the fold (qualitative). -->
+<div class="cs-head"><div class="wrap">
+  <a class="cs-back" href="/work"><span aria-hidden="true">←</span> All work</a>
+  <div class="cs-eyebrow reveal"><span class="tag">Production</span></div>
+  <h1 class="cs-h1 reveal">Production agent systems for a robotics program</h1>
+  <p class="cs-summary reveal">I design and run production agentic systems with guardrails for a humanoid robotics program. It is multi-agent work where capability is bounded by hard safety limits, with a human on every consequential decision.</p>
+  <div class="cs-outcome q reveal">
+    <p>Systems that hold up under real stakes, for a real program, at production velocity. The discipline is not what an agent can do, it is what it is allowed to do, and that is exactly the line this work runs on.</p>
+  </div>
+</div></div>
+
+<div class="cs-body"><div class="wrap">
+
+  <!-- 4. The work, generalized -->
+  <section class="reveal">
+    <h2>The work</h2>
+    <p>A humanoid robotics program runs on high-velocity data and tight reliability. It is the kind of environment where an agent that can act can also cause real damage, so capability is the easy half. The engineering is the bounds: deciding what an agent may do on its own, what it must hand to a person, and what it must never touch at all. I design and run that kind of system in production.</p>
+  </section>
+
+  <!-- 5. How I work, as principles rather than specifics -->
+  <section class="reveal">
+    <h2>How I work</h2>
+    <p>The throughline is the same one that runs across every system on this site: build capable agents, then spend the real effort on the leash. In a production setting with real consequences, that discipline is not optional, it is the job.</p>
+    <ul class="decisions">
+      <li>
+        <span class="d-cap">Bounded autonomy by default.</span>
+        <span class="d-leash">Agents act on their own only inside an explicit, reversible set of cases. <b>The leash: anything outside that set stops and waits, it is not the agent's call to make.</b></span>
+      </li>
+      <li>
+        <span class="d-cap">A human on every consequential decision.</span>
+        <span class="d-leash">Routine, low-risk work runs unattended so people are freed from it. <b>The leash: anything with real-world weight is gated to a person before it happens.</b></span>
+      </li>
+      <li>
+        <span class="d-cap">Escalate, do not guess.</span>
+        <span class="d-leash">When an agent meets something it does not recognize, it hands off. <b>The leash: an unknown is a stop-and-ask, never an improvised action.</b></span>
+      </li>
+    </ul>
+  </section>
+
+  <!-- 6. What the work demonstrates (skills, generalized) -->
+  <section class="reveal">
+    <h2>What it demonstrates</h2>
+    <p>Designing and operating multi-agent systems where the safety floor is enforced, not hoped for. Running high-velocity data work end to end and keeping the pipeline honest. Translating evolving requirements into operator-level process, and shipping automation that holds up when it is left alone in production.</p>
+  </section>
+
+  <!-- 7. Guardrails / what it is NOT allowed to do -->
+  <section class="reveal">
+    <div class="cs-guardrails">
+      <h2>Guardrails</h2>
+      <p class="gr-sub">The posture every production system here runs under. Capability first, then the leash.</p>
+      <ul>
+        <li><span class="gr-no">No</span><span>It cannot take a <strong>consequential action</strong> without a human. Routine work is allowed; anything with weight is gated.</span></li>
+        <li><span class="gr-no">No</span><span>It cannot act <strong>outside its known set</strong>. Autonomy lives inside an explicit, reversible boundary, and nowhere else.</span></li>
+        <li><span class="gr-no">No</span><span>It does not <strong>guess on the unknown</strong>. Anything it does not recognize is escalated to a person.</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 8. Stack & tools (generalized) -->
+  <section class="reveal">
+    <h2>Stack and tools</h2>
+    <div class="stack">
+      <span class="chip">Agent SDK</span>
+      <span class="chip">Python</span>
+      <span class="chip">Bounded autonomy</span>
+      <span class="chip">Human-in-the-loop</span>
+      <span class="chip">Production operations</span>
+    </div>
+  </section>
+
+  <!-- 9. Role -->
+  <section class="reveal">
+    <h2>My role</h2>
+    <p class="cs-role">I <strong>designed and ran</strong> these production systems end to end: the agent design, the guardrails, and the operational discipline that keeps them safe day after day.</p>
+  </section>
+
+  <!-- 10. Links / verify -->
+  <section class="reveal cs-links">
+    <h2>Links and verification</h2>
+    <p>The production work for this program is not public, but the open-source systems on this site carry the same engineering posture in code you can read line by line.</p>
+    <p><a class="cs-verify" href="/work">see the open-source work <span aria-hidden="true">→</span></a></p>
+  </section>
+
+  <!-- 11. Prev / next cross-links -->
+  <nav class="cs-nav reveal" aria-label="More case studies">
+    <a href="/work"><span class="cs-nav-dir">Back to index</span><span class="cs-nav-title">← All work</span></a>
+    <a class="next" href="/work/therapy-assistant"><span class="cs-nav-dir">Next case study</span><span class="cs-nav-title">Local-first practice assistant →</span></a>
+  </nav>
+
+</div></div>
+
+</main>
+
+<!-- ===== CANONICAL FOOTER (identical markup on every page; update all copies together) ===== -->
+<footer><div class="wrap">
+  <span>© 2026 Brad O'Haire</span>
+  <span><a href="/work">Work</a> · <a href="/about">About</a> · <a href="/contact">Contact</a> · <a href="/resume">Resume</a> · <a id="foot-gh" href="https://github.com/Veeiy" target="_blank" rel="noopener">GitHub</a> · <a href="https://www.linkedin.com/in/brad-o-haire" target="_blank" rel="noopener">LinkedIn</a> · <a href="mailto:bradohairework@gmail.com">Email</a></span>
+</div></footer>
+<!-- ===== /CANONICAL FOOTER ===== -->
+
+</body>
+</html>

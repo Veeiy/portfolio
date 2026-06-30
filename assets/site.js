@@ -877,11 +877,11 @@
     }
   })();
 
-  /* ---------- First-pass triage demo (case study: first-pass labeling) ----------
-     A self-contained, honest illustration of the auto-bucketing pattern on
+  /* ---------- Triage classifier demo (the Triage Desk on /lab) ----------
+     A self-contained, honest illustration of the propose-then-confirm pattern on
      SYNTHETIC data in a neutral domain (generic support-message snippets sorted
      into Billing, Bug, How-to, Feedback). Everything here is transparent and
-     reproducible: a simple keyword/heuristic classifier assigns a first-pass
+     reproducible: a simple keyword/heuristic classifier assigns a proposed
      category plus a confidence score, and EVERY displayed number is computed
      live in this function from the data below, never hardcoded.
 
@@ -967,7 +967,7 @@
     // ---- Transparent keyword classifier. ----
     // For each category we keep weighted keyword lists. We lower-case the item,
     // score every category by summing the weights of the keywords it contains,
-    // and pick the highest as the first-pass category.
+    // and pick the highest as the proposed category.
     //
     // Confidence blends two plain signals, both in 0..1:
     //   margin   = (top - runnerUp) / (top + runnerUp)
@@ -1146,7 +1146,7 @@
       if(!results) return;
       const m = computeMetrics(threshold);
       const cells = [
-        { v: pct(m.accuracy),     l: "first-pass accuracy<br><span class=\"tr-sub\">heuristic vs ground truth, all items</span>" },
+        { v: pct(m.accuracy),     l: "classifier accuracy<br><span class=\"tr-sub\">heuristic vs ground truth, all items</span>" },
         { v: pct(m.liftPct),      l: "fewer items reviewed one by one<br><span class=\"tr-sub\">routed to the bulk-confirm lane</span>" },
         { v: m.handCount + "",    l: "items still need hand review<br><span class=\"tr-sub\">the human opens these individually</span>" },
         { v: pct(m.autoAccuracy), l: "accuracy in the bulk-confirm lane<br><span class=\"tr-sub\">quality of what gets bulk-confirmed</span>" }
@@ -1165,8 +1165,8 @@
       });
       // Screen-reader status mirrors the on-screen numbers exactly.
       if(status){
-        status.textContent = "First pass complete on " + m.total + " synthetic items. " +
-          pct(m.accuracy) + " first-pass accuracy. " + m.autoCount + " items routed to bulk-confirm, " +
+        status.textContent = "Classification complete on " + m.total + " synthetic items. " +
+          pct(m.accuracy) + " classifier accuracy. " + m.autoCount + " items routed to bulk-confirm, " +
           m.handCount + " items sent to hand review. That is " + pct(m.liftPct) +
           " fewer items reviewed one by one.";
       }
@@ -1230,7 +1230,7 @@
     emitLift(currentThreshold());
   })();
 
-  /* ---------- Projected-savings calculator (case study: first-pass labeling) ----------
+  /* ---------- Projected-savings calculator (illustrative, on /lab) ----------
      A viewer-driven PROJECTION that sits AFTER the triage demo. It does NOT measure
      anything: it takes four assumptions the viewer sets and computes, live, the
      reviewer time and money a review-reduction lift would be worth at scale.

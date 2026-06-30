@@ -1,4 +1,8 @@
 {
   "cleanUrls": true,
-  "trailingSlash": false
+  "trailingSlash": false,
+  "redirects": [
+    { "source": "/work/first-pass-labeling-agent", "destination": "/work/production-systems", "permanent": true },
+    { "source": "/work/rca-auto-remediation-agent", "destination": "/work/production-systems", "permanent": true }
+  ]
 }

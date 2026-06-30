@@ -113,7 +113,7 @@
     },
 
     labeling: {
-      name: "First-pass labeling pipeline",
+      name: "Content classification pipeline",
       budget: 14,
       def: "a triaged queue with a human confirming every call",
       waves: [
@@ -121,7 +121,7 @@
           agents:["Taxonomy A","Taxonomy B","Heuristic set"], gate:"PASS",
           log:["propose category schemes in parallel",
                "score schemes for coverage and overlap",
-               "synthesis fixes the first-pass taxonomy"] },
+               "synthesis fixes the category taxonomy"] },
         { id:"W2", label:"Build", sub:"specialists, parallel",
           agents:["Classifier","Confidence + routing"], gate:"PASS",
           log:["build a transparent keyword classifier",
@@ -132,7 +132,7 @@
             what:"the auto-confirm lane claims a higher accuracy than the holdout set supports",
             fix:"lower the auto-confirm threshold, re-route the contested items to a human"
           },
-          log:["score first-pass accuracy against ground truth",
+          log:["score classification accuracy against ground truth",
                "probe deliberately ambiguous items"] },
         { id:"W4", label:"Iterate and hand off", sub:"re-check, then route to humans",
           agents:["Re-tune + re-audit","Queue hand-off"], gate:"PASS",
@@ -960,7 +960,7 @@
 
 
 /* ============================================================
-   The Triage Desk: a real, working, client-side first-pass labeler
+   The Triage Desk: a real, working, client-side classifier
    (/lab #triage). A SEPARATE, self-contained IIFE with its OWN root
    null-check (#triage-desk), so it no-ops on every page that lacks
    the tool (everywhere but /lab), leaving zero console errors and
@@ -977,7 +977,7 @@
        sent anywhere: there is no fetch / XHR / beacon in this file.
      - Low-confidence or no-signal lines go to an explicit "Unsure"
        lane and float to the TOP for review. That is the honest,
-       correct behaviour of a first-pass system.
+       correct behaviour of a propose-then-confirm system.
      - A human CONFIRMS or OVERRIDES every row. The tool tracks its
        OWN counts (confirmed / overridden / needs-review). Those are
        the tool's own tallies, never a business metric.
@@ -1437,7 +1437,7 @@
   function exportJSON(){
     if(!records.length) return;
     const payload = {
-      tool: "Triage Desk (rule-based first-pass labeler)",
+      tool: "Triage Desk (rule-based classifier)",
       note: "Proposals are from a transparent client-side signal classifier, not a model. Final labels reflect human confirm/override.",
       generated: new Date().toISOString(),
       count: records.length,

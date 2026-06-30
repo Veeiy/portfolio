@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Local-first practice assistant · Brad O'Haire</title>
+<meta name="description" content="A local-first, privacy-first desktop assistant for a solo therapist, built on the Agent SDK. Client data is encrypted and never leaves the device. Open-source and anonymized so any solo practitioner can use it." />
+<link rel="canonical" href="https://bradohaire.com/work/therapy-assistant" />
+<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+<meta name="theme-color" content="#0a0b0f" />
+<link rel="stylesheet" href="/assets/site.css" />
+<script defer src="/assets/site.js"></script>
+</head>
+<body>
+
+<!-- ===== CANONICAL HEADER (identical markup on every page; update all copies together) ===== -->
+<a class="skip-link" href="#main">Skip to content</a>
+<nav><div class="wrap">
+  <a class="brand" href="/">Brad<span>.</span>OHaire</a>
+  <div class="navlinks">
+    <a href="/">Home</a>
+    <a href="/start">Start here</a>
+    <a href="/work" aria-current="page">Work</a>
+    <a href="/lab">Lab</a>
+    <a href="/principles">Principles</a>
+    <a href="/about">About</a>
+    <a href="/contact">Contact</a>
+    <a id="nav-gh" href="https://github.com/Veeiy" target="_blank" rel="noopener">GitHub</a>
+  </div>
+</div></nav>
+<!-- ===== /CANONICAL HEADER ===== -->
+
+<main id="main">
+
+<!-- 1. Eyebrow + headline.  2. One-line summary.  3. Outcome above the fold (qualitative). -->
+<div class="cs-head"><div class="wrap">
+  <a class="cs-back" href="/work"><span aria-hidden="true">←</span> All work</a>
+  <div class="cs-eyebrow reveal"><span class="tag">Built for a solo practitioner</span></div>
+  <h1 class="cs-h1 reveal">A local-first practice assistant that keeps client data on the machine</h1>
+  <p class="cs-summary reveal">A Windows desktop app for a solo therapist, built on the Agent SDK, that handles the back office: session notes, scheduling and reminders, client intake, and billing. The sensitive data is encrypted and never leaves the device, and privacy is the architecture rather than a setting.</p>
+  <div class="cs-outcome q reveal">
+    <p>An agentic app where the model assists and the practitioner owns every clinical call, with private health information staying on the machine by construction. Open-source and fully anonymized, so any solo practitioner can run it.</p>
+  </div>
+</div></div>
+
+<div class="cs-body"><div class="wrap">
+
+  <!-- 4. Problem / context -->
+  <section class="reveal">
+    <h2>The problem</h2>
+    <p>A solo therapist spends hours on administrative work that is necessary but not the work itself: writing up session notes, chasing scheduling, handling intake, reconciling billing. The off-the-shelf tools that promise to help tend to do it by shipping sensitive client information off to someone else's cloud. For a one-person practice handling protected health information, that trade is not acceptable. The need was an assistant that takes the admin load off without taking the data off the machine.</p>
+  </section>
+
+  <!-- 5. Approach as decisions, not code -->
+  <section class="reveal">
+    <h2>Approach</h2>
+    <p>The design is local-first by default: the app runs on the practitioner's own Windows machine, the data is encrypted at rest, and nothing sensitive is sent anywhere. The model drafts and assists; the human reviews and owns the record. The interesting decisions are all about the boundary, what the assistant is allowed to touch and where a person has to stay in the loop.</p>
+    <ul class="decisions">
+      <li>
+        <span class="d-cap">Keep the data on the device.</span>
+        <span class="d-leash">The app is a local desktop build, with protected health information encrypted at rest. <b>The leash: nothing sensitive leaves the machine, so privacy holds even if everything else fails.</b></span>
+      </li>
+      <li>
+        <span class="d-cap">The practitioner owns every clinical record.</span>
+        <span class="d-leash">The assistant drafts notes and surfaces the routine work; the therapist confirms or edits before anything is final. <b>The leash: the model proposes, a person decides, on every clinical call.</b></span>
+      </li>
+      <li>
+        <span class="d-cap">Build and test on synthetic data only.</span>
+        <span class="d-leash">The whole build and its test suite run on made-up records, never a real client's. <b>The leash: real data has no path into development, by rule.</b></span>
+      </li>
+    </ul>
+  </section>
+
+  <!-- 6. What was built -->
+  <section class="reveal">
+    <h2>What was built</h2>
+    <p>A desktop app built with Electron and TypeScript on the Agent SDK, organized around four workflows: AI-assisted session notes, scheduling and reminders, client intake, and billing. The session-notes workflow runs end to end on synthetic data, and the other three are scaffolded on the same local-first, human-owns-the-record pattern. The codebase is fully anonymized and published as an open-source, MIT-licensed repository, deliberately general so any solo practitioner can pick it up rather than being tied to one person.</p>
+  </section>
+
+  <!-- 7. Guardrails / what it is NOT allowed to do -->
+  <section class="reveal">
+    <div class="cs-guardrails">
+      <h2>Guardrails</h2>
+      <p class="gr-sub">What the system is structurally not allowed to do. This is the through-line: capability, then leash.</p>
+      <ul>
+        <li><span class="gr-no">No</span><span>It cannot <strong>send sensitive data off the device</strong>. Protected health information is encrypted at rest and stays local.</span></li>
+        <li><span class="gr-no">No</span><span>It cannot <strong>finalize a clinical record on its own</strong>. The model drafts; the practitioner confirms or edits every note.</span></li>
+        <li><span class="gr-no">No</span><span>It does not <strong>touch real client data in development</strong>. The build and tests use synthetic records only.</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 8. Stack & tools -->
+  <section class="reveal">
+    <h2>Stack and tools</h2>
+    <div class="stack">
+      <span class="chip">Agent SDK</span>
+      <span class="chip">Electron</span>
+      <span class="chip">TypeScript</span>
+      <span class="chip">Local-first</span>
+      <span class="chip">Encrypted at rest</span>
+    </div>
+  </section>
+
+  <!-- 9. Role -->
+  <section class="reveal">
+    <h2>My role</h2>
+    <p class="cs-role">I <strong>designed and built</strong> the app end to end: the local-first architecture, the four Agent-SDK workflows, the privacy guardrails, and the anonymized open-source release.</p>
+  </section>
+
+  <!-- 10. Links / verify -->
+  <section class="reveal cs-links">
+    <h2>Links and verification</h2>
+    <p>This is an open-source project. The repository is public and anonymized, so the architecture and the privacy guardrails described here can be inspected directly.</p>
+    <p><a class="cs-verify" href="https://github.com/Veeiy/therapy-practice-assistant" target="_blank" rel="noopener">verify <span aria-hidden="true">→</span></a></p>
+  </section>
+
+  <!-- 11. Prev / next cross-links -->
+  <nav class="cs-nav reveal" aria-label="More case studies">
+    <a href="/work/production-systems"><span class="cs-nav-dir">Previous case study</span><span class="cs-nav-title">← Production agent systems</span></a>
+    <a class="next" href="/work/vantage-os"><span class="cs-nav-dir">Next case study</span><span class="cs-nav-title">Vantage OS →</span></a>
+  </nav>
+
+</div></div>
+
+</main>
+
+<!-- ===== CANONICAL FOOTER (identical markup on every page; update all copies together) ===== -->
+<footer><div class="wrap">
+  <span>© 2026 Brad O'Haire</span>
+  <span><a href="/work">Work</a> · <a href="/about">About</a> · <a href="/contact">Contact</a> · <a href="/resume">Resume</a> · <a id="foot-gh" href="https://github.com/Veeiy" target="_blank" rel="noopener">GitHub</a> · <a href="https://www.linkedin.com/in/brad-o-haire" target="_blank" rel="noopener">LinkedIn</a> · <a href="mailto:bradohairework@gmail.com">Email</a></span>
+</div></footer>
+<!-- ===== /CANONICAL FOOTER ===== -->
+
+</body>
+</html>

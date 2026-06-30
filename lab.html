@@ -93,7 +93,7 @@
         <div class="ctrl-hint">What the system is being asked to deliver.</div>
         <select id="con-mission" class="con-select">
           <option value="portfolio">Build this portfolio site</option>
-          <option value="labeling">First-pass labeling pipeline</option>
+          <option value="labeling">Content classification pipeline</option>
           <option value="product">Ship a product</option>
           <option value="support">Customer support resolution agent</option>
           <option value="extraction">Structured data extraction pipeline</option>
@@ -260,7 +260,7 @@
                 <span class="rw-dec-h">Real proof was elevated from tiles to full case studies</span>
                 <span class="rw-chev sm" aria-hidden="true">+</span>
               </summary>
-              <p class="rw-dec-body">The two production agents, with the +25% and +30% results, started as small tiles. They were promoted to full case studies because they are the strongest, most verifiable proof on the site. The strongest evidence earns the most room.</p>
+              <p class="rw-dec-body">The open-source systems and the agent-run fleet started as small tiles. The strongest, most verifiable proof was promoted to full case studies, so the work you can inspect gets the most room.</p>
             </details>
           </div>
           <div class="rw-dec" data-rw-dec>
@@ -387,16 +387,16 @@
   </ol>
 </div></section>
 
-<!-- ===== The Triage Desk: a real, working, client-side first-pass labeler ===== -->
+<!-- ===== The Triage Desk: a real, working, client-side classifier ===== -->
 <section id="triage"><div class="wrap">
   <div class="sec-head reveal"><h2>Triage Desk</h2><div class="rule"></div></div>
-  <p class="sec-intro reveal">A use-it-yourself tool. Paste a batch of lines, one per line, and a real client-side classifier proposes a first-pass label for each, then a human confirms or overrides every call. This is the same first-pass-then-human pattern behind a production labeling pipeline I built, where a confirmed first pass lifted data-grading output by 25 percent. That number is from the real system, not this page. The counts below are this tool's own.</p>
+  <p class="sec-intro reveal">A use-it-yourself tool. Paste a batch of lines, one per line, and a real client-side classifier proposes a label for each, then a human confirms or overrides every call. It is a hands-on demonstrator of the propose-then-confirm pattern: the machine does the first pass, a person stays on every decision. The counts below are this tool's own.</p>
 
   <div class="triage reveal" id="triage-desk">
     <!-- Honesty caption: required, visible, never implies live inference -->
     <p class="triage-honesty">
       <span class="triage-honesty-tag">How this works</span>
-      This is a demonstrator of the first-pass-then-human pattern. It uses a transparent rule-based classifier, a set of signal terms per category, not a live model and not AI. It runs entirely in your browser. Nothing you paste is sent anywhere or leaves this page. The same input always produces the same result, and every proposal is yours to confirm or override.
+      This is a demonstrator of the propose-then-confirm pattern. It uses a transparent rule-based classifier, a set of signal terms per category, not a live model and not AI. It runs entirely in your browser. Nothing you paste is sent anywhere or leaves this page. The same input always produces the same result, and every proposal is yours to confirm or override.
     </p>
 
     <!-- ===== Input ===== -->
