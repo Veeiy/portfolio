@@ -150,6 +150,18 @@
       .afx-flow .afx-coord .afx-kick{font-size:15px}
       .afx-flow .afx-coord text:not(.afx-kick){font-size:18px}
       .afx-flow .afx-verdict text{font-size:17px}
+      /* at 17px the PASS chip grows wide enough that its arrow reaches over the
+         Test box (the p descender ends ~2px above the box stroke), so pull the
+         chip left and drop the arrow glyph on phones; the green spine arrow
+         into Ship already draws the pass route. WARN and BLOCK drop to 15px
+         because at 17px "block" nearly fills the slot between the loop riser
+         (x~439) and the first Test agent pill (x=492); WARN lifts 2 units so
+         the two words are not stacked at sub-1.1 line-height. */
+      .afx-flow .afx-verdict .vp{transform:translate(-10px,0)}
+      .afx-flow .afx-verdict .vp .vp-a{display:none}
+      .afx-flow .afx-verdict .vw,
+      .afx-flow .afx-verdict .vb{font-size:15px}
+      .afx-flow .afx-verdict .vw{transform:translate(0,-2px)}
       .afx-flow .afx-loop-label{font-size:17px}
       .afx-flow .afx-agent text{display:none}      /* legend carries this */
       .afx-flow .afx-floor text.afx-floor-long{display:none}
@@ -197,19 +209,21 @@
         <text x="380" y="44" text-anchor="middle">drives the run</text>
       </g>
 
-      <!-- coordinator drop-lines down to each wave on the spine (y top 52 -> spine top 110) -->
+      <!-- coordinator drop-lines down to each wave on the spine, plus one to the
+           auditor gate's top vertex (the coordinator dispatches the auditor too;
+           this drop used to dead-end at x=380 where the old Audit box sat) -->
       <path class="afx-drop afx-draw" data-draw d="M380 52 C380 78, 56 78, 56 108"></path>
       <path class="afx-drop afx-draw" data-draw d="M380 52 C380 80, 160 80, 160 108"></path>
       <path class="afx-drop afx-draw" data-draw d="M380 52 L380 80 L332 80 L332 108"></path>
-      <path class="afx-drop afx-draw" data-draw d="M380 52 L380 108"></path>
+      <path class="afx-drop afx-draw" data-draw d="M380 52 C380 78, 440 78, 440 100"></path>
       <path class="afx-drop afx-draw" data-draw d="M380 52 C380 80, 566 80, 566 108"></path>
       <path class="afx-drop afx-draw" data-draw d="M380 52 C380 78, 704 78, 704 108"></path>
 
       <!-- ===== Spine forward connectors (along y=128, between wave edges) ===== -->
       <path class="afx-link afx-draw" data-draw d="M104 128 L112 128"></path>          <!-- Research -> Ideate -->
       <path class="afx-link afx-draw" data-draw d="M208 128 L284 128"></path>          <!-- Ideate -> Build -->
-      <path class="afx-link afx-draw" data-draw d="M380 128 L412 128"></path>          <!-- Build -> Gate -->
-      <path class="afx-link afx-draw" data-draw d="M468 128 L518 128"></path>          <!-- Gate -> Test -->
+      <path class="afx-link afx-draw" data-draw d="M380 128 L404 128"></path>          <!-- Build -> Gate (ends at the diamond's left vertex) -->
+      <path class="afx-link afx-draw" data-draw d="M476 128 L518 128"></path>          <!-- Gate -> Test (starts at the diamond's right vertex) -->
       <path class="afx-pass  afx-draw" data-draw data-pass marker-end="url(#afxArrowPass)" d="M614 128 L652 128"></path> <!-- Test -> Ship (pass path) -->
 
       <!-- ===== Spine waves ===== -->
@@ -228,19 +242,22 @@
       <g class="afx-node" data-wave><rect x="652" y="110" width="96" height="36" rx="10"></rect><circle class="afx-dot" cx="700" cy="100" r="3.5"></circle><text x="700" y="132" text-anchor="middle">Ship</text></g>
 
       <!-- ===== Fan-out: parallel specialist agents under the key waves (y=212) ===== -->
-      <!-- Ideate fans to 3 agents -->
-      <path class="afx-fan afx-draw" data-draw d="M160 146 L96 200"></path>
-      <path class="afx-fan afx-draw" data-draw d="M160 146 L160 200"></path>
-      <path class="afx-fan afx-draw" data-draw d="M160 146 L224 200"></path>
-      <g class="afx-agent" data-agent><rect x="68"  y="200" width="56" height="24" rx="8"></rect><text x="96"  y="216" text-anchor="middle">agent</text></g>
-      <g class="afx-agent" data-agent><rect x="132" y="200" width="56" height="24" rx="8"></rect><text x="160" y="216" text-anchor="middle">agent</text></g>
-      <g class="afx-agent" data-agent><rect x="196" y="200" width="56" height="24" rx="8"></rect><text x="224" y="216" text-anchor="middle">agent</text></g>
+      <!-- Ideate fans to 3 agents. The Ideate group sits 8 left and the Build group
+           8-12 right of their old spots ON PURPOSE: it opens a 40-unit corridor
+           (x 244-284) between the two pill groups for the iterate loop's riser,
+           so the loop never squeezes between agent pills. -->
+      <path class="afx-fan afx-draw" data-draw d="M160 146 L88 200"></path>
+      <path class="afx-fan afx-draw" data-draw d="M160 146 L152 200"></path>
+      <path class="afx-fan afx-draw" data-draw d="M160 146 L216 200"></path>
+      <g class="afx-agent" data-agent><rect x="60"  y="200" width="56" height="24" rx="8"></rect><text x="88"  y="216" text-anchor="middle">agent</text></g>
+      <g class="afx-agent" data-agent><rect x="124" y="200" width="56" height="24" rx="8"></rect><text x="152" y="216" text-anchor="middle">agent</text></g>
+      <g class="afx-agent" data-agent><rect x="188" y="200" width="56" height="24" rx="8"></rect><text x="216" y="216" text-anchor="middle">agent</text></g>
 
-      <!-- Build fans to 2 agents -->
-      <path class="afx-fan afx-draw" data-draw d="M332 146 L300 200"></path>
-      <path class="afx-fan afx-draw" data-draw d="M332 146 L364 200"></path>
-      <g class="afx-agent" data-agent><rect x="272" y="200" width="56" height="24" rx="8"></rect><text x="300" y="216" text-anchor="middle">agent</text></g>
-      <g class="afx-agent" data-agent><rect x="336" y="200" width="56" height="24" rx="8"></rect><text x="364" y="216" text-anchor="middle">agent</text></g>
+      <!-- Build fans to 2 agents (shifted right, see corridor note above) -->
+      <path class="afx-fan afx-draw" data-draw d="M332 146 L312 200"></path>
+      <path class="afx-fan afx-draw" data-draw d="M332 146 L376 200"></path>
+      <g class="afx-agent" data-agent><rect x="284" y="200" width="56" height="24" rx="8"></rect><text x="312" y="216" text-anchor="middle">agent</text></g>
+      <g class="afx-agent" data-agent><rect x="348" y="200" width="56" height="24" rx="8"></rect><text x="376" y="216" text-anchor="middle">agent</text></g>
 
       <!-- Test fans to 3 agents -->
       <path class="afx-fan afx-draw" data-draw d="M566 146 L520 200"></path>
@@ -251,12 +268,15 @@
       <g class="afx-agent" data-agent><rect x="620" y="200" width="56" height="24" rx="8"></rect><text x="648" y="216" text-anchor="middle">agent</text></g>
 
       <!-- ===== Auditor gate verdict chips =====
-           PASS sits above-right of the gate and advances toward Test.
-           WARN and BLOCK are an aligned stack (shared x=448, 16px apart) tucked
-           beside the loop down-riser (x=440) so they read as routing into the
-           iterate loop. -->
+           PASS floats in the open band ABOVE the gate-to-Test corridor (y=102),
+           clear of the diamond's sloped edge, the Test box, and the coordinator
+           drop curves on every side; at the old y=118 it sat between the gate
+           and Test with only ~3 units of daylight to each. WARN and BLOCK are
+           an aligned stack (shared x=448, 16px apart) tucked beside the loop
+           down-riser (x=440) so they read as routing into the iterate loop;
+           their nearness to the riser is intentional. -->
       <g class="afx-verdict" data-verdict>
-        <text class="vp" x="484" y="118" text-anchor="start">pass &#8594;</text>
+        <text class="vp" x="470" y="102" text-anchor="start">pass <tspan class="vp-a">&#8594;</tspan></text>
         <text class="vw" x="448" y="176" text-anchor="start">warn</text>
         <text class="vb" x="448" y="192" text-anchor="start">block</text>
       </g>
@@ -266,12 +286,13 @@
            It leaves the gate bottom and immediately sweeps down-and-left (so it
            never forms a vertical wall hugging the Build agents), bows through a
            clear lower lane (~y=264, a 40px gap under the agent bottoms at y=224),
-           then rises to the LEFT of the leftmost Build agent (in the x 252-272
-           corridor, riser ~x=258) and curves up into Build's LEFT edge. The two
-           Build agents sit OUTSIDE the arc, to its upper-right. The path never
-           crosses any agent rectangle. -->
+           then rises through the WIDENED corridor between the Ideate and Build
+           agent groups (x 244-284, riser ~x=262, at least 18 units of clearance
+           to the nearest pill on each side) and curves up into Build's LEFT
+           edge. The Build agents sit OUTSIDE the arc, to its upper-right. The
+           path never crosses or crowds any agent rectangle. -->
       <path class="afx-loop afx-draw" data-draw data-loop marker-end="url(#afxArrow)"
-            d="M440 152 C440 232, 422 264, 360 264 C306 264, 264 264, 260 238 C257 200, 259 152, 284 132"></path>
+            d="M440 152 C440 232, 422 264, 360 264 C308 264, 266 264, 263 238 C260 200, 262 152, 284 132"></path>
       <text class="afx-loop-label" x="348" y="286" text-anchor="middle">Iterate</text>
 
       <!-- ===== Safety floor: faint baseline rail under the whole structure =====

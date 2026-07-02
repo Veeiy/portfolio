@@ -34,12 +34,15 @@
 
 <header>
   <canvas id="hero-canvas" aria-hidden="true"></canvas>
-  <svg id="hero-static" viewBox="0 0 620 210" preserveAspectRatio="xMidYMid meet"
+  <svg id="hero-static" viewBox="0 0 620 250" preserveAspectRatio="xMidYMid meet"
        role="img" aria-label="Diagram of an agent handoff cycle: the Coordinator dispatches a task to each Specialist, the Specialists return results to the Auditor, and the Auditor returns a pass verdict to the Coordinator, with a revise path back to a Specialist to iterate. Decorative."
        style="position:absolute;right:0;top:50%;transform:translateY(-50%);width:min(48%,540px);height:auto;z-index:0;opacity:.55;pointer-events:none">
     <!-- STATIC labeled handoff cycle shown only under reduced-motion: no motion, but
          the full sequence (task -> result -> pass, with a revise loop) is communicated
-         with directional connectors, arrowheads and small flow labels. -->
+         with directional connectors, arrowheads and small flow labels. Mirrors the
+         animated topology exactly: 1 Coordinator, 4 Specialists in an arc, 1 Auditor.
+         The pass line threads the gap between the two middle Specialists; every
+         label is positioned clear of every connector. -->
     <defs>
       <marker id="hsArrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
         <path d="M0 0 L10 5 L0 10 z" fill="#6ea8fe"></path>
@@ -52,30 +55,41 @@
       </marker>
     </defs>
     <!-- dispatch: Coordinator -> each Specialist (task) -->
-    <line class="hs-link" x1="108" y1="105" x2="298" y2="52" marker-end="url(#hsArrow)"></line>
-    <line class="hs-link" x1="108" y1="105" x2="298" y2="158" marker-end="url(#hsArrow)"></line>
+    <line class="hs-link" x1="96" y1="125" x2="268" y2="41"  marker-end="url(#hsArrow)"></line>
+    <line class="hs-link" x1="96" y1="125" x2="316" y2="98"  marker-end="url(#hsArrow)"></line>
+    <line class="hs-link" x1="96" y1="125" x2="316" y2="152" marker-end="url(#hsArrow)"></line>
+    <line class="hs-link" x1="96" y1="125" x2="268" y2="209" marker-end="url(#hsArrow)"></line>
     <!-- return: each Specialist -> Auditor (result) -->
-    <line class="hs-link" x1="322" y1="52"  x2="486" y2="98" marker-end="url(#hsArrow)"></line>
-    <line class="hs-link" x1="322" y1="158" x2="486" y2="112" marker-end="url(#hsArrow)"></line>
-    <!-- gate: Auditor -> Coordinator (pass / done) -->
-    <line class="hs-link hs-pass" x1="496" y1="92" x2="122" y2="98" marker-end="url(#hsArrowOk)"></line>
+    <!-- this first return line starts slightly high (y=36, right edge of the top
+         Specialist's ring) so it passes ~7 units above the second Specialist's
+         label instead of skimming it -->
+    <line class="hs-link" x1="299" y1="36"  x2="505" y2="119" marker-end="url(#hsArrow)"></line>
+    <line class="hs-link" x1="348" y1="98"  x2="504" y2="123" marker-end="url(#hsArrow)"></line>
+    <line class="hs-link" x1="348" y1="152" x2="504" y2="127" marker-end="url(#hsArrow)"></line>
+    <line class="hs-link" x1="297" y1="210" x2="505" y2="131" marker-end="url(#hsArrow)"></line>
+    <!-- gate: Auditor -> Coordinator (pass / done), through the mid-Specialist gap -->
+    <line class="hs-link hs-pass" x1="506" y1="119" x2="116" y2="121" marker-end="url(#hsArrowOk)"></line>
     <!-- iterate: Auditor -> a Specialist (revise) -->
-    <line class="hs-link hs-revise" x1="492" y1="118" x2="326" y2="164" marker-end="url(#hsArrowAmber)"></line>
-    <!-- nodes -->
-    <circle class="hs-ring" cx="108" cy="105" r="9"></circle><circle class="hs-node" cx="108" cy="105" r="3.6"></circle>
-    <circle class="hs-ring" cx="310" cy="52"  r="9"></circle><circle class="hs-node" cx="310" cy="52"  r="3.6"></circle>
-    <circle class="hs-ring" cx="310" cy="158" r="9"></circle><circle class="hs-node" cx="310" cy="158" r="3.6"></circle>
-    <circle class="hs-ring" cx="496" cy="105" r="9"></circle><circle class="hs-node" cx="496" cy="105" r="3.6"></circle>
-    <!-- role labels -->
-    <text class="hs-label" x="108" y="87">Coordinator</text>
-    <text class="hs-label" x="310" y="34">Specialist</text>
-    <text class="hs-label" x="310" y="180">Specialist</text>
-    <text class="hs-label" x="496" y="87">Auditor</text>
+    <line class="hs-link hs-revise" x1="512" y1="136" x2="298" y2="206" marker-end="url(#hsArrowAmber)"></line>
+    <!-- nodes: Coordinator, 4 Specialists (arc), Auditor -->
+    <circle class="hs-ring" cx="96"  cy="125" r="9"></circle><circle class="hs-node" cx="96"  cy="125" r="3.6"></circle>
+    <circle class="hs-ring" cx="282" cy="34"  r="9"></circle><circle class="hs-node" cx="282" cy="34"  r="3.6"></circle>
+    <circle class="hs-ring" cx="332" cy="96"  r="9"></circle><circle class="hs-node" cx="332" cy="96"  r="3.6"></circle>
+    <circle class="hs-ring" cx="332" cy="154" r="9"></circle><circle class="hs-node" cx="332" cy="154" r="3.6"></circle>
+    <circle class="hs-ring" cx="282" cy="216" r="9"></circle><circle class="hs-node" cx="282" cy="216" r="3.6"></circle>
+    <circle class="hs-ring" cx="520" cy="125" r="9"></circle><circle class="hs-node" cx="520" cy="125" r="3.6"></circle>
+    <!-- role labels: outer Specialists label away from the arc, middle ones above/below -->
+    <text class="hs-label" x="96"  y="100">Coordinator</text>
+    <text class="hs-label" x="282" y="16">Specialist</text>
+    <text class="hs-label" x="332" y="78">Specialist</text>
+    <text class="hs-label" x="332" y="176">Specialist</text>
+    <text class="hs-label" x="282" y="238">Specialist</text>
+    <text class="hs-label" x="520" y="107">Auditor</text>
     <!-- flow labels: the sequence stated in words -->
-    <text class="hs-flow" x="188" y="66">task &#8594;</text>
-    <text class="hs-flow" x="408" y="66">result &#8594;</text>
-    <text class="hs-flow hs-flow-ok" x="300" y="90">&#8592; pass</text>
-    <text class="hs-flow hs-flow-amber" x="402" y="150">revise &#8594;</text>
+    <text class="hs-flow" x="172" y="66">task &#8594;</text>
+    <text class="hs-flow" x="398" y="60">result &#8594;</text>
+    <text class="hs-flow hs-flow-ok" x="250" y="134">&#8592; pass</text>
+    <text class="hs-flow hs-flow-amber" x="352" y="230">&#8592; revise</text>
   </svg>
   <div class="wrap">
   <style>

@@ -119,7 +119,7 @@
        pool (<= 4 live) of eased lerps plus a glow, not a second engine. Roles is
        opt-in, so the faint Data-section echo stays a plain field.
 
-       Role indices: 0 Coordinator, 1 Specialist A, 2 Specialist B, 3 Auditor. */
+       Role indices: 0 Coordinator, 1-4 Specialists, 5 Auditor. */
     let roleNodes = [];   // pinned role anchors, indexed as above
     let labelAlpha = 0;   // eases 0 -> 1 over the first cycle so labels do not pop in
     const SPECIALISTS = [1,2,3,4]; // role indices that do work
@@ -147,14 +147,19 @@
     let cycleCount = 0; // drives the deterministic "1 in 3 cycles revises" cadence
     let phaseClock = 0; // ever-increasing dt sum; feeds gentle sine pulses on active nodes
     function layoutRoles(){
-      // Pin role anchors to the RIGHT half / lower band, the hero's whitespace, so the
-      // labels never sit on the H1 or lede. On narrow viewports the text fills the width,
-      // so labels are suppressed entirely (see the width guard in step()).
+      // Pin role anchors to the hero's ACTUAL whitespace: the band above the H1
+      // (y<=0.10h), the right column past the headline's end (the H1 band reaches
+      // ~0.80w; the lede caps at 660px), and the lower-right. The Coordinator sits
+      // at 0.77w/0.44h: right of the lede, below the H1, so no node, label, or
+      // connector segment crosses the headline or lede at desktop widths. On
+      // narrower viewports the text fills the width, so labels are suppressed
+      // entirely (see the width guard in step()) and the flow reads as ambient
+      // texture behind the text rather than a labeled diagram.
       roleNodes = [
-        { x:w*0.62, y:h*0.22, name:"Coordinator" },
-        { x:w*0.76, y:h*0.12, name:"Specialist" },
-        { x:w*0.87, y:h*0.34, name:"Specialist" },
-        { x:w*0.87, y:h*0.66, name:"Specialist" },
+        { x:w*0.77, y:h*0.44, name:"Coordinator" },
+        { x:w*0.87, y:h*0.10, name:"Specialist" },
+        { x:w*0.88, y:h*0.30, name:"Specialist" },
+        { x:w*0.90, y:h*0.68, name:"Specialist" },
         { x:w*0.74, y:h*0.88, name:"Specialist" },
         { x:w*0.96, y:h*0.50, name:"Auditor" }
       ];
@@ -408,7 +413,7 @@
         //    notifies the state machine. Labels ride just above each token, faint.
         //    Labels are dropped below ~700px (phones / narrow tablets), where the
         //    hero text fills the column, so they can never compete with the H1.
-        const showLabels = w >= 700;
+        const showLabels = w >= 1100;
         ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.lineCap = "round";
         const survivors = [];
         for(const tok of tokens){
