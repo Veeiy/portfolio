@@ -27,8 +27,8 @@ body{
 a{color:inherit;text-decoration:none}
 .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
 
-/* focus visibility for keyboard users */
-a:focus-visible, button:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:6px}
+/* focus visibility for keyboard users (summary covers every <details> disclosure) */
+a:focus-visible, button:focus-visible, summary:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:6px}
 
 /* visually hidden but available to screen readers (e.g. aria-live status) */
 .visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
@@ -96,6 +96,11 @@ header .wrap{position:relative;z-index:1}
 #hero-static .hs-flow{fill:var(--accent);font-size:10px;font-weight:600;text-anchor:middle;opacity:.85}
 #hero-static .hs-flow-ok{fill:var(--ok)}
 #hero-static .hs-flow-amber{fill:#f6c454}
+/* Below ~1060px the diagram (48% of the viewport) scales its 11px in-SVG labels
+   under ~9px rendered; drop the tiny text and let the shape + aria-label carry it. */
+@media (max-width:1060px){
+  #hero-static .hs-label,#hero-static .hs-flow{display:none}
+}
 .eyebrow{color:var(--accent);font-weight:600;font-size:13px;letter-spacing:2px;text-transform:uppercase}
 h1{font-size:clamp(34px,6vw,58px);line-height:1.05;margin:14px 0 0;letter-spacing:-1px}
 h1 .grad{color:var(--accent2)}
@@ -124,6 +129,8 @@ section{padding:48px 0}
 .card{background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid var(--line);border-radius:var(--radius);padding:24px;display:flex;flex-direction:column;transition:.2s}
 .card:hover{border-color:#37405a;transform:translateY(-3px);box-shadow:0 18px 40px -24px rgba(110,168,254,.5)}
 .tag{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--accent);background:rgba(110,168,254,.1);border:1px solid rgba(110,168,254,.25);padding:4px 9px;border-radius:999px}
+/* inside a flex-column card a stretched pill reads as a bar; keep it a pill */
+.card .tag{align-self:flex-start}
 .card h3{margin:16px 0 8px;font-size:20px}
 .card p{color:var(--muted);font-size:14.5px;margin:0 0 16px;flex:1}
 .stack{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:18px}
@@ -131,6 +138,9 @@ section{padding:48px 0}
 .card .links{display:flex;gap:14px;font-size:13.5px;font-weight:600}
 .card .links a{color:var(--accent)}
 .card .links a:hover{text-decoration:underline}
+/* full-card links carry a <span> teaser instead of a nested <a>; style it the same */
+.card .links span{color:var(--accent)}
+a.card:hover .links span{text-decoration:underline}
 
 /* highlights */
 .hl{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
@@ -140,6 +150,8 @@ section{padding:48px 0}
 /* "verify ->" receipt links: subtle, only ever pointing at a real public repo */
 .verify{display:inline-block;margin-top:10px;font-size:12.5px;font-weight:600;color:var(--accent)}
 .verify:hover{text-decoration:underline}
+/* mid-sentence verify links flow with the text instead of shifting the line box */
+p .verify{display:inline;margin-top:0}
 
 /* guardrail / safety-floor proof strip (illustrative, not a live system) */
 #guardrails .wrap{position:relative;z-index:1}
@@ -170,6 +182,8 @@ section{padding:48px 0}
   opacity:0;transform:scale(.86);transition:opacity .32s ease,transform .32s cubic-bezier(.22,1.4,.4,1)}
 .guard-row.stamped .guard-verdict{opacity:1;transform:none}
 .guard-row.stamped .guard-arrow{color:var(--accent)}
+/* no JS, no stamping interaction: show every verdict statically */
+html:not(.js) .guard-verdict{opacity:1;transform:none}
 .guard-verdict .dot{width:7px;height:7px;border-radius:50%}
 /* verdict palettes: allowed green, needs-approval amber, blocked red */
 .v-allow{color:var(--ok);background:rgba(67,214,146,.12);border-color:rgba(67,214,146,.4)}
@@ -334,10 +348,17 @@ section{padding:48px 0}
 footer{border-top:1px solid var(--line);padding:32px 0 56px;color:var(--dim);font-size:13.5px}
 footer .wrap{display:flex;justify-content:space-between;width:100%;flex-wrap:wrap;gap:12px}
 footer a{color:var(--muted)} footer a:hover{color:var(--ink)}
+/* phones: drop the dot separators and give each footer link its own tap padding */
+@media (max-width:520px){
+  footer .fdot{display:none}
+  footer a{display:inline-block;padding:6px 9px;margin-left:-2px}
+  footer .wrap span:last-child{margin-left:-9px}
+}
 
-/* scroll reveal */
-.reveal{opacity:0;transform:translateY(22px);transition:opacity .7s ease, transform .7s cubic-bezier(.22,1,.36,1)}
-.reveal.in{opacity:1;transform:none}
+/* scroll reveal: gated on html.js (stamped by an inline head script) so content
+   is never stuck invisible when scripts are disabled or fail to load */
+html.js .reveal{opacity:0;transform:translateY(22px);transition:opacity .7s ease, transform .7s cubic-bezier(.22,1,.36,1)}
+html.js .reveal.in{opacity:1;transform:none}
 .reveal.d1{transition-delay:.06s}
 .reveal.d2{transition-delay:.12s}
 .reveal.d3{transition-delay:.18s}
@@ -420,7 +441,7 @@ footer a{color:var(--muted)} footer a:hover{color:var(--ink)}
 
 /* prev / next cross-links */
 .cs-nav{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;
-  border-top:1px solid var(--line);padding:28px 0 0;margin-top:8px}
+  border-top:1px solid var(--line);padding:28px 0 56px;margin-top:8px}
 .cs-nav a{display:flex;flex-direction:column;gap:4px;color:var(--muted);font-size:14px;max-width:48%}
 .cs-nav a:hover{color:var(--ink)}
 .cs-nav .cs-nav-dir{color:var(--dim);font-size:12px;font-weight:700;letter-spacing:.5px;text-transform:uppercase}
@@ -602,14 +623,24 @@ footer a{color:var(--muted)} footer a:hover{color:var(--ink)}
   .calc-formula summary .chev{transition:none}
 }
 
-/* mobile: phones <= 480px. Desktop-first base, tightened for narrow screens. */
-@media (max-width:480px){
-  .wrap{padding:0 16px}
-  /* Nav: let the brand and links share rows without overflow; keep links tappable. */
+/* Mid widths: tighten link spacing so the single-row nav (9 links) never clips. */
+@media (max-width:960px){
+  .navlinks a{margin-left:16px}
+}
+/* Tablet/phone (<=760px): the full link row cannot hold one line, so the nav wraps
+   onto rows and goes static (a multi-row bar pinned to a small screen costs too
+   much height to stay sticky; it scrolls away with the page instead). */
+@media (max-width:760px){
+  nav{position:static}
   nav .wrap{height:auto;min-height:60px;flex-wrap:wrap;gap:6px 0;padding-top:10px;padding-bottom:10px}
   .navlinks{display:flex;flex-wrap:wrap;justify-content:flex-start;gap:4px 14px}
   .navlinks a{margin-left:0;font-size:13px;padding:8px 4px;line-height:1;min-height:44px;display:inline-flex;align-items:center}
   .navlinks a[aria-current="page"]{padding-bottom:6px}
+}
+
+/* mobile: phones <= 480px. Desktop-first base, tightened for narrow screens. */
+@media (max-width:480px){
+  .wrap{padding:0 16px}
   /* Stats: 2x2 grid instead of a tall single column. */
   #stats .hl{grid-template-columns:1fr 1fr;gap:12px}
   #stats .hl div{padding:16px}
@@ -618,14 +649,15 @@ footer a{color:var(--muted)} footer a:hover{color:var(--ink)}
   .bar-row{gap:8px;font-size:12px}
   .bar-row .bar-label{flex:0 0 76px;font-size:12px}
   .bar-row .bar-val{flex:0 0 30px}
-  /* Hero CTA buttons wrap comfortably and stay full-tap. */
-  .cta .btn{padding:11px 16px}
+  /* Hero CTA buttons: two per row, centered labels, full-tap. A lone last
+     button grows to fill its row, which reads as a deliberate close. */
+  .cta .btn{flex:1 1 calc(50% - 6px);justify-content:center;padding:11px 14px}
 }
 
 /* reduced motion: cut animation, show everything, kill heavy backdrop */
 @media (prefers-reduced-motion: reduce){
   html{scroll-behavior:auto}
-  .reveal{opacity:1;transform:none;transition:none}
+  .reveal, html.js .reveal{opacity:1;transform:none;transition:none}
   .bar-fill{transition:none}
   .btn:hover, .card:hover{transform:none}
   /* All animated canvases stay hidden under reduced-motion. site.js also never
@@ -769,12 +801,14 @@ footer a{color:var(--muted)} footer a:hover{color:var(--ink)}
 /* the outcome chip already has margin-bottom:14px; keep the stack/link rhythm */
 .feature-card-aside .stack{margin-bottom:14px}
 
-/* (3) Contact page: two contact cards. Cap to two columns and cap the
-   container width so the pair feels like an intentional, centered block
-   rather than two small cards floating in a wide empty page. */
+/* (3) Contact page: five contact cards. Two columns from 640px with the
+   container width capped so the block reads intentional. An odd count would
+   strand the last card beside dead space, so a lone trailing card spans the
+   full row and reads as the deliberate closing card. */
 .about .grid{max-width:760px;grid-template-columns:1fr}
 @media (min-width:640px){
   .about .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .about .grid > .card:nth-child(odd):last-child{grid-column:1 / -1}
 }
 
 /* (4) Home "Selected work": #work .grid has 3 cards. One column below
@@ -793,12 +827,9 @@ footer a{color:var(--muted)} footer a:hover{color:var(--ink)}
   #stats .hl{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 
-/* (6) Home "Agent-driven delivery": the .adel panel already fills the
-   .wrap, but its lede and estimate copy use max-width:720 and would
-   read as half-empty in the wide panel. Widen those measures so the
-   text fills the panel as one balanced block (no content change). */
-#delivery .adel-lede,
-#delivery .adel-est p{max-width:none}
+/* (6) Home "Agent-driven delivery": the lede and estimate copy keep their
+   base max-width (720px) so the measure stays readable (~90ch was hitting
+   130+ characters per line unclamped); the points grid fills the panel. */
 
 /* (7) About "Data craft": .data-cols has 3 cards. Same treatment as
    home Selected work: one column to 900px, three across above it, so

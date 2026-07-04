@@ -268,7 +268,7 @@
 /* per-wave reveal: each step rises in on scroll, staggered by lab.js via --rw-i.
    site.css owns the base .reveal on the <ol>; this adds a nested per-item lift that
    lab.js triggers by adding .rw-in. Static + reduced-motion fallbacks show all. */
-.rollout-wave .rw-d{opacity:0;transform:translateY(16px);
+html.js .rollout-wave .rw-d{opacity:0;transform:translateY(16px);
   transition:opacity .55s ease,transform .55s cubic-bezier(.22,1,.36,1);
   transition-delay:calc(var(--rw-i, 0) * 80ms)}
 .rollout-wave.rw-in .rw-d{opacity:1;transform:none}
@@ -342,10 +342,11 @@
 @media (max-width:480px){
   .rollout-howto{padding:13px 13px;font-size:13px}
   .rw-sum{flex-wrap:wrap;gap:10px 12px;padding:14px 14px}
-  /* title takes the rest of the first row next to the dot; stamp + chev share row two */
-  .rw-title{flex:1 1 auto}
-  .rw-chev{order:2}
-  .rw-stamp{order:3}
+  /* title claims all of row one beside the dot (26px dot + 12px gap), so the
+     stamp + chev ALWAYS land together on row two regardless of title length */
+  .rw-title{flex:1 1 calc(100% - 38px)}
+  .rw-stamp{order:2}
+  .rw-chev{order:3;margin-left:auto}
   .rollout-wave::before{left:13px}
   .rw-body{padding:14px 14px 16px}
   .rw-dec-sum{flex-wrap:wrap;gap:8px 10px}
@@ -381,7 +382,7 @@
   .agent-node.dispatched .an-pulse{background:var(--accent);box-shadow:none}
   /* Rollout: no per-item lift, no chevron-rotate transition. Expanders still work,
      the chevron still rotates to its open state (just instantly), content readable. */
-  .rollout-wave .rw-d{opacity:1;transform:none;transition:none}
+  .rollout-wave .rw-d, html.js .rollout-wave .rw-d{opacity:1;transform:none;transition:none}
   .rw-chev,.rw-chev.sm{transition:none}
   .rw-sum:hover,.rw-dec-sum:hover{background:transparent}
 }
@@ -532,6 +533,8 @@
 /* ---- Triage mobile: <=480px. Rows reflow to a single column, no overflow. ---- */
 @media (max-width:480px){
   .triage{padding:20px 14px 18px}
+  /* 16px inputs so iOS Safari does not auto-zoom the page on focus */
+  .triage-textarea,.trow-select{font-size:16px}
   .triage-honesty{padding:13px 13px;font-size:12.5px}
   .triage-summary{grid-template-columns:1fr 1fr;gap:10px}
   .tsum-cell{display:flex;align-items:baseline;justify-content:space-between;padding:11px 13px}
@@ -549,7 +552,8 @@
 @media (max-width:360px){
   .trow{padding:13px 12px}
   .trow.is-review,.trow.is-confirmed,.trow.is-overridden{padding-left:11px}
-  .trow-confirm,.trow-select{font-size:12.5px}
+  /* the select stays at 16px (iOS zoom); only the button tightens */
+  .trow-confirm{font-size:12.5px}
 }
 
 /* ============================================================

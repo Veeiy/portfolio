@@ -33,8 +33,10 @@
   border-radius:var(--radius);padding:34px 36px 30px}
 
 /* ---- Masthead: name, headline, contact line ---- */
+/* padding shorthand also zeroes the 88px top padding the shared header element
+   rule would otherwise leak onto this masthead */
 .rz-head{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:14px 28px;
-  padding-bottom:18px;border-bottom:1px solid var(--line)}
+  padding:0 0 18px;border-bottom:1px solid var(--line)}
 .rz-id{min-width:0}
 .rz-name{font-size:clamp(28px,4.6vw,40px);line-height:1.05;letter-spacing:-.6px;margin:0;color:var(--ink)}
 .rz-headline{color:var(--muted);font-size:clamp(15px,2vw,17px);margin:8px 0 0;max-width:520px}
@@ -54,6 +56,10 @@
 /* contact line: real channels only, comfortable wrap, generous tap targets */
 .rz-contact{list-style:none;display:flex;flex-wrap:wrap;gap:6px 18px;margin:0;padding:0;
   font-size:13.5px;text-align:right;justify-content:flex-end}
+/* wide screens: a clean 2x2 block instead of a ragged 3+1 wrap */
+@media (min-width:640px){
+  .rz-contact{display:grid;grid-template-columns:repeat(2,auto);justify-content:end}
+}
 .rz-contact li{margin:0}
 .rz-contact a,.rz-contact span{display:inline-flex;align-items:center;gap:7px;color:var(--muted);min-height:32px}
 .rz-contact a:hover{color:var(--ink)}
@@ -122,11 +128,15 @@
 /* ---- Sidebar wrapper so the right column groups read as a unit ---- */
 .rz-aside{display:flex;flex-direction:column}
 
+/* ---- Below the 2x2 grid breakpoint: left-aligned contacts, no ragged right wrap ---- */
+@media (max-width:639px){
+  .rz-contact{text-align:left;justify-content:flex-start}
+  .rz-head{align-items:flex-start}
+}
+
 /* ---- Narrow phones: keep everything inside a 375px viewport ---- */
 @media (max-width:480px){
   .rz-sheet{padding:22px 16px 20px}
-  .rz-contact{text-align:left;justify-content:flex-start}
-  .rz-head{align-items:flex-start}
 }
 
 /* ---- Reduced motion: drop the button transitions ---- */

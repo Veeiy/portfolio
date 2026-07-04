@@ -23,7 +23,7 @@
 @media (max-width:860px){
   .pr-index{grid-template-columns:1fr}
 }
-.pr-index a{display:flex;align-items:center;gap:12px;background:var(--panel);border:1px solid var(--line);
+.pr-index a{display:flex;align-items:center;gap:12px;height:100%;background:var(--panel);border:1px solid var(--line);
   border-radius:12px;padding:12px 15px;transition:border-color .2s ease,background .2s ease,transform .2s ease}
 .pr-index a:hover{border-color:#37405a;transform:translateY(-2px)}
 /* active marker: the index item whose card is in view gets an accent edge (set by principles.js) */
@@ -50,13 +50,17 @@
 /* per-card reveal: each card rises in on scroll, staggered by principles.js via --pr-i.
    site.css owns the base .reveal on the <ol>; this adds a nested per-item lift that
    principles.js triggers by adding .pr-in. Static + reduced-motion fallbacks show all. */
-.pr-card .pr-d{opacity:0;transform:translateY(16px);
+html.js .pr-card .pr-d{opacity:0;transform:translateY(16px);
   transition:opacity .55s ease,transform .55s cubic-bezier(.22,1,.36,1);
   transition-delay:calc(var(--pr-i, 0) * 80ms)}
 .pr-card.pr-in .pr-d{opacity:1;transform:none}
 
 /* anchor offset so jump-links from the index clear the sticky 60px nav */
 .pr-card{scroll-margin-top:78px}
+/* below 760px the nav is static (site.css) and scrolls away; no offset needed */
+@media (max-width:760px){
+  .pr-card{scroll-margin-top:14px}
+}
 
 /* the disclosure shell */
 .pr-d{background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid var(--line);
@@ -143,7 +147,7 @@
    the motion is dropped. Everything stays fully readable.
    ============================================================ */
 @media (prefers-reduced-motion: reduce){
-  .pr-card .pr-d{opacity:1;transform:none;transition:none}
+  .pr-card .pr-d, html.js .pr-card .pr-d{opacity:1;transform:none;transition:none}
   .pr-chev{transition:none}
   .pr-index a{transition:none}
   .pr-index a:hover{transform:none}

@@ -6,8 +6,21 @@
 <title>Brad O'Haire · Agentic Systems for Enterprise</title>
 <meta name="description" content="I build coordinator-and-specialist agent systems with guardrails built in, run against real stakes. Portfolio of Brad O'Haire." />
 <link rel="canonical" href="https://bradohaire.com/" />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Brad O'Haire" />
+<meta property="og:title" content="Brad O'Haire · Agentic Systems for Enterprise" />
+<meta property="og:description" content="I build coordinator-and-specialist agent systems with guardrails built in, run against real stakes. Portfolio of Brad O'Haire." />
+<meta property="og:url" content="https://bradohaire.com/" />
+<meta property="og:image" content="https://bradohaire.com/assets/og-card.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Brad O'Haire · Agentic Systems for Enterprise" />
+<meta name="twitter:description" content="I build coordinator-and-specialist agent systems with guardrails built in, run against real stakes. Portfolio of Brad O'Haire." />
+<meta name="twitter:image" content="https://bradohaire.com/assets/og-card.png" />
 <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 <meta name="theme-color" content="#0a0b0f" />
+<script>document.documentElement.classList.add('js');</script>
 <link rel="stylesheet" href="/assets/site.css" />
 <script defer src="/assets/site.js"></script>
 </head>
@@ -24,6 +37,7 @@
     <a href="/lab">Lab</a>
     <a href="/principles">Principles</a>
     <a href="/about">About</a>
+    <a href="/resume">Resume</a>
     <a href="/contact">Contact</a>
     <a id="nav-gh" href="https://github.com/Veeiy" target="_blank" rel="noopener">GitHub</a>
   </div>
@@ -35,7 +49,7 @@
 <header>
   <canvas id="hero-canvas" aria-hidden="true"></canvas>
   <svg id="hero-static" viewBox="0 0 620 250" preserveAspectRatio="xMidYMid meet"
-       role="img" aria-label="Diagram of an agent handoff cycle: the Coordinator dispatches a task to each Specialist, the Specialists return results to the Auditor, and the Auditor returns a pass verdict to the Coordinator, with a revise path back to a Specialist to iterate. Decorative."
+       role="img" aria-label="Diagram of an agent handoff cycle: the Coordinator dispatches a task to each Specialist, the Specialists return results to the Auditor, and the Auditor returns a pass verdict to the Coordinator, with a revise path back to a Specialist to iterate."
        style="position:absolute;right:0;top:50%;transform:translateY(-50%);width:min(48%,540px);height:auto;z-index:0;opacity:.55;pointer-events:none">
     <!-- STATIC labeled handoff cycle shown only under reduced-motion: no motion, but
          the full sequence (task -> result -> pass, with a revise loop) is communicated
@@ -70,7 +84,7 @@
     <!-- gate: Auditor -> Coordinator (pass / done), through the mid-Specialist gap -->
     <line class="hs-link hs-pass" x1="506" y1="119" x2="116" y2="121" marker-end="url(#hsArrowOk)"></line>
     <!-- iterate: Auditor -> a Specialist (revise) -->
-    <line class="hs-link hs-revise" x1="512" y1="136" x2="298" y2="206" marker-end="url(#hsArrowAmber)"></line>
+    <path class="hs-link hs-revise" d="M512 138 C 468 196, 398 226, 302 210" fill="none" marker-end="url(#hsArrowAmber)"></path>
     <!-- nodes: Coordinator, 4 Specialists (arc), Auditor -->
     <circle class="hs-ring" cx="96"  cy="125" r="9"></circle><circle class="hs-node" cx="96"  cy="125" r="3.6"></circle>
     <circle class="hs-ring" cx="282" cy="34"  r="9"></circle><circle class="hs-node" cx="282" cy="34"  r="3.6"></circle>
@@ -94,19 +108,19 @@
   <div class="wrap">
   <style>
     /* scoped credential styles (cred-) so they cannot collide with site.css; tokens reused */
-    .cred-chip{display:inline-flex;align-items:baseline;gap:7px;margin-top:12px;padding:5px 11px;border:1px solid var(--line,#23262f);border-radius:999px;background:linear-gradient(180deg,rgba(110,168,254,.07),rgba(157,123,255,.04));font-size:.74rem;line-height:1.3;color:var(--fg,#e8ebf2);text-decoration:none;max-width:100%;}
+    .cred-chip{display:inline-flex;align-items:baseline;gap:7px;margin-top:12px;padding:5px 11px;border:1px solid var(--line,#23262f);border-radius:999px;background:linear-gradient(180deg,rgba(110,168,254,.07),rgba(157,123,255,.04));font-size:.74rem;line-height:1.3;color:var(--ink,#e8ebf2);text-decoration:none;max-width:100%;}
     .cred-chip .cred-dot{flex:none;width:6px;height:6px;border-radius:50%;background:linear-gradient(135deg,var(--accent,#6ea8fe),var(--accent2,#9d7bff));align-self:center;}
     .cred-chip .cred-name{font-weight:600;letter-spacing:.01em;}
     .cred-chip .cred-sub{color:var(--dim,#8a92a6);}
   </style>
-  <div class="eyebrow">Agentic systems · guardrails · real stakes</div>
+  <div class="eyebrow">Agentic systems · guardrails · real&nbsp;stakes</div>
   <h1>I don't demo agents. <span class="grad">I build agentic systems for enterprise.</span></h1>
-  <p class="lede">Data is the throughline of my work. I design and run coordinator-and-specialist agent systems with guardrails built in, and operate them against real stakes: a car-rental business whose back office runs on a team of agents I built, live markets through read-only samplers, and production data pipelines. The interesting part is not what an agent can do, it is what it is allowed to do.</p>
+  <p class="lede">Data is the through-line of my work. I design and run coordinator-and-specialist agent systems with guardrails built in, and operate them against real stakes: a car-rental business whose back office runs on a team of agents I built, live markets through read-only samplers, and production data pipelines. The interesting part is not what an agent can do, it is what it is allowed to do.</p>
   <div class="cta">
     <a class="btn primary" href="/work">View the work</a>
     <a class="btn ghost" href="/resume">Resume</a>
     <a class="btn ghost" href="/contact">Contact</a>
-    <a class="btn ghost" id="hero-gh" href="https://github.com/Veeiy" target="_blank" rel="noopener">GitHub →</a>
+    <a class="btn ghost" id="hero-gh" href="https://github.com/Veeiy" target="_blank" rel="noopener">GitHub&nbsp;→</a>
   </div>
   <span class="cred-chip reveal"><span class="cred-dot" aria-hidden="true"></span><span class="cred-name">Claude Certified Architect</span><span class="cred-sub">(Foundations) · Anthropic</span></span>
   <p class="open-to reveal"><b>Open to:</b> AI and agent engineering, system design, technical program management, and data-collection programs for autonomous vehicles and robotics.</p>
@@ -175,20 +189,20 @@
       <p>A hand-built equivalent at this level of polish, interactivity, accessibility, and QA is realistically one to two weeks of focused solo work, or a small multi-person sprint. Orchestrating agents compressed that to about two days of part-time work, with the build-and-QA loop running in hours rather than weeks.</p>
       <p class="est-assume"><b>Assumptions:</b> a freelance web rate of roughly $75 to $150 per hour, and a one-to-two-week hand-built baseline for the same scope. On those assumptions the saved effort lands on the order of several thousand dollars, delivered by one operator. This is an estimate with its assumptions shown, not a measured invoice or a stopwatch result. Ranges are deliberate.</p>
     </div>
-    <p class="adel-more"><a href="/about#approach">How this site was built, and what that approach saves →</a></p>
+    <p class="adel-more"><a href="/about#approach">How this site was built, and what that approach saves&nbsp;→</a></p>
   </div>
 </div></section>
 
 <section id="lab-teaser"><div class="wrap">
   <div class="sec-head reveal"><h2>Inside the work</h2><div class="rule"></div></div>
   <p class="sec-intro reveal">For the people who want to look closer. The Lab is an interactive model of the orchestration engine I build: set the autonomy dials, press Run, and watch a real deterministic loop dispatch parallel agents, gate each wave, catch a contradiction, and stop at the safety floor. The control logic runs in your browser; the agent outputs are illustrative.</p>
-  <p class="adel-more reveal"><a href="/lab">Open the Lab →</a></p>
+  <p class="adel-more reveal"><a href="/lab">Open the Lab&nbsp;→</a></p>
 </div></section>
 
 <section id="principles-teaser"><div class="wrap">
   <div class="sec-head reveal"><h2>The thinking behind it</h2><div class="rule"></div></div>
   <p class="sec-intro reveal">Every system on this site runs on the same five principles: how the loop knows it is done, what it is allowed to touch, how tools are designed, how output is verified, and what survives at scale. Each one is stated plainly, tied to real work, and paired with the failure it exists to prevent.</p>
-  <p class="adel-more reveal"><a href="/principles">See the principles I build by →</a></p>
+  <p class="adel-more reveal"><a href="/principles">See the principles I build by&nbsp;→</a></p>
 </div></section>
 
 <section id="work"><div class="wrap">
@@ -201,7 +215,7 @@
       <h3>Production agent systems for a robotics program</h3>
       <p>Production agentic systems with guardrails for a robotics program: multi-agent work where capability is bounded by hard safety limits, with a human on every consequential decision.</p>
       <span class="outcome q">Real stakes, bounded by design</span>
-      <div class="links"><span>Read the case study →</span></div>
+      <div class="links"><span>Read the case study&nbsp;→</span></div>
     </a>
 
     <a class="card reveal d1" href="/work/vantage-os">
@@ -209,7 +223,7 @@
       <h3>Vantage OS</h3>
       <p>A Claude Code plugin where a coordinator routes every request to the right skill or sub-agent, then gates real-world actions through a QA filter and a permissions-tier system before they reach the human.</p>
       <span class="outcome q">10 skills, 8 agents, public</span>
-      <div class="links"><span>Read the case study →</span></div>
+      <div class="links"><span>Read the case study&nbsp;→</span></div>
     </a>
 
     <a class="card reveal d2" href="/work/therapy-assistant">
@@ -217,19 +231,19 @@
       <h3>Local-first practice assistant</h3>
       <p>A Windows desktop app for a solo therapist, built on the Agent SDK, that handles the back office while the sensitive data stays encrypted on the device. Open-source and anonymized.</p>
       <span class="outcome q">Privacy is the architecture</span>
-      <div class="links"><span>Read the case study →</span></div>
+      <div class="links"><span>Read the case study&nbsp;→</span></div>
     </a>
 
   </div>
   <p class="sec-intro reveal" style="margin-top:24px;margin-bottom:0">
-    <a class="verify" href="/work" style="font-size:14px">See all work →</a>
+    <a class="verify" href="/work" style="font-size:14px">See all work&nbsp;→</a>
   </p>
 </div></section>
 
 <section id="stats"><div class="wrap">
   <div class="sec-head reveal"><h2>Built in production</h2><div class="rule"></div></div>
   <p class="sec-intro reveal">I design and run production agentic systems for a robotics program: multi-agent work where capability is bounded by hard safety limits, with a human on every consequential decision and the agents on the legwork.</p>
-  <p class="built-note reveal" style="margin-top:18px">The open-source systems here show the same rigor in code you can inspect. <a class="verify" href="/work/production-systems">More on the production work →</a></p>
+  <p class="built-note reveal" style="margin-top:18px">The open-source systems here show the same rigor in code you can inspect. <a class="verify" href="/work/production-systems">More on the production work&nbsp;→</a></p>
 </div></section>
 
 <section id="contact-cta"><div class="wrap">
@@ -238,7 +252,7 @@
   <div class="cta reveal">
     <a class="btn primary" href="/contact">Contact</a>
     <a class="btn ghost" href="mailto:bradohairework@gmail.com">Email me</a>
-    <a class="btn ghost" href="/about">How I build →</a>
+    <a class="btn ghost" href="/about">How I build&nbsp;→</a>
   </div>
   <p class="open-to reveal"><b>Open to:</b> AI and agent engineering, system design, technical program management, and data-collection programs for autonomous vehicles and robotics.</p>
 </div></section>
@@ -248,7 +262,7 @@
 <!-- ===== CANONICAL FOOTER (identical markup on every page; update all copies together) ===== -->
 <footer><div class="wrap">
   <span>© 2026 Brad O'Haire</span>
-  <span><a href="/work">Work</a> · <a href="/about">About</a> · <a href="/contact">Contact</a> · <a href="/resume">Resume</a> · <a id="foot-gh" href="https://github.com/Veeiy" target="_blank" rel="noopener">GitHub</a> · <a href="https://www.linkedin.com/in/brad-o-haire" target="_blank" rel="noopener">LinkedIn</a> · <a href="mailto:bradohairework@gmail.com">Email</a></span>
+  <span><a href="/work">Work</a><span class="fdot"> · </span><a href="/about">About</a><span class="fdot"> · </span><a href="/contact">Contact</a><span class="fdot"> · </span><a href="/resume">Resume</a><span class="fdot"> · </span><a id="foot-gh" href="https://github.com/Veeiy" target="_blank" rel="noopener">GitHub</a><span class="fdot"> · </span><a href="https://www.linkedin.com/in/brad-o-haire" target="_blank" rel="noopener">LinkedIn</a><span class="fdot"> · </span><a href="mailto:bradohairework@gmail.com">Email</a></span>
 </div></footer>
 <!-- ===== /CANONICAL FOOTER ===== -->
 
