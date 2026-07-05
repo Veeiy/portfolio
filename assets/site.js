@@ -796,22 +796,27 @@
   })();
 
   /* ---------- Guardrail / safety-floor panel ----------
-     Illustrative permission model. No live integration: clicking only stamps a
-     verdict that is already authored in the markup. Keyboard-operable (rows and
-     controls are real <button>s). Under reduced-motion CSS shows every verdict
-     statically; here we mirror that state without sequencing any motion.
-     Only present on the home page; bails immediately elsewhere. */
+     Illustrative permission model. No live integration: every verdict and every
+     explanation is already authored in the markup, nothing is computed. Each
+     row is a native <details>, so opening it to read "why" works with no JS at
+     all; this script only adds the stamp-in reveal and the Run/Reset controls.
+     Keyboard-operable (rows are real <summary>s, controls are real <button>s).
+     Under reduced-motion CSS shows every verdict statically; here we mirror
+     that state without sequencing any motion. Only present on the home page;
+     bails immediately elsewhere. */
   (function guardrail(){
     const panel = document.getElementById("guard");
     if(!panel) return;
     const rows    = Array.from(panel.querySelectorAll(".guard-row"));
+    const details = Array.from(panel.querySelectorAll(".guard-d"));
     const runBtn  = document.getElementById("guard-run");
     const resetBtn= document.getElementById("guard-reset");
     const status  = document.getElementById("guard-status");
     if(!rows.length) return;
 
-    const stamp   = row => row.classList.add("stamped");
-    const unstamp = row => row.classList.remove("stamped");
+    const stamp    = row => row.classList.add("stamped");
+    const unstamp  = row => row.classList.remove("stamped");
+    const closeAll = () => details.forEach(d => { d.open = false; });
 
     // Counts are derived from the actual rows' data-verdict, never hardcoded,
     // so the screen-reader announcement always matches what is on screen.
@@ -833,10 +838,14 @@
     }
     function clearStatus(){ if(status) status.textContent = ""; }
 
-    // Clicking a single action toggles its own verdict in/out.
-    rows.forEach(row => {
-      row.addEventListener("click", () => {
-        row.classList.toggle("stamped");
+    // Each row is a native <details>: clicking it, or pressing Enter/Space while
+    // it is focused, opens or closes the "why" explanation with no JS required.
+    // Opening a row also reveals its own verdict immediately, so an explanation
+    // never sits next to a still-hidden pill. Collapsing the explanation again
+    // leaves the verdict revealed; only Reset (below) clears it.
+    details.forEach(d => {
+      d.addEventListener("toggle", () => {
+        if(d.open) stamp(d.querySelector(".guard-row"));
       });
     });
 
@@ -845,40 +854,51 @@
       rows.forEach(stamp);
       announceDone();
       if(runBtn) runBtn.addEventListener("click", () => { rows.forEach(stamp); announceDone(); });
-      if(resetBtn) resetBtn.addEventListener("click", () => { rows.forEach(unstamp); clearStatus(); });
+      if(resetBtn) resetBtn.addEventListener("click", () => { closeAll(); rows.forEach(unstamp); clearStatus(); });
       return;
     }
 
-    // "Run the checks": clear, then stamp each verdict in sequence. Guarded so
-    // repeated clicks cancel any in-flight run instead of stacking timers.
+    // Stamp each verdict in sequence (no reset first). Shared by the first-time
+    // auto-play and by "Run the checks", so both animate the same way.
     let timers = [];
     function clearTimers(){ timers.forEach(clearTimeout); timers = []; }
-    function runChecks(){
-      clearTimers();
-      clearStatus();
-      rows.forEach(unstamp);
+    function stampSequence(){
       rows.forEach((row, i) => {
         timers.push(setTimeout(() => stamp(row), 140 + i * 230));
       });
       // Announce once, just after the final verdict has stamped in.
       timers.push(setTimeout(announceDone, 140 + rows.length * 230));
     }
+    // "Run the checks": an explicit, deliberate request to replay the demo, so
+    // it is the one thing allowed to collapse an open explanation and clear
+    // every stamp first. Guarded so repeated clicks cancel any in-flight run.
+    function runChecks(){
+      clearTimers();
+      clearStatus();
+      closeAll();
+      rows.forEach(unstamp);
+      stampSequence();
+    }
     if(runBtn) runBtn.addEventListener("click", runChecks);
-    if(resetBtn) resetBtn.addEventListener("click", () => { clearTimers(); rows.forEach(unstamp); clearStatus(); });
+    if(resetBtn) resetBtn.addEventListener("click", () => { clearTimers(); closeAll(); rows.forEach(unstamp); clearStatus(); });
 
     // Auto-play AT MOST ONCE per page load when the panel first scrolls into view
-    // (motion already allowed here). The flag plus unobserve guarantee it never
-    // loops; manual "Run the checks" / "Reset" stay available afterward.
+    // (motion already allowed here). Deliberately the gentle stampSequence(), not
+    // the full runChecks(): scrolling a row into view to click or focus it can
+    // itself cross the visibility threshold, and a passive scroll-triggered reveal
+    // must never slam shut an explanation the visitor just opened. The flag plus
+    // unobserve guarantee it never loops; manual "Run the checks" / "Reset" stay
+    // available afterward for a deliberate full replay.
     let autoPlayed = false;
     if("IntersectionObserver" in window){
       const io = new IntersectionObserver((entries) => {
         entries.forEach(en => {
-          if(en.isIntersecting && !autoPlayed){ autoPlayed = true; io.unobserve(en.target); runChecks(); }
+          if(en.isIntersecting && !autoPlayed){ autoPlayed = true; io.unobserve(en.target); clearStatus(); stampSequence(); }
         });
       }, {threshold:0.45});
       io.observe(panel);
     } else {
-      runChecks();
+      stampSequence();
     }
   })();
 

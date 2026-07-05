@@ -131,7 +131,7 @@
   <p class="sec-intro reveal">Anyone can make an agent act. The engineering is making it stop. Every system I build runs under a permission model: routine work is allowed, consequential work waits for a human, and a few things can never happen at all.</p>
   <div class="guard reveal" id="guard">
     <p class="guard-cap">Permission model<span class="guard-illus">Illustrative</span></p>
-    <p class="guard-frame">Sample actions an agent might attempt, and the verdict each one gets. <b>Allowed</b> runs on its own, <b>Needs approval</b> pauses for a human, <b>Blocked</b> is a floor the system cannot cross.</p>
+    <p class="guard-frame">Sample actions an agent might attempt, and the verdict each one gets. <b>Allowed</b> runs on its own, <b>Needs approval</b> pauses for a human, <b>Blocked</b> is a floor the system cannot cross. Click any row to see why.</p>
     <p class="guard-note">An illustration of the guardrail model my systems run under, not a live or connected system. No real action is taken here.</p>
     <div class="guard-actions">
       <button type="button" class="guard-run" id="guard-run" aria-label="Run the permission checks on the sample actions below">Run the checks</button>
@@ -139,36 +139,60 @@
     </div>
     <p class="visually-hidden" id="guard-status" role="status" aria-live="polite"></p>
     <ul class="guard-list" id="guard-list">
-      <li><button type="button" class="guard-row" data-verdict="allow">
-        <span class="guard-act">Draft a weekly report</span>
-        <span class="guard-arrow" aria-hidden="true">→</span>
-        <span class="guard-verdict v-allow"><span class="dot"></span>Allowed</span>
-      </button></li>
-      <li><button type="button" class="guard-row" data-verdict="allow">
-        <span class="guard-act">Read fleet telemetry</span>
-        <span class="guard-arrow" aria-hidden="true">→</span>
-        <span class="guard-verdict v-allow"><span class="dot"></span>Allowed</span>
-      </button></li>
-      <li><button type="button" class="guard-row" data-verdict="approve">
-        <span class="guard-act">Send a customer email</span>
-        <span class="guard-arrow" aria-hidden="true">→</span>
-        <span class="guard-verdict v-approve"><span class="dot"></span>Needs approval</span>
-      </button></li>
-      <li><button type="button" class="guard-row" data-verdict="approve">
-        <span class="guard-act">Push to production</span>
-        <span class="guard-arrow" aria-hidden="true">→</span>
-        <span class="guard-verdict v-approve"><span class="dot"></span>Needs approval</span>
-      </button></li>
-      <li><button type="button" class="guard-row" data-verdict="block">
-        <span class="guard-act">Move funds or place a trade</span>
-        <span class="guard-arrow" aria-hidden="true">→</span>
-        <span class="guard-verdict v-block"><span class="dot"></span>Blocked: safety floor</span>
-      </button></li>
-      <li><button type="button" class="guard-row" data-verdict="block">
-        <span class="guard-act">Delete records or change access</span>
-        <span class="guard-arrow" aria-hidden="true">→</span>
-        <span class="guard-verdict v-block"><span class="dot"></span>Blocked: safety floor</span>
-      </button></li>
+      <li><details class="guard-d">
+        <summary class="guard-row" data-verdict="allow">
+          <span class="guard-act">Draft a weekly report</span>
+          <span class="guard-arrow" aria-hidden="true">→</span>
+          <span class="guard-verdict v-allow"><span class="dot"></span>Allowed</span>
+          <span class="guard-chev" aria-hidden="true">+</span>
+        </summary>
+        <div class="guard-why"><p><span class="guard-why-tag v-allow">Why it's allowed</span>This only reads and summarizes information the agent already has. Nothing is sent, changed, or committed, so a mistake costs a re-run, not a real consequence.</p></div>
+      </details></li>
+      <li><details class="guard-d">
+        <summary class="guard-row" data-verdict="allow">
+          <span class="guard-act">Read fleet telemetry</span>
+          <span class="guard-arrow" aria-hidden="true">→</span>
+          <span class="guard-verdict v-allow"><span class="dot"></span>Allowed</span>
+          <span class="guard-chev" aria-hidden="true">+</span>
+        </summary>
+        <div class="guard-why"><p><span class="guard-why-tag v-allow">Why it's allowed</span>Reading data leaves nothing changed and nothing to undo. There's no action here for a human to approve, since the state of the world doesn't move.</p></div>
+      </details></li>
+      <li><details class="guard-d">
+        <summary class="guard-row" data-verdict="approve">
+          <span class="guard-act">Send a customer email</span>
+          <span class="guard-arrow" aria-hidden="true">→</span>
+          <span class="guard-verdict v-approve"><span class="dot"></span>Needs approval</span>
+          <span class="guard-chev" aria-hidden="true">+</span>
+        </summary>
+        <div class="guard-why"><p><span class="guard-why-tag v-approve">Why it waits</span>This leaves the system in the business's name and lands with someone the business doesn't control. Tone, accuracy, and timing are judgment calls, so a person reads it first.</p></div>
+      </details></li>
+      <li><details class="guard-d">
+        <summary class="guard-row" data-verdict="approve">
+          <span class="guard-act">Push to production</span>
+          <span class="guard-arrow" aria-hidden="true">→</span>
+          <span class="guard-verdict v-approve"><span class="dot"></span>Needs approval</span>
+          <span class="guard-chev" aria-hidden="true">+</span>
+        </summary>
+        <div class="guard-why"><p><span class="guard-why-tag v-approve">Why it waits</span>This changes what real users see next. It's usually reversible with a rollback, but the blast radius is big enough that a second set of eyes checks it before it ships.</p></div>
+      </details></li>
+      <li><details class="guard-d">
+        <summary class="guard-row" data-verdict="block">
+          <span class="guard-act">Move funds or place a trade</span>
+          <span class="guard-arrow" aria-hidden="true">→</span>
+          <span class="guard-verdict v-block"><span class="dot"></span>Blocked: safety floor</span>
+          <span class="guard-chev" aria-hidden="true">+</span>
+        </summary>
+        <div class="guard-why"><p><span class="guard-why-tag v-block">Why it's blocked</span>Money that moves doesn't un-move the way a bad draft or a bad deploy does. No approval step makes that safe enough, so there's no path for an agent to even request it.</p></div>
+      </details></li>
+      <li><details class="guard-d">
+        <summary class="guard-row" data-verdict="block">
+          <span class="guard-act">Delete records or change access</span>
+          <span class="guard-arrow" aria-hidden="true">→</span>
+          <span class="guard-verdict v-block"><span class="dot"></span>Blocked: safety floor</span>
+          <span class="guard-chev" aria-hidden="true">+</span>
+        </summary>
+        <div class="guard-why"><p><span class="guard-why-tag v-block">Why it's blocked</span>Deleting data or changing who can see what can destroy information or open a door that can't be quietly closed again. That sits below the approval line, not behind it.</p></div>
+      </details></li>
     </ul>
   </div>
 </div></section>

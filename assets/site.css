@@ -169,11 +169,19 @@ p .verify{display:inline;margin-top:0}
   font-size:13.5px;cursor:pointer;background:transparent;color:var(--muted);border:1px solid var(--line)}
 .guard-reset:hover{border-color:var(--accent);color:var(--ink)}
 .guard-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
-/* each row is a button so it is keyboard-operable and focusable on its own */
+/* each row is a native <details>: the shell owns the card chrome so the summary
+   and its "why" explanation share one bordered card, matching the .pr-d / .rw-d
+   disclosure convention used on /principles and /lab. Keyboard- and SR-operable
+   with no JS: clicking or pressing Enter/Space on the row opens the explanation
+   even if the script below never runs. */
+.guard-d{background:var(--panel2);border:1px solid var(--line);border-radius:12px;
+  transition:border-color .2s ease;overflow:hidden}
+.guard-d[open]{border-color:#37405a}
+.guard-d[open] .guard-row{border-bottom:1px solid var(--line)}
 .guard-row{display:flex;align-items:center;gap:14px;width:100%;text-align:left;cursor:pointer;
-  background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:13px 16px;
-  color:var(--ink);font:inherit;transition:border-color .2s ease,background .2s ease}
-.guard-row:hover{border-color:#37405a}
+  list-style:none;min-height:44px;padding:13px 16px;color:var(--ink);font:inherit}
+.guard-row::-webkit-details-marker{display:none}
+.guard-row:hover{background:rgba(110,168,254,.04)}
 .guard-act{flex:1;font-size:14.5px}
 .guard-arrow{color:var(--dim);font-size:14px;flex:0 0 auto}
 /* verdict stamp: hidden until "stamped" (revealed), then fades/scales in */
@@ -182,10 +190,24 @@ p .verify{display:inline;margin-top:0}
   opacity:0;transform:scale(.86);transition:opacity .32s ease,transform .32s cubic-bezier(.22,1.4,.4,1)}
 .guard-row.stamped .guard-verdict{opacity:1;transform:none}
 .guard-row.stamped .guard-arrow{color:var(--accent)}
-/* no JS, no stamping interaction: show every verdict statically */
+/* no JS, no stamping interaction: show every verdict statically (the disclosure
+   itself still opens and closes natively, script or not) */
 html:not(.js) .guard-verdict{opacity:1;transform:none}
 .guard-verdict .dot{width:7px;height:7px;border-radius:50%}
-/* verdict palettes: allowed green, needs-approval amber, blocked red */
+/* + / x expander affordance, rotates to an x when open; aria handled by <details> */
+.guard-chev{flex:0 0 auto;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;
+  color:var(--dim);font-size:18px;font-weight:400;line-height:1;border:1px solid var(--line);border-radius:7px;
+  transition:transform .25s ease,color .2s ease,border-color .2s ease}
+.guard-row:hover .guard-chev{color:var(--ink);border-color:#37405a}
+.guard-d[open] .guard-chev{transform:rotate(45deg);color:var(--accent);border-color:rgba(110,168,254,.45)}
+/* the "why" explanation: a tag colored to match the verdict it explains, then a sentence */
+.guard-why{padding:0 16px 16px}
+.guard-why p{display:flex;align-items:flex-start;gap:10px;flex-wrap:wrap;margin:0;max-width:760px;
+  color:var(--muted);font-size:13.5px;line-height:1.6}
+.guard-why-tag{flex:0 0 auto;display:inline-block;font-size:10px;font-weight:700;letter-spacing:.5px;
+  text-transform:uppercase;border-radius:999px;padding:4px 11px;margin-top:1px;white-space:nowrap;
+  border:1px solid transparent}
+/* verdict palettes: allowed green, needs-approval amber, blocked red (also reused by .guard-why-tag) */
 .v-allow{color:var(--ok);background:rgba(67,214,146,.12);border-color:rgba(67,214,146,.4)}
 .v-allow .dot{background:var(--ok)}
 .v-approve{color:#f6c454;background:rgba(246,196,84,.12);border-color:rgba(246,196,84,.4)}
@@ -199,6 +221,8 @@ html:not(.js) .guard-verdict{opacity:1;transform:none}
   .guard-row{flex-wrap:wrap;gap:8px 12px;padding:12px 13px}
   .guard-act{flex:1 1 100%;font-size:14px}
   .guard-arrow{order:3}
+  .guard-chev{order:4}
+  .guard-why{padding:0 13px 14px}
 }
 
 /* about */
@@ -705,9 +729,13 @@ html.js .reveal.in{opacity:1;transform:none}
   .flow .stage rect{fill:rgba(110,168,254,.12);stroke:var(--accent);transition:none}
   .flow .stage text{fill:var(--ink);transition:none}
   .flow .stage circle{fill:var(--accent);transition:none}
-  /* Guardrail panel: every verdict shown statically, no stamp-in motion. */
+  /* Guardrail panel: every verdict shown statically, no stamp-in motion. The
+     disclosures still open and close (that's a content change, not motion). */
   .guard-verdict{opacity:1;transform:none;transition:none}
   .guard-run:hover, .guard-reset:hover{transform:none}
+  .guard-d{transition:none}
+  .guard-chev{transition:none}
+  .guard-row:hover{background:transparent}
   .teardown summary .chev{transition:none}
   *{animation:none !important}
 }
