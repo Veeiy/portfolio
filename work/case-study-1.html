@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>I asked for shorter worker replies. Solo still cost less. · Brad O'Haire</title>
+<meta name="description" content="I added a compact return format to my orchestration benchmark. The solo agent still cost less and finished faster in both completed runs." />
+<link rel="canonical" href="https://bradohaire.com/work/case-study-1" />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Brad O'Haire" />
+<meta property="og:title" content="I asked for shorter worker replies. Solo still cost less. · Brad O'Haire" />
+<meta property="og:description" content="I added a compact return format to my orchestration benchmark. The solo agent still cost less and finished faster in both completed runs." />
+<meta property="og:url" content="https://bradohaire.com/work/case-study-1" />
+<meta property="og:image" content="https://bradohaire.com/assets/og/case-study-1.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="I asked for shorter worker replies. Solo still cost less. · Brad O'Haire" />
+<meta name="twitter:description" content="I added a compact return format to my orchestration benchmark. The solo agent still cost less and finished faster in both completed runs." />
+<meta name="twitter:image" content="https://bradohaire.com/assets/og/case-study-1.png" />
+<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+<meta name="theme-color" content="#0a0b0f" />
+<script>document.documentElement.classList.add('js');</script>
+<link rel="stylesheet" href="/assets/site.css" />
+<script defer src="/assets/site.js"></script>
+</head>
+<body>
+
+
+<a class="skip-link" href="#main">Skip to content</a>
+<nav><div class="wrap">
+  <a class="brand" href="/">Brad<span>.</span>OHaire</a>
+  <div class="navlinks">
+    <a href="/">Home</a>
+    <a href="/start">Start here</a>
+    <a href="/work" aria-current="page">Work</a>
+    <a href="/lab">Lab</a>
+    <a href="/principles">Principles</a>
+    <a href="/about">About</a>
+    <a href="/resume">Resume</a>
+    <a href="/contact">Contact</a>
+    <a id="nav-gh" href="https://github.com/Veeiy" target="_blank" rel="noopener">GitHub</a>
+  </div>
+</div></nav>
+
+
+<main id="main">
+<div class="cs-head"><div class="wrap">
+  <a class="cs-back" href="/work"><span aria-hidden="true">←</span>&nbsp;All work</a>
+  <div class="cs-eyebrow reveal"><span class="tag">Build journal</span></div>
+  <h1 class="cs-h1 reveal">I asked for shorter worker replies. Solo still cost less.</h1>
+  <p class="cs-summary reveal">I added a compact return format to my orchestration benchmark. The solo agent still cost less and finished faster in both completed runs.</p>
+  <div class="cs-outcome q reveal"><p>That was the question behind the change: could shorter worker replies close the delegation cost gap without losing answer quality? The cost gap remains. Later quality judgments varied by comparison and run.</p></div>
+  <figure class="cs-figure reveal d1">
+    <img src="/assets/img/case-study-1-hero.webp" alt="Illustration of three light paths between the same two points: one short and direct, two looping through relay nodes" width="1680" height="720" loading="eager" decoding="async" fetchpriority="high">
+    <figcaption>Illustration, rendered for this article: three routes between the same two points, one direct and two through relays. The direct route is the solo arm; the relays are the orchestration layers. It carries no data.</figcaption>
+  </figure>
+</div></div>
+<div class="cs-body"><div class="wrap">
+  <section class="reveal">
+    <h2>The comparison</h2>
+    <p>I ran the same scripted audit across three arms. Solo had delegation tools disabled. Standard orchestration instructed the main agent to delegate repository reading and searching. The tight-return arm added a compact <code>file:line</code> format and a worker-return token cap to that instruction.</p>
+    <p>Each session mapped configuration, order paths, safety checks, and documentation gaps, then produced an audit summary and a recall answer. Runs were interleaved across arms, with the same main-model alias and task sequence. The instruction was to return findings without modifying files.</p>
+    <p>Two sessions per arm completed every scripted turn. Each contained six scripted turns. A weekly usage limit interrupted the next run, so every partial and error record from that run is excluded from the comparison.</p>
+  </section>
+  <section class="reveal">
+    <h2>The receipts</h2>
+    <p>Mean per completed session, N=2 per arm:</p>
+    <div class="tbl-wrap" tabindex="0" role="region" aria-label="The receipts table">
+      <table class="tbl">
+        <thead><tr><th scope="col">Arm</th><th scope="col">Usage valuation, USD</th><th scope="col">Invocation wall time, seconds</th></tr></thead>
+        <tbody>
+          <tr><td>Solo</td><td>8.1771</td><td>449.55</td></tr>
+          <tr><td>Standard orchestration</td><td>19.5365</td><td>1286.35</td></tr>
+          <tr><td>Tight-return orchestration</td><td>17.3466</td><td>859.05</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>USD values are truncated to four decimal places. The evidence retains full precision. They represent the CLI's usage valuation under a subscription. Wall time sums the measured invocations and excludes filesystem snapshots, gaps between sessions, and later judging.</p>
+    <p>The tight-return arm had lower mean cost and wall time than standard orchestration. It remained more expensive and slower than solo. Neither delegation arm reached a lower mean cumulative cost than solo at any measured turn.</p>
+    <p>The session ranges matter:</p>
+    <div class="tbl-wrap" tabindex="0" role="region" aria-label="The receipts table">
+      <table class="tbl">
+        <thead><tr><th scope="col">Arm</th><th scope="col">Usage valuation range, USD</th><th scope="col">Invocation wall range, seconds</th></tr></thead>
+        <tbody>
+          <tr><td>Solo</td><td>6.8717 to 9.4826</td><td>379.5 to 519.6</td></tr>
+          <tr><td>Standard orchestration</td><td>19.1396 to 19.9333</td><td>1207.7 to 1365.0</td></tr>
+          <tr><td>Tight-return orchestration</td><td>14.9181 to 19.7752</td><td>840.0 to 878.1</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+  <section class="reveal">
+    <h2>Later quality judgments</h2>
+    <p>Codex later scored the saved Claude audit summaries and recall answers for completeness, correctness, and grounding, with recorded source-citation checks. This was a post hoc change from the planned Claude assessor. The original benchmark sessions and their cost accounting stayed unchanged.</p>
+    <p>The comparisons used anonymous X/Y labels and the original scoring rubric. Worker references remained in the saved answers, so the judge could infer the approach from the text. Label masking did not guarantee successful blinding.</p>
+    <div class="tbl-wrap" tabindex="0" role="region" aria-label="Later quality judgments table">
+      <table class="tbl">
+        <thead><tr><th scope="col">Comparison</th><th scope="col">Run 1: Codex preferred</th><th scope="col">Run 2: Codex preferred</th></tr></thead>
+        <tbody>
+          <tr><td>Solo vs standard orchestration</td><td>Standard orchestration</td><td>Solo</td></tr>
+          <tr><td>Solo vs tight-return orchestration</td><td>Solo</td><td>Solo</td></tr>
+          <tr><td>Standard vs tight-return orchestration</td><td>Standard orchestration</td><td>Tight-return orchestration</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Solo was preferred to tight returns in both runs. The other comparisons split. Each captured session appears in two comparisons; the results retain both sets of scores and their disagreements. Those repeated judgments do not add independent benchmark sessions.</p>
+    <p>One tight-return recall result contains only a completion acknowledgment referring to an answer absent from the captured text. It was judged as stored. These scores describe captured final responses, with a known capture gap; they cannot establish that a cost change preserved the quality of all work performed.</p>
+  </section>
+  <section class="reveal">
+    <h2>Guardrails and measurement limits</h2>
+    <p>The factual-error screen flagged 1 of 2 solo sessions, 0 of 2 standard-orchestration sessions, and 2 of 2 tight-return sessions. It triggers on a correctness score below 7 or selected keywords in the judge's notes, including matches inside negated wording. A flag is not a confirmed-error count, and a clear screen does not prove an error-free answer.</p>
+    <p>The audit-summary check found no qualifying fenced blocks of code. That is a narrow observation. It does not tell me whether internal workers honored the return-length instruction, and the unrestricted arms provide only a baseline for this check.</p>
+    <p>The filesystem detector also needed interpretation. Known background activity changed the same operational files while the benchmark ran. After excluding those documented paths, one other file changed during standard orchestration's first run. The saved fingerprints establish the change but cannot identify its writer.</p>
+    <p>I keep that residual observation in the record. A detector flag alone does not establish an agent-caused write, and a clear net count cannot prove that nothing changed outside the monitored repository.</p>
+  </section>
+  <section class="reveal">
+    <h2>What this changes</h2>
+    <p>My earlier benchmark had one completed session per arm. Solo was cheaper, faster, and favored by the blind quality judgment. That result still stands for that experiment.</p>
+    <p>The newer run uses a different Opus identifier. That model change prevents a controlled comparison with the earlier experiment. The later Codex judge is another change, so its scores cannot be compared directly with the historical Claude judgments.</p>
+    <p>This is a descriptive result from one repository and two completed sessions per arm, with no confidence interval. The measured cost and timing leave a useful next question: which part of the delegation overhead can be reduced while keeping the answer useful?</p>
+    <p>Would you test worker scope, return size, or orchestration overhead next?</p>
+  </section>
+  <section class="reveal cs-links">
+    <h2>Related work</h2>
+    <p><a class="cs-verify" href="/work/vantage-architecture">Read the fleet architecture build journal&nbsp;→</a></p>
+  </section>
+  <nav class="cs-nav reveal" aria-label="More case studies">
+    <a href="/work/vantage-architecture"><span class="cs-nav-dir">Previous case study</span><span class="cs-nav-title">←&nbsp;Vantage agent infrastructure</span></a>
+    <a class="next" href="/work/case-study-2"><span class="cs-nav-dir">Next case study</span><span class="cs-nav-title">Task-specific failures across model tiers&nbsp;→</span></a>
+  </nav>
+</div></div>
+</main>
+
+<footer><div class="wrap">
+  <span>© 2026 Brad O'Haire</span>
+  <span><a href="/work">Work</a><span class="fdot"> · </span><a href="/about">About</a><span class="fdot"> · </span><a href="/contact">Contact</a><span class="fdot"> · </span><a href="/resume">Resume</a><span class="fdot"> · </span><a id="foot-gh" href="https://github.com/Veeiy" target="_blank" rel="noopener">GitHub</a><span class="fdot"> · </span><a href="https://www.linkedin.com/in/brad-o-haire" target="_blank" rel="noopener">LinkedIn</a><span class="fdot"> · </span><a href="mailto:bradohairework@gmail.com">Email</a></span>
+</div></footer>
+
+
+</body>
+</html>

@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Vantage agent infrastructure · Brad O'Haire</title>
+<meta name="description" content="A build journal of twenty-four automations across seven repos: tiers, triggers, bounded unattended actions, and the human approval boundary." />
+<link rel="canonical" href="https://bradohaire.com/work/vantage-architecture" />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Brad O'Haire" />
+<meta property="og:title" content="Vantage agent infrastructure · Brad O'Haire" />
+<meta property="og:description" content="A build journal of twenty-four automations across seven repos: tiers, triggers, bounded unattended actions, and the human approval boundary." />
+<meta property="og:url" content="https://bradohaire.com/work/vantage-architecture" />
+<meta property="og:image" content="https://bradohaire.com/assets/og/vantage-architecture.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Vantage agent infrastructure · Brad O'Haire" />
+<meta name="twitter:description" content="A build journal of twenty-four automations across seven repos: tiers, triggers, bounded unattended actions, and the human approval boundary." />
+<meta name="twitter:image" content="https://bradohaire.com/assets/og/vantage-architecture.png" />
+<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+<meta name="theme-color" content="#0a0b0f" />
+<script>document.documentElement.classList.add('js');</script>
+<link rel="stylesheet" href="/assets/site.css" />
+<script defer src="/assets/site.js"></script>
+</head>
+<body>
+
+<!-- ===== CANONICAL HEADER (identical markup on every page; update all copies together) ===== -->
+<a class="skip-link" href="#main">Skip to content</a>
+<nav><div class="wrap">
+  <a class="brand" href="/">Brad<span>.</span>OHaire</a>
+  <div class="navlinks">
+    <a href="/">Home</a>
+    <a href="/start">Start here</a>
+    <a href="/work" aria-current="page">Work</a>
+    <a href="/lab">Lab</a>
+    <a href="/principles">Principles</a>
+    <a href="/about">About</a>
+    <a href="/resume">Resume</a>
+    <a href="/contact">Contact</a>
+    <a id="nav-gh" href="https://github.com/Veeiy" target="_blank" rel="noopener">GitHub</a>
+  </div>
+</div></nav>
+<!-- ===== /CANONICAL HEADER ===== -->
+
+<main id="main">
+
+<!-- 1. Eyebrow + headline.  2. One-line summary.  3. Outcome above the fold (qualitative). -->
+<div class="cs-head"><div class="wrap">
+  <a class="cs-back" href="/work"><span aria-hidden="true">←</span>&nbsp;All work</a>
+  <div class="cs-eyebrow reveal"><span class="tag">Build journal</span></div>
+  <h1 class="cs-h1 reveal">Twenty-four automations for a car-rental business, here is the architecture</h1>
+  <p class="cs-summary reveal">I run a small vehicle rental operation. Its automation estate contains twenty-four automations across seven repositories, plus five human-invoked skills. Those counts describe code and configured workflows, not twenty-four verified live jobs. The reviewed laptop documentation says its browser-facing workflows still require live acceptance testing before real scheduling.</p>
+  <div class="cs-outcome q reveal">
+    <p>This is a build journal, not a pitch. It covers how the automations are organized into tiers, how each trigger type was chosen, where the human gate sits and how it is enforced, what happened the one time the whole mail-triggered half of the estate went quietly dead, and what this system does not prove.</p>
+  </div>
+  <figure class="cs-figure reveal d1">
+    <img src="/assets/img/vantage-architecture-hero.webp" alt="Illustration of the three tiers: an always-on server, a laptop, and the car, with one switch on the line into the car" width="1680" height="720" loading="eager" decoding="async" fetchpriority="high">
+    <figcaption>Illustration, rendered for this article: the always-on server, the laptop, and the car, with a single switch on the last link. That switch is the human gate. It is a picture of the idea, not a screenshot of any system.</figcaption>
+  </figure>
+</div></div>
+
+<div class="cs-body"><div class="wrap">
+
+  <section class="reveal">
+    <h2>Why twenty-four automations and not one agent</h2>
+    <p>There are no revenue figures, no throughput claims, and no customer data here, by policy. What is here is the architecture, written from the code rather than from memory.</p>
+    <p>Twenty-four automations, seven repos, five skills. Not one big agent that does everything.</p>
+    <p>I could have built a single assistant that reads mail, drafts replies, texts me, and issues links, all from one prompt with every credential attached. Instead the server alone runs eleven separate processes, each with one job: booking-watch only watches for new bookings, invoice-watch only watches for trip endings, guest-comms only drafts replies, telegram-gateway only talks to me, and so on down the table.</p>
+    <p>Twenty of the twenty-four automations sit on the server-and-laptop side of the estate; the other four are satellite repos, each still doing exactly one job.</p>
+    <p>The reason is blast radius, not elegance. One agent holding every tool and every credential is one bad turn away from doing something outside what I approved, in a context too large for me to audit line by line before it acts. Eleven agents that each hold one credential and one permission are eleven small, legible blast radii instead. booking-watch can write a portal token. It cannot log into Turo. guest-comms can draft a reply. It cannot send one. When a process misbehaves, the damage is bounded to whatever that one process touches, not to everything the fleet does.</p>
+    <p>What holds two dozen separate processes together is not a shared brain, it is a shared discipline: every automation is scoped to the smallest job that earns its trigger, with an explicit boundary on which actions it may take. Those boundaries differ between drafting, a locked welcome, and a bill that needs approval. The next two sections are that discipline, first by tier, then by trigger.</p>
+  </section>
+
+  <section class="reveal">
+    <h2>Three tiers: server daemons, a laptop scheduler, human-invoked skills</h2>
+    <p>Every automation lives on the tier its risk profile demands, not the tier that would be most convenient to build on.</p>
+    <p>The always-on work sits on an always-on DigitalOcean droplet running under systemd timers plus one long-running listener. This is where I put anything that must never miss its window: a Turo booking arrives at a random hour, so the server has to be watching at 2am the same as 2pm. Concretely that means <code>.timer</code> units for the periodic scans and one <code>.service</code> unit, <code>Type=simple</code>, for the Telegram bot that stays connected and long-polls instead of waking up on a schedule. Nothing on this tier needs a human sitting at a keyboard, which is exactly why it is the tier for things that cannot wait for one.</p>
+    <p>The second tier is designed for a dedicated Windows laptop, with an installer that registers Windows Task Scheduler tasks from generated Task XML. It is intended for jobs that need a logged-in browser session, including toll invoicing and one locked welcome message per booking. The installer configures a 9am toll cycle and a 9:30 follow-up. The code makes clean bills at or below the configured auto-send cap eligible for sending; clean bills strictly above it require approval. These are implemented paths and configured schedules. The project's acceptance note says no browser-facing workflow has been run against live Turo or FleetIt; that acceptance test must pass before real scheduling.</p>
+    <p>The third tier does not run on a schedule at all. It runs when I invoke it. Skills like <code>invoice</code> are SKILL.md files with trigger phrases I say out loud, not standing processes: "run invoice," "bill the tolls," and a handful of others start the same deterministic pipeline, but only when I start it. This is the tier for work that should never begin without a person deciding it should begin, no matter how mechanical the steps are once it does.</p>
+    <p>Three tiers, three different answers to "how does this get triggered," each chosen for the job, not for uniformity.</p>
+    <div class="tiers" role="group" aria-label="The three tiers and the human gate, drawn from the gate table below">
+      <div class="tier">
+        <h3>Always-on server</h3>
+        <p class="t-when">systemd timers plus one listener</p>
+        <ul>
+          <li><code>booking-watch</code><span>every 15 min</span></li>
+          <li><code>guest-onboard</code><span>every 15 min</span></li>
+          <li><code>guest-comms</code><span>every 10 min</span></li>
+          <li><code>invoice-watch</code><span>daily 09:00</span></li>
+          <li><code>telegram-gateway</code><span>long-running listener</span></li>
+        </ul>
+        <p class="t-out">Reads mail and chat read-only, drafts replies, and issues a portal token row. Every guest-facing paste is mine.</p>
+      </div>
+      <div class="tier">
+        <h3>Dedicated laptop</h3>
+        <p class="t-when">Windows Task Scheduler, configured</p>
+        <ul>
+          <li><code>toll_cycle</code><span>daily 09:00</span></li>
+          <li><code>booking_scan</code><span>every 15 min</span></li>
+          <li><code>approvals</code><span>every 10 min</span></li>
+          <li><code>vantage-desk-remote</code><span>at logon</span></li>
+        </ul>
+        <p class="t-out">Needs a logged-in browser. Code permits two unattended sends: a clean bill at or below the cap, and one locked welcome per booking. Live acceptance against Turo and FleetIt is still required.</p>
+      </div>
+      <div class="tier">
+        <h3>Human-invoked</h3>
+        <p class="t-when">never scheduled</p>
+        <ul>
+          <li><code>invoice</code><span>when I say so</span></li>
+          <li><code>ClaudeAgentRuntime</code><span>from the Studio UI</span></li>
+          <li><code>vantage-run</code><span>one instance per run</span></li>
+        </ul>
+        <p class="t-out">Draft and stage only. Every submit is my click, and the runtimes execute only the spec they are handed.</p>
+      </div>
+      <div class="tier-gate">
+        <b>Human gate</b>
+        <p>Sits on the send and money boundary, enforced in code and checked by a unit test: the statuses <code>sent</code>, <code>send_unknown</code> and <code>send_blocked</code> can never be overwritten by a weaker one, so a trip cannot be staged and billed twice.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="reveal">
+    <h2>Trigger taxonomy: timers, one listener, and a push-in dead-man switch</h2>
+    <p>Trigger type is a design decision on this estate, not an implementation detail I picked and moved on from. Three archetypes cover almost everything, and each one earns its place for a different reason.</p>
+    <p>The polling timer is the default. <code>vantage-booking-watch.timer</code> fires on <code>OnCalendar=*:0/15</code>, checking every fifteen minutes. Turo booking mail arrives at no predictable hour, so there is no event to subscribe to and no queue to drain. A timer is the right tool exactly when the world you are watching gives you no signal of its own: you have to go look, and fifteen minutes is short enough to keep the gap between "booked" and "link issued" small without hammering the mailbox every minute.</p>
+    <p>The single long-running listener is the opposite answer, chosen because the job itself is a conversation. <code>vantage-telegram-gateway.service</code> runs <code>Type=simple</code>, not on a timer, because it long-polls the Telegram API and answers me one message at a time. A timer would mean waking up, checking for a message, and going back to sleep, which is the wrong shape for something that needs to hold a thread of context across a back-and-forth. A standing listener is the only trigger type that fits a job defined by staying present.</p>
+    <p>The third archetype inverts the usual direction entirely. <code>endpoint-watch</code> is a dead-man switch: watched machines push a check-in to the droplet over SSH, and the agent only ever reads the timestamps those check-ins leave behind. A watchdog that lives on the machine it watches dies with that machine. A watchdog that polls outward needs a route and a credential into a laptop that sits behind NAT. Push-in solves both problems by trading the poll for a report: the droplet needs no route to the endpoint and holds no secret for it, and silence itself becomes the alert. The check-in also stamps the droplet's own clock, not the endpoint's, so a laptop with a wrong timezone cannot fake freshness.</p>
+    <p>Three trigger types, three different problems: no signal to subscribe to, a conversation to hold, and a machine you cannot safely reach out to. Picking the wrong one would not just be less elegant, it would not work.</p>
+  </section>
+
+  <section class="reveal">
+    <h2>Where the human gate actually lives</h2>
+    <p>The gate is not a confirmation dialog bolted onto the end of a script. It sits directly on the send and money boundary, and it is enforced in code and checked by a test, not written down in a policy document I have to remember to follow.</p>
+    <p>Start with state. The toll orchestrator keeps a JSON record per reservation, and three statuses are protected: sent, send_unknown, send_blocked. A recorder is never allowed to silently overwrite one of those with a weaker status like error or send_failed. That single rule buys the thing that matters most in a billing automation: a trip that may already be billed cannot get quietly re-staged and billed a second time.</p>
+    <p>This is not a comment I am trusting to hold on its own. It is a unit test. One test drives a pre-send failure through two attempts and asserts the second attempt lands on send_blocked, latched, with the trip reporting as handled. The point is not that specific assertion. The point is that the no-double-bill rule is a property the test suite checks on every run, not a habit I hope I remember.</p>
+    <p>Then there is the number everyone asks about. The toll code compares the total against a config default (<code>auto_send_cap</code>, currently 250.0). A clean bill at or below that cap is eligible for automatic sending; a clean bill strictly above it is staged for a person to approve. That value lives in a config file, not in a number I picked per bill.</p>
+    <p>The same shape shows up on the manual side. The billing skill I invoke by hand walks through gathering evidence and staging a bill, hands over the exact submit steps, and stops there: money is gated, draft and stage only, every submit is my click.</p>
+    <p>The intended boundary keeps a person in the loop on guest replies and clean bills above the auto-send cap. The laptop code permits two unattended actions: a clean toll bill at or below the cap, and one locked welcome message per booking. Those browser-facing paths have not passed the documented live acceptance test, so I am describing their implemented permissions, not claiming verified live sends. I built the boundary to keep consequential choices visible while preparing the work that comes before them.</p>
+
+    <h3 class="tbl-title">The gate table, twelve rows</h3>
+    <p>These rows describe configured triggers and code capabilities, not proof that every job is live. The laptop's browser-facing paths still require live acceptance testing; several server scanners are also documented as unarmed.</p>
+    <div class="tbl-wrap" tabindex="0" role="region" aria-label="Gate table: twelve automations, their triggers, unattended capability, and where the human gate is enforced">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th scope="col">automation</th>
+            <th scope="col">role</th>
+            <th scope="col">trigger</th>
+            <th scope="col">unattended capability</th>
+            <th scope="col">requires the operator's click</th>
+            <th scope="col">gate enforced at</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>booking-watch</td>
+            <td>portal-token issuer</td>
+            <td>systemd timer, every 15 min</td>
+            <td>reads Turo booking mail read-only, matches it deterministically, and on an all-clear issues a guest portal token row</td>
+            <td>pasting the welcome message and the portal link into the Turo thread</td>
+            <td>never sends the Turo message and never opens the link</td>
+          </tr>
+          <tr>
+            <td>invoice-watch</td>
+            <td>trip-end nudger</td>
+            <td>systemd timer, daily 09:00</td>
+            <td>watches read-only for trip-end mail and holds each one for a settle delay before nudging</td>
+            <td>dropping the two exports and running the billing skill myself</td>
+            <td>writes nothing to any database and touches no money</td>
+          </tr>
+          <tr>
+            <td>guest-comms</td>
+            <td>reply drafter</td>
+            <td>systemd timer, every 10 min</td>
+            <td>reads guest messages read-only and drafts a suggested reply onto a shared draft queue</td>
+            <td>approving or adjusting the draft, then pasting the final into Turo</td>
+            <td>never logs into Turo</td>
+          </tr>
+          <tr>
+            <td>guest-onboard</td>
+            <td>welcome drafter</td>
+            <td>systemd timer, every 15 min</td>
+            <td>reads new-booking mail read-only and drafts a personalized welcome to an outbox</td>
+            <td>pasting the welcome into Turo, then the portal link</td>
+            <td>never sends anything</td>
+          </tr>
+          <tr>
+            <td>telegram-gateway</td>
+            <td>conversational relay</td>
+            <td>long-running listener, not a timer</td>
+            <td>long-polls a chat and carries a conversation, drafting and revising guest replies on request</td>
+            <td>every guest-facing paste and every send</td>
+            <td>the gateway has no tool that can message a guest, log into an account, or move money</td>
+          </tr>
+          <tr>
+            <td>toll_cycle</td>
+            <td>toll biller</td>
+            <td>configured Task Scheduler, daily 09:00</td>
+            <td>code path exports, reconciles, gathers receipts, reads the invoice hub, and makes clean bills at or below the cap eligible for automatic sending</td>
+            <td>approving clean bills strictly above a config default (<code>auto_send_cap</code>, currently 250.0)</td>
+            <td>the clean-bill branch sends at or below the cap and requires approval above it; live browser acceptance remains required</td>
+          </tr>
+          <tr>
+            <td>booking_scan</td>
+            <td>locked welcome sender</td>
+            <td>configured Task Scheduler, every 15 min</td>
+            <td>code path scans new bookings, prepares guest access, and posts one locked-template welcome when its checks pass</td>
+            <td>acceptance before real scheduling; no per-message approval for the intended locked welcome</td>
+            <td>standing approval covers the designated scheduled send path; live browser acceptance remains required</td>
+          </tr>
+          <tr>
+            <td>approvals</td>
+            <td>approval poller</td>
+            <td>Task Scheduler, every 10 min</td>
+            <td>polls my replies for a bill approve, hold, retry, or pending verb</td>
+            <td>I still have to send that reply; nothing here acts on its own judgment</td>
+            <td>only acts on my explicit reply</td>
+          </tr>
+          <tr>
+            <td>vantage-desk-remote</td>
+            <td>remote-control server</td>
+            <td>Task Scheduler, logon trigger, unlimited runtime</td>
+            <td>runs a screenshot and input server so a remote session can see and drive the laptop's screen</td>
+            <td>nothing described here; how the session is reached stays deliberately undescribed</td>
+            <td>token-gated, never listens off the machine</td>
+          </tr>
+          <tr>
+            <td>invoice (skill)</td>
+            <td>manual biller</td>
+            <td>human-invoked only, never scheduled</td>
+            <td>none by design</td>
+            <td>every submit, always, in Turo</td>
+            <td>money is gated, draft and stage only, never submits</td>
+          </tr>
+          <tr>
+            <td>ClaudeAgentRuntime</td>
+            <td>workflow executor</td>
+            <td>manual, started from Vantage Agent Studio's own UI</td>
+            <td>runs a compiled workflow graph in process</td>
+            <td>supplying a user-owned API key that the app never commits</td>
+            <td>requires a user-supplied key in a local, gitignored env file</td>
+          </tr>
+          <tr>
+            <td>vantage-run</td>
+            <td>droplet executor</td>
+            <td>on demand, one instance per run, not a timer</td>
+            <td>executes only the workflow spec the Studio already wrote</td>
+            <td>nothing runs until the Studio dispatches a run to it</td>
+            <td>runs only the spec it is handed; no independent action</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p>The two booking paths have different send permissions. Server-side booking-watch issues guest access and prepares a welcome for manual pasting; it never sends the Turo message. The laptop booking_scan code is designed to post one locked welcome under standing approval, once live browser acceptance passes. These are distinct implementations, not a demonstrated failover system.</p>
+  </section>
+
+  <section class="reveal">
+    <h2>Two runtimes, one workflow graph</h2>
+    <p>My agent-builder project, Vantage Agent Studio, compiles a workflow graph once and can run that same graph two ways. One runtime executes it locally, in-process, against the Claude Agent SDK: a private method pulls the node's executor straight out of the server-side node registry and runs it inline. The other runtime ships the same compiled spec over SSH to an always-on droplet, starts a systemd unit there, and tails the resulting event stream back into the same run record on the Studio side. That file runs 461 lines, confirmed by a direct line count rather than an estimate.</p>
+    <p>The design point is that the graph itself does not know or care which runtime executes it. On the droplet side, the actual work is done by a small, dependency-free entrypoint script that walks the compiled graph and emits the same event format the local runtime would have produced. That script lives in a different repo from the Studio app: the workflow builder is one codebase, the thing that runs on the always-on box is another, and the seam between them is a JSON spec file plus an event log, not shared code.</p>
+    <p>Here is the honest half of the section. Condition and loop nodes are not implemented. The executor file says so directly, one line in a comment describing every node type's behavior. The two exported executors for those node types call the same explicit not-implemented helper rather than silently no-opping. That is a scope cut stated in code, not hidden behind a roadmap slide.</p>
+  </section>
+
+  <section class="reveal">
+    <h2>When it breaks: silence, not a crash</h2>
+    <p>The failure that taught me the most did not throw an error. It threw nothing.</p>
+    <ul class="decisions"><li>
+      <span class="d-cap">Incident: healthy silence</span>
+      <p>Two mail-triggered scanners were armed and polling on schedule, one every ten minutes, one every fifteen. They read one mailbox and searched it by the platform's sender address. The problem: the rental platform's notification mail was landing in a different mailbox, one nothing was watching. A search that matches nothing is not an error. It looks exactly like a quiet week.</p>
+      <p>I found it by hand, not from an alarm. A direct count of platform-sender mail in the watched mailbox over a thirty-day window came back zero, against a known-nonzero count in the mailbox that was actually receiving it. Zero was the tell. Nothing had failed loudly enough to say so.</p>
+    </li></ul>
+    <p>The first fix I drafted was a scoped forward: match only the platform's sender, forward into the watched mailbox, and keep the original headers so the sender-match logic still fired. A simpler one shipped the same day instead. I pointed the platform account's own contact address straight at the watched mailbox and removed the forwarding hop. One canonical mailbox for every mail-triggered scanner to read, though at the time only two of the four were armed and the other two were waiting on a secret file. I marked the old plan SUPERSEDED rather than deleting it, so the trail stays legible.</p>
+    <p>The lesson is a design rule I now apply across the stack: an automation reporting healthy silence is not the same as an automation that works. A valid but stalled timer reads healthy, and a dead box looks like a quiet day. Liveness needs a positive signal, not the absence of an error.</p>
+  </section>
+
+  <section class="reveal">
+    <h2>The audit-to-fix loop</h2>
+    <p>The vantage-agents server ran a read-only self-audit against its own live droplet and source, adversarially verified before it named anything a finding. It named the deploy user's sudo scope and a set of scanners that could fail without any signal reaching me. A separate section of the same audit covers least-privilege and host hardening specifically.</p>
+    <p>Three commits landed against those findings, and all three resolve in the repo's own history. <code>6a2d738</code> narrows the sudo grant instead of removing it outright. <code>2bf5706</code> makes failure states visible: delivery, credentials, and a toll nudge that had been failing silently. <code>b6e2f37</code> adds draft-clearing commands to the same gateway. The loop worth showing is not any single agent. It is that an adversarially-verified audit turned into shipped commits inside the same project.</p>
+    <p>Separately, on a test count: a full-repo scan of vantage-desk, the Windows laptop automation project, counted 17 test files and 197 <code>def test_</code> functions directly by grep. That repo's own CLAUDE.md documents 175 unit tests as of the day it was built and gated. Both numbers are real, measured at different points in the same repo's life. I am reporting the gap, not closing it.</p>
+  </section>
+
+  <section class="reveal">
+    <h2>What is deliberately not shown</h2>
+    <p>One estate project is explicit about being a demo. fleet-os's dashboard reads its vehicle data from a checked-in JSON file, and the README says directly that the committed file is a labeled demo snapshot, with real data meant to come from a live vendor API in production. I name it a demo here because the project names itself one.</p>
+    <p>A second small tool, turoboost, makes a narrower claim about itself: everything it does runs client-side, with no server, no cookies, and no tracking. That is a scope statement rather than a demo label, and I am not going to upgrade it into one: turoboost's README never calls itself a demo, and fleet-os's does. Neither project is sold, and neither runs for anyone but me.</p>
+    <p>The point of naming them is not that the work is weaker. It is that an estate that says out loud which pieces are demos is making a different claim than an estate that stays quiet and lets a reader assume everything shown is load-bearing.</p>
+  </section>
+
+  <section class="reveal">
+    <h2>The stack, and what it does not prove</h2>
+    <p>The concrete stack: server-side automations run as systemd services and timers on an always-on droplet, each one scheduled independently rather than through a single cron file. The laptop tier is implemented for Windows Task Scheduler using generated task XML. Its browser-facing workflows depend on a logged-in session and remain subject to the documented live acceptance test. The automation code is Python on the server and laptop tiers and TypeScript in the workflow-graph builder, which runs on Next.js. Supabase holds shared operational state; Telegram and ntfy carry notifications. Agent execution itself runs on Anthropic's Claude Agent SDK.</p>
+    <div class="stack">
+      <span class="chip">systemd</span>
+      <span class="chip">Windows Task Scheduler</span>
+      <span class="chip">Python</span>
+      <span class="chip">TypeScript</span>
+      <span class="chip">Next.js</span>
+      <span class="chip">Supabase</span>
+      <span class="chip">Telegram + ntfy</span>
+      <span class="chip">Claude Agent SDK</span>
+      <span class="chip">DigitalOcean</span>
+    </div>
+    <p>This estate does not prove everything it touches. Condition and loop nodes in the workflow builder are not implemented; the executor file states this in a comment and backs it with an explicit not-implemented function rather than a silent no-op. One of the projects named here is a demo by its own description, not a production service; a second is a no-backend tool that I am not going to describe as more than that. Two different counting methods disagree on a test total for one repo: a direct grep found 197, the repo's own dated doc says 175. Several server-side automations are built to run unattended but currently no-op until a secret file is placed; the unattended path is written and reviewed, not yet exercised against live data. The laptop has a separate acceptance limit: its reviewed documentation records no browser-facing run against live Turo or FleetIt and requires that test before real scheduling. Unit tests and configured schedules do not establish live sends. No throughput number, revenue figure, or fleet size appears anywhere in this piece, by policy, not because none exists.</p>
+  </section>
+
+  <section class="reveal">
+    <h2>What I would tell someone building the same thing</h2>
+    <p>Three things carried further than anything else I did here.</p>
+    <ul class="decisions">
+      <li>
+        <span class="d-cap">Pick the trigger before you pick the model.</span>
+        <span class="d-leash">Most of these automations are not interesting AI problems. They are scheduling problems with a small amount of judgment in the middle, and <b>getting the trigger type right is what makes them reliable.</b></span>
+      </li>
+      <li>
+        <span class="d-cap">Put the gate on the boundary, then write a test for it.</span>
+        <span class="d-leash">A rule that lives in a policy document is a rule you have to remember. <b>A rule that lives in a status machine with a test around it is a property of the system.</b></span>
+      </li>
+      <li>
+        <span class="d-cap">Make silence mean something.</span>
+        <span class="d-leash">The failure that cost me the most was not a crash. It was two healthy scanners reading an empty mailbox and reporting nothing, which is exactly what a quiet week looks like. I do not know how long it ran that way, because nothing recorded it. <b>Liveness needs a positive signal.</b></span>
+      </li>
+    </ul>
+  </section>
+
+  <section class="reveal">
+    <h2>My role</h2>
+    <p class="cs-role">I <strong>designed and built</strong> this estate end to end: the tiers, the trigger types, the human gate and the test that latches it, the audit-to-fix loop, and the discipline that scopes every automation to the smallest job that earns its trigger.</p>
+  </section>
+
+  <section class="reveal cs-links">
+    <h2>Links and verification</h2>
+    <p class="cs-nolink">This is a private business, my own venture, so the code is not public. This build journal is the verification: the tiers, triggers, human-gate design, and incident narrative are written from the code and its history rather than from memory.</p>
+    <p><a class="cs-verify" href="/work/fleet-operations">see the operator credential behind it&nbsp;<span aria-hidden="true">→</span></a></p>
+  </section>
+
+  <nav class="cs-nav reveal" aria-label="More case studies">
+    <a href="/work/fleet-operations"><span class="cs-nav-dir">Previous case study</span><span class="cs-nav-title">←&nbsp;An agent team that runs my car-rental business</span></a>
+    <a class="next" href="/work/case-study-1"><span class="cs-nav-dir">Next case study</span><span class="cs-nav-title">I asked for shorter worker replies. Solo still cost less.&nbsp;→</span></a>
+  </nav>
+
+</div></div>
+
+</main>
+
+<!-- ===== CANONICAL FOOTER (identical markup on every page; update all copies together) ===== -->
+<footer><div class="wrap">
+  <span>© 2026 Brad O'Haire</span>
+  <span><a href="/work">Work</a><span class="fdot"> · </span><a href="/about">About</a><span class="fdot"> · </span><a href="/contact">Contact</a><span class="fdot"> · </span><a href="/resume">Resume</a><span class="fdot"> · </span><a id="foot-gh" href="https://github.com/Veeiy" target="_blank" rel="noopener">GitHub</a><span class="fdot"> · </span><a href="https://www.linkedin.com/in/brad-o-haire" target="_blank" rel="noopener">LinkedIn</a><span class="fdot"> · </span><a href="mailto:bradohairework@gmail.com">Email</a></span>
+</div></footer>
+<!-- ===== /CANONICAL FOOTER ===== -->
+
+</body>
+</html>
