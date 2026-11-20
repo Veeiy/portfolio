@@ -1,5 +1,6 @@
-# Local Claude Code preview/server config
-.claude/
+# Local Claude Code preview/server config (skills are tracked)
+.claude/*
+!.claude/skills/
 
 # OS cruft
 .DS_Store
