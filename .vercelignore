@@ -1,0 +1,2 @@
+# Keep Claude Code skills and tooling off the deployed site
+.claude/
