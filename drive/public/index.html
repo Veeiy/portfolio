@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en" data-theme="dark" data-size="l">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#0b0d10">
+  <title>Drive</title>
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/app.css">
+</head>
+<body>
+  <div class="app" id="app">
+
+    <!-- Passcode screen -->
+    <section class="lock" id="lock" aria-labelledby="lock-title">
+      <div class="lock-card">
+        <h1 id="lock-title">Drive</h1>
+        <p class="lock-msg" id="lock-msg" role="status">Enter your passcode</p>
+        <div class="dots" id="dots" aria-hidden="true"></div>
+        <div class="keypad" id="keypad">
+          <button type="button" data-key="1">1</button>
+          <button type="button" data-key="2">2</button>
+          <button type="button" data-key="3">3</button>
+          <button type="button" data-key="4">4</button>
+          <button type="button" data-key="5">5</button>
+          <button type="button" data-key="6">6</button>
+          <button type="button" data-key="7">7</button>
+          <button type="button" data-key="8">8</button>
+          <button type="button" data-key="9">9</button>
+          <button type="button" data-key="back" class="key-alt" aria-label="Delete last digit">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5h11v14H9l-6-7z"/><path d="M12 9l5 6M17 9l-5 6"/></svg>
+          </button>
+          <button type="button" data-key="0">0</button>
+          <button type="button" data-key="go" class="key-go" id="unlock">Unlock</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Navigation rail: sits on the driver's side in landscape -->
+    <nav class="rail" id="rail" aria-label="Main">
+      <button type="button" class="rail-btn" id="nav-home" aria-current="page">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>
+        <span>Home</span>
+      </button>
+      <button type="button" class="rail-btn" id="nav-chat">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg>
+        <span>Chat</span>
+      </button>
+      <button type="button" class="rail-btn" id="nav-new">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+        <span>New</span>
+      </button>
+      <button type="button" class="rail-btn rail-end" id="nav-settings">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>
+        <span>Settings</span>
+      </button>
+    </nav>
+
+    <main class="stage" id="stage">
+      <!-- Home -->
+      <section class="screen" id="home" aria-label="Home">
+        <header class="home-head">
+          <div class="clock">
+            <span class="clock-time" id="clock-time"></span>
+            <span class="clock-date" id="clock-date"></span>
+          </div>
+          <button type="button" class="chip" id="mode-chip" aria-label="Change model and thinking settings"></button>
+        </header>
+
+        <div class="tiles" id="tiles"></div>
+
+        <div class="cards" id="cards">
+          <section class="card" id="brief-card" aria-labelledby="brief-title">
+            <header class="card-head">
+              <h2 id="brief-title">Daily brief</h2>
+              <span class="card-meta" id="brief-meta"></span>
+            </header>
+            <div class="brief-body" id="brief-body"></div>
+            <div class="card-actions" id="brief-actions"></div>
+          </section>
+
+          <section class="card" id="fleet-card" aria-labelledby="fleet-title" hidden>
+            <header class="card-head">
+              <h2 id="fleet-title">Fleet</h2>
+              <span class="card-meta" id="fleet-meta"></span>
+              <button type="button" class="icon-btn" id="fleet-refresh" aria-label="Refresh fleet">
+                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 10-2.3 5.7"/><path d="M20 4v7h-7"/></svg>
+              </button>
+            </header>
+            <div class="fleet-list" id="fleet-list"></div>
+          </section>
+        </div>
+      </section>
+
+      <!-- Chat -->
+      <section class="screen" id="chat" aria-label="Chat" hidden>
+        <div class="thread" id="thread"></div>
+        <p class="empty" id="chat-empty">Ask anything below, or pick a tile on Home.</p>
+      </section>
+
+      <!-- Composer: shared by both screens -->
+      <form class="composer" id="composer" autocomplete="off">
+        <div class="status" id="status" role="status" hidden><span class="status-dot" aria-hidden="true"></span><span id="status-text"></span></div>
+        <div class="composer-row">
+          <button type="button" class="round-btn" id="mic" aria-label="Dictate" hidden>
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/></svg>
+          </button>
+          <label class="sr-only" for="input">Message</label>
+          <textarea id="input" rows="1" placeholder="Ask anything" enterkeyhint="send" autocapitalize="sentences"></textarea>
+          <button type="submit" class="round-btn send-btn" id="send" aria-label="Send">
+            <svg class="icon icon-send" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+            <svg class="icon icon-stop" viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="1.5"/></svg>
+          </button>
+        </div>
+      </form>
+    </main>
+
+    <!-- Settings -->
+    <div class="sheet-wrap" id="settings" hidden>
+      <div class="sheet-backdrop" data-close></div>
+      <aside class="sheet" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+        <header class="sheet-head">
+          <h2 id="settings-title">Settings</h2>
+          <button type="button" class="icon-btn" data-close aria-label="Close settings">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+          </button>
+        </header>
+        <div class="sheet-body">
+          <section>
+            <h3>Model</h3>
+            <div class="seg" id="seg-model" role="radiogroup" aria-label="Model"></div>
+          </section>
+          <section>
+            <h3>Thinking</h3>
+            <div class="seg" id="seg-depth" role="radiogroup" aria-label="Thinking"></div>
+            <p class="hint">Deep reasons longer and can run more searches. It is slower and costs more.</p>
+          </section>
+          <section>
+            <h3>Answer length</h3>
+            <div class="seg" id="seg-length" role="radiogroup" aria-label="Answer length"></div>
+          </section>
+          <section>
+            <h3>Text size</h3>
+            <div class="seg" id="seg-size" role="radiogroup" aria-label="Text size"></div>
+          </section>
+          <section>
+            <h3>Typing box</h3>
+            <div class="seg" id="seg-composer" role="radiogroup" aria-label="Typing box position"></div>
+            <p class="hint">Top keeps the box visible when the car's keyboard covers the lower screen.</p>
+          </section>
+          <section>
+            <h3>Theme</h3>
+            <div class="seg" id="seg-theme" role="radiogroup" aria-label="Theme"></div>
+          </section>
+          <section>
+            <h3>Accent</h3>
+            <div class="swatches" id="swatches" role="radiogroup" aria-label="Accent color"></div>
+          </section>
+          <section>
+            <h3>Home tiles</h3>
+            <div class="tile-list" id="tile-list"></div>
+            <div class="btn-row">
+              <button type="button" class="btn" id="tile-add">Add tile</button>
+              <button type="button" class="btn btn-quiet" id="tile-reset">Reset tiles</button>
+            </div>
+          </section>
+          <section>
+            <h3>Spend estimate</h3>
+            <p class="hint" id="spend"></p>
+          </section>
+          <section>
+            <h3>This screen</h3>
+            <dl class="diag" id="diag"></dl>
+          </section>
+          <section>
+            <div class="btn-row">
+              <button type="button" class="btn btn-quiet" id="clear-chat">Clear chat</button>
+              <button type="button" class="btn btn-quiet" id="lock-now">Lock</button>
+            </div>
+          </section>
+        </div>
+      </aside>
+    </div>
+
+    <!-- Tile editor -->
+    <div class="sheet-wrap" id="tile-editor" hidden>
+      <div class="sheet-backdrop" data-close></div>
+      <form class="dialog" id="tile-form" role="dialog" aria-modal="true" aria-labelledby="tile-editor-title" autocomplete="off">
+        <h2 id="tile-editor-title">Edit tile</h2>
+        <label for="tile-label">Label</label>
+        <input id="tile-label" type="text" maxlength="40" required>
+        <label for="tile-prompt">What it asks</label>
+        <textarea id="tile-prompt" rows="4" maxlength="2000" required></textarea>
+        <div class="btn-row">
+          <button type="submit" class="btn btn-primary">Save</button>
+          <button type="button" class="btn btn-quiet" data-close>Cancel</button>
+          <button type="button" class="btn btn-danger" id="tile-delete">Delete</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <noscript><p class="noscript">Drive needs JavaScript turned on.</p></noscript>
+  <script src="/app.js" defer></script>
+</body>
+</html>
