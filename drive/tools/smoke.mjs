@@ -282,7 +282,7 @@ async function browserChecks(base, stub) {
 
     await page.click("#tile-add");
     await page.fill("#tile-label", "Charge plan");
-    await page.fill("#tile-prompt", "Where should I charge next?");
+    await page.fill("#tile-prompt", "[slow] Where should I charge next?");
     await page.click("#tile-form .btn-primary");
     await page.click(".sheet-head [data-close]");
     check("a new tile appears on home", (await page.locator(".tile").count()) === 9 && (await page.locator(".tile").last().textContent()).includes("Charge plan"));
@@ -296,6 +296,47 @@ async function browserChecks(base, stub) {
       locked: !document.querySelector("#lock").hidden,
     }));
     check("reload keeps the unlock, tiles, settings and chat", !kept.locked && kept.tiles === 9 && kept.chip.includes("Haiku") && kept.messages >= 2, JSON.stringify(kept));
+
+    // Driving mode: taps only, short answers, and a Stop that stays reachable.
+    await page.click("#nav-settings");
+    await page.click("#seg-length button >> nth=2");
+    await page.click(".sheet-head [data-close]");
+    await page.click("#nav-drive");
+    const driving = await page.evaluate(() => ({
+      on: document.querySelector("#app").classList.contains("is-driving"),
+      composer: getComputedStyle(document.querySelector("#composer")).display,
+      cards: getComputedStyle(document.querySelector("#cards")).display,
+      settings: getComputedStyle(document.querySelector("#nav-settings")).display,
+      tiles: document.querySelectorAll(".tile").length,
+      fineprint: [...document.querySelectorAll(".tile-prompt")].filter((el) => getComputedStyle(el).display !== "none").length,
+      first: document.querySelector(".tile").textContent,
+    }));
+    check("driving mode leaves only big tiles", driving.on && driving.composer === "none" && driving.cards === "none" && driving.settings === "none" && driving.tiles === 10 && driving.fineprint === 0 && driving.first === "Daily brief", JSON.stringify(driving));
+
+    await upstream(stub, true);
+    await page.click(".tile >> nth=1");
+    await answerDone();
+    await page.waitForSelector("#followups .btn");
+    const drove = (await upstream(stub))[0];
+    check("driving mode forces short answers", drove.body.system[1].text.includes("Answer length: glance"));
+    const inert = await page.evaluate(() => getComputedStyle(document.querySelector(".msg-ai .prose a")).pointerEvents);
+    check("driving answers have no tappable links and offer a way back", (await page.locator(".source").first().isVisible()) === false && inert === "none" && (await page.textContent("#followups .btn >> nth=0")) === "Tiles", inert);
+    await page.click("#followups .btn >> nth=0");
+    check("Tiles returns to the tile screen", (await page.isVisible("#home")) && !(await page.isVisible("#chat")));
+
+    await page.click(".tile >> nth=-1");
+    await page.waitForFunction(() => document.querySelector(".msg-ai") && document.querySelector(".msg-ai").textContent.includes("Line 3"));
+    const midAnswer = await page.evaluate(() => ({
+      composer: getComputedStyle(document.querySelector("#composer")).display,
+      input: getComputedStyle(document.querySelector("#input")).display,
+      stop: document.querySelector(".stop-label").getBoundingClientRect().width > 0,
+    }));
+    await page.click("#send");
+    await answerDone();
+    check("Stop is reachable while a driving answer streams", midAnswer.composer !== "none" && midAnswer.input === "none" && midAnswer.stop && (await lastAnswer().textContent()).includes("Stopped."), JSON.stringify(midAnswer));
+
+    await page.click("#nav-drive");
+    check("leaving driving mode restores the full screen", (await page.isVisible("#input")) && (await page.locator(".tile").count()) === 9 && (await page.isVisible("#nav-settings")));
 
     await page.click("#nav-settings");
     await page.click("#lock-now");

@@ -98,6 +98,7 @@ h1, h2, h3, p { margin: 0; }
 .rail-btn .icon { width: 30px; height: 30px; margin-bottom: 5px; }
 .rail-btn[aria-current="page"] { background: var(--surface-2); color: var(--text); }
 .rail-btn:active { background: var(--surface-2); }
+.rail-btn[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
 .rail-end { margin-top: auto; margin-bottom: 0; }
 
 .stage {
@@ -347,6 +348,44 @@ html[data-theme="light"] .prose a { color: var(--text); }
 @keyframes pulse { 50% { opacity: 0.25; } }
 @media (prefers-reduced-motion: reduce) { .status-dot { animation: none; } }
 
+/* ---------- Driving mode ----------
+   One-tap use only: bigger tiles with no fine print, no typing box, larger
+   answer text, and nothing that leads away from the page. The typing bar
+   comes back only while an answer is streaming, to show status and Stop. */
+
+.stop-label { display: none; margin-left: 0.5rem; font-weight: 700; font-size: 1.05rem; }
+
+.app.is-driving #nav-new,
+.app.is-driving #nav-settings,
+.app.is-driving .chip,
+.app.is-driving .cards,
+.app.is-driving .sources,
+.app.is-driving .tile-prompt,
+.app.is-driving .composer textarea,
+.app.is-driving #mic { display: none; }
+
+.app.is-driving .tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); grid-gap: 14px; gap: 14px; }
+.app.is-driving .tile { min-height: 7.2rem; padding: 1rem 1.2rem; }
+.app.is-driving .tile-label { font-size: 1.4rem; margin: 0; }
+.app.is-driving .tile-brief { border-color: var(--accent); }
+
+.app.is-driving .prose { font-size: 1.5rem; }
+/* A tapped link would navigate away from the console mid-drive. */
+.app.is-driving .prose a { pointer-events: none; color: inherit; text-decoration: none; }
+.app.is-driving .bubble { font-size: 1.2rem; }
+.app.is-driving .followups .btn { min-height: 68px; padding: 0 1.6rem; font-size: 1.15rem; }
+
+.app.is-driving .composer { display: none; }
+.app.is-driving .stage.is-busy .composer,
+.app.is-driving .stage.is-busy.is-top .composer {
+  display: flex; flex-direction: row; align-items: center; justify-content: space-between;
+  padding: 0.7rem 1.4rem;
+}
+.app.is-driving .status { margin: 0; font-size: 1.2rem; width: auto; }
+.app.is-driving .composer-row { margin: 0 0 0 auto; width: auto; max-width: none; }
+.app.is-driving .send-btn { width: auto; height: 64px; padding: 0 1.6rem; border-radius: 32px; margin-left: 0; }
+.app.is-driving .stop-label { display: inline; }
+
 /* ---------- Settings sheet and dialog ---------- */
 
 .sheet-wrap { position: absolute; top: 0; right: 0; bottom: 0; left: 0; z-index: 20; }
@@ -427,7 +466,7 @@ html[data-theme="light"] .prose a { color: var(--text); }
   .rail-end { margin-top: 0; }
   .screen { padding: 0.9rem 1rem 1.1rem; }
   .composer, .stage.is-top .composer { padding: 0.45rem 1rem 0.6rem; }
-  .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .tiles, .app.is-driving .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .cards { grid-template-columns: minmax(0, 1fr); }
   .clock-time { font-size: 1.9rem; }
   .sheet { max-width: none; border-left: 0; }

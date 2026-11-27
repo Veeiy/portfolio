@@ -89,6 +89,7 @@
         // Tesla's browser names itself in the user agent. Its keyboard covers
         // the lower screen, so the typing box starts at the top there.
         composer: /Tesla\//.test(navigator.userAgent) ? "top" : "bottom",
+        driving: false,
       },
       load(KEYS.settings, {})
     ),
@@ -327,7 +328,20 @@
     root.setAttribute("data-theme", theme);
     root.setAttribute("data-size", state.settings.size);
     root.style.setProperty("--accent", ACCENTS[state.settings.accent] || ACCENTS.coral);
-    $("stage").className = "stage" + (state.settings.composer === "top" ? " is-top" : "");
+    $("stage").classList.toggle("is-top", state.settings.composer === "top");
+    $("app").classList.toggle("is-driving", Boolean(state.settings.driving));
+    $("nav-drive").setAttribute("aria-pressed", String(Boolean(state.settings.driving)));
+  }
+
+  // Driving mode is for use on the move: taps only, short answers, big text.
+  function toggleDriving() {
+    setSetting("driving", !state.settings.driving);
+    closeSheets();
+    if (state.session) {
+      renderTiles();
+      renderTail();
+      if (state.settings.driving) showScreen("home");
+    }
   }
 
   function setSetting(key, value) {
@@ -486,6 +500,17 @@
   function renderTiles() {
     var grid = $("tiles");
     grid.textContent = "";
+    if (state.settings.driving) {
+      // The brief card is hidden while driving, so it gets a tile of its own.
+      var briefTile = make("button", "tile tile-brief");
+      briefTile.type = "button";
+      briefTile.appendChild(make("span", "tile-label", "Daily brief"));
+      briefTile.addEventListener("click", function () {
+        if (state.brief && state.brief.text && sameDay(state.brief.at, Date.now())) openBrief();
+        else getBrief();
+      });
+      grid.appendChild(briefTile);
+    }
     state.tiles.forEach(function (tile) {
       var button = make("button", "tile");
       button.type = "button";
@@ -687,8 +712,10 @@
     if (state.busy || !last || last.role !== "assistant") return;
     if (last.error) {
       tail.appendChild(actionButton("Try again", true, retry));
+      if (state.settings.driving) tail.appendChild(actionButton("Tiles", false, function () { showScreen("home"); }));
       return;
     }
+    if (state.settings.driving) tail.appendChild(actionButton("Tiles", true, function () { showScreen("home"); }));
     if (!last.content) return;
     FOLLOWUPS.forEach(function (followup) {
       tail.appendChild(actionButton(followup.label, false, function () {
@@ -741,6 +768,7 @@
     var button = $("send");
     button.className = "round-btn send-btn" + (busy ? " is-stop" : "");
     button.setAttribute("aria-label", busy ? "Stop" : "Send");
+    $("stage").classList.toggle("is-busy", busy);
     if (!busy) setStatus("");
   }
 
@@ -804,7 +832,7 @@
           messages: history,
           model: currentModel().id,
           depth: state.settings.depth,
-          length: state.settings.length,
+          length: state.settings.driving ? "glance" : state.settings.length,
           kind: options.kind || "chat",
           timeZone: timeZone(),
         }),
@@ -1133,6 +1161,7 @@
       newChat();
       showScreen("chat");
     });
+    $("nav-drive").addEventListener("click", toggleDriving);
     $("nav-settings").addEventListener("click", openSettings);
     $("mode-chip").addEventListener("click", openSettings);
     $("fleet-refresh").addEventListener("click", loadFleet);

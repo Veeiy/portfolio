@@ -10,6 +10,7 @@ It is its own small app. It lives in this folder, deploys as its own Vercel proj
 - **Prompt tiles.** One tap asks a saved question. Add, edit and delete them in Settings.
 - **Daily brief.** Markets, what's on deck, and your fleet. Tap once, then ask follow-ups in the same chat.
 - **Fleet card.** Battery, range, charging, location and lock state for every Tesla on your Tessie account. Claude sees the same snapshot and can answer questions about it.
+- **Driving mode.** The Drive button on the side rail strips the screen down for use on the move: bigger tiles with no fine print, no typing box, larger answer text, answers forced to the short length, and no links that lead away from the page. Stop stays reachable while an answer streams.
 - **Your settings.** Model (Opus 5.5, Sonnet 5.5, Haiku 5.5), quick or deep thinking, answer length, text size, theme, accent color, and whether the typing box sits at the top or bottom.
 - **Live web search** on every model, with the sources shown under the answer.
 
@@ -63,7 +64,7 @@ Each web search adds 1 cent. A daily brief runs up to six searches. Settings sho
 npm install
 npm run dev:mock   # stubbed Claude and Tessie, passcode 123456, costs nothing
 npm run dev        # real services; put your keys in .env.local (see .env.example)
-npm test           # 52 checks against the stubs
+npm test           # 58 checks against the stubs
 ```
 
 `npm test` runs the API checks with no extra setup. The browser checks need Playwright (`npm i -D playwright`) and are skipped without it.
