@@ -960,7 +960,7 @@
       ["Streaming", typeof ReadableStream !== "undefined" && typeof TextDecoder !== "undefined" ? "Yes" : "No, answers arrive all at once"],
       ["Microphone access", navigator.mediaDevices && navigator.mediaDevices.getUserMedia ? "Offered by this browser" : "Not available"],
       ["Dictation", speechSupported() ? "Offered by this browser" : "Not available"],
-      ["Claude", state.session.claude ? "Connected" : "ANTHROPIC_API_KEY is not set"],
+      ["Claude", !state.session.claude ? "Not connected" : state.session.provider === "gateway" ? "Connected through Vercel AI Gateway" : "Connected with an Anthropic API key"],
       ["Tessie", state.session.fleet ? "Connected" : "Not set up"],
       ["Browser", navigator.userAgent],
     ];

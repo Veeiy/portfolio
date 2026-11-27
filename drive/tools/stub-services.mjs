@@ -238,7 +238,7 @@ export function startStubs(port = 0) {
     }
     if (req.method === "POST" && url.pathname === "/v1/messages") {
       const body = JSON.parse(await readBody(req));
-      const record = { service: "claude", beta: req.headers["anthropic-beta"] || "", body, aborted: false };
+      const record = { service: "claude", path: url.pathname + url.search, key: req.headers["x-api-key"] || (req.headers.authorization || "").replace(/^Bearer /, ""), beta: req.headers["anthropic-beta"] || "", body, aborted: false };
       requests.push(record);
       return streamMessage(req, res, body, record);
     }

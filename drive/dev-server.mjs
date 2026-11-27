@@ -28,8 +28,17 @@ if (mock) {
   const { startStubs } = await import("./tools/stub-services.mjs");
   const stubs = await startStubs(Number(process.env.STUB_PORT || 0));
   const base = "http://127.0.0.1:" + stubs.port;
+  // MOCK_PROVIDER picks how the app reaches "Claude": anthropic (default),
+  // gateway (an AI Gateway key), oidc (only the per-request Vercel token),
+  // or none.
+  const via = process.env.MOCK_PROVIDER || "anthropic";
+  delete process.env.ANTHROPIC_API_KEY;
+  delete process.env.AI_GATEWAY_API_KEY;
+  delete process.env.VERCEL_OIDC_TOKEN;
   process.env.ANTHROPIC_BASE_URL = base;
-  process.env.ANTHROPIC_API_KEY = "stub-key";
+  process.env.AI_GATEWAY_BASE_URL = base;
+  if (via === "anthropic") process.env.ANTHROPIC_API_KEY = "stub-key";
+  if (via === "gateway") process.env.AI_GATEWAY_API_KEY = "stub-gateway-key";
   process.env.TESSIE_BASE_URL = base;
   if (process.env.MOCK_FLEET !== "off") process.env.TESSIE_TOKEN = "stub-token";
   process.env.DRIVE_PASSCODE = process.env.DRIVE_PASSCODE || "123456";

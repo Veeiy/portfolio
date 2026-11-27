@@ -1,9 +1,9 @@
 // Prompt text for the car console.
 //
-// The top-level system prompt is frozen for the life of a deployment so it can
-// be cached. Anything that changes per message (the clock, the answer length
-// the driver picked, the fleet snapshot) goes in a trailing system message
-// instead, built by liveContext().
+// The main system prompt is frozen for the life of a deployment so it can be
+// cached. Anything that changes per message (the clock, the answer length the
+// driver picked, the fleet snapshot) goes in a second system block after it,
+// built by liveContext().
 
 const BASE_SYSTEM = `You are the assistant on a Tesla center touchscreen. Your answers are read on a 15 inch display from arm's length, by someone who is parked, charging, or about to drive, so they need to land at a glance.
 
@@ -55,7 +55,7 @@ function clock(timeZone, now) {
   }
 }
 
-// The trailing system message. fleetText is null when Tessie isn't set up, and
+// The per-message system block. fleetText is null when Tessie isn't set up, and
 // fleetProblem is a short reason when it is set up but the read failed.
 export function liveContext({ timeZone, length, fleetText, fleetProblem, now = new Date() }) {
   const lines = [

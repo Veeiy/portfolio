@@ -1,33 +1,48 @@
-// The one place that talks to the Claude API.
+// The one place that talks to Claude.
 //
 // A turn is a single streamed Messages request with the server-side web search
 // tool. There are no client-run tools, so there is no tool loop to host: the
 // only reason to send a second request is a paused search turn.
+//
+// Requests go one of two ways:
+//   - straight to the Claude API, when ANTHROPIC_API_KEY is set
+//   - through Vercel AI Gateway otherwise, which speaks the same Messages API
+//     and is authenticated by the short-lived OIDC token Vercel attaches to
+//     every function request (or by AI_GATEWAY_API_KEY off Vercel)
 
 import Anthropic from "@anthropic-ai/sdk";
 
 // Prices are USD per million tokens, used only for the rough spend estimate in
-// Settings. Check anthropic.com/pricing before trusting them for anything else.
+// Settings. AI Gateway lists the same rates.
 export const MODELS = {
-  "claude-opus-5-5": { label: "Opus 5.5", note: "Smartest", serverFallback: true, price: { input: 4, output: 20 } },
-  "claude-sonnet-5-5": { label: "Sonnet 5.5", note: "Balanced", serverFallback: true, price: { input: 2, output: 10 } },
-  "claude-haiku-5-5": { label: "Haiku 5.5", note: "Fastest", serverFallback: false, price: { input: 0.1, output: 0.5 } },
+  "claude-opus-5-5": { label: "Opus 5.5", note: "Smartest", gateway: "anthropic/claude-opus-5.5", serverFallback: true, price: { input: 4, output: 20 } },
+  "claude-sonnet-5-5": { label: "Sonnet 5.5", note: "Balanced", gateway: "anthropic/claude-sonnet-5.5", serverFallback: true, price: { input: 2, output: 10 } },
+  "claude-haiku-5-5": { label: "Haiku 5.5", note: "Fastest", gateway: "anthropic/claude-haiku-5.5", serverFallback: false, price: { input: 0.1, output: 0.5 } },
 };
 export const DEFAULT_MODEL = "claude-opus-5-5";
 export const SEARCH_PRICE = 0.01; // USD per web search
 
+const GATEWAY_URL = (process.env.AI_GATEWAY_BASE_URL || "https://ai-gateway.vercel.sh").replace(/\/+$/, "");
 const FALLBACK_BETA = "server-side-fallback-2026-07-01";
 const MAX_RESUMES = 3;
 const MAX_SOURCES = 6;
 
-let sharedClient;
-function client() {
-  if (!sharedClient) sharedClient = new Anthropic();
-  return sharedClient;
+// Returns { kind: "anthropic" } or { kind: "gateway", token }, or null when
+// nothing is configured. The OIDC token rotates, so it is read per request.
+export function resolveProvider(request) {
+  if (process.env.ANTHROPIC_API_KEY) return { kind: "anthropic" };
+  const token =
+    process.env.AI_GATEWAY_API_KEY ||
+    (request && request.headers.get("x-vercel-oidc-token")) ||
+    process.env.VERCEL_OIDC_TOKEN;
+  return token ? { kind: "gateway", token } : null;
 }
 
-export function claudeConfigured() {
-  return Boolean(process.env.ANTHROPIC_API_KEY);
+let directClient;
+function clientFor(provider) {
+  if (provider.kind === "gateway") return new Anthropic({ apiKey: provider.token, baseURL: GATEWAY_URL });
+  if (!directClient) directClient = new Anthropic();
+  return directClient;
 }
 
 function addSource(sources, url, title) {
@@ -58,28 +73,42 @@ function collectSources(content, sources) {
 //   { t: "delta", v: "<text>" }
 //   { t: "refusal" } | { t: "truncated" }
 //   { t: "done", model, usage: { input, output, searches }, sources: [{ url, title }] }
-export async function* runTurn({ model, effort, system, messages, maxSearches, maxTokens, timeZone, signal }) {
+//
+// `stableSystem` is the frozen prompt and is cached; `liveSystem` changes with
+// every message (clock, answer length, fleet snapshot) and follows it.
+export async function* runTurn({ provider, model, effort, stableSystem, liveSystem, messages, maxSearches, maxTokens, timeZone, signal }) {
   const spec = MODELS[model];
-  const search = { type: "web_search_20260209", name: "web_search", max_uses: maxSearches };
+  const gateway = provider.kind === "gateway";
+
+  // The gateway documents the basic search tool; the Claude API also offers
+  // the newer one that filters results before they reach the model.
+  const search = { type: gateway ? "web_search_20250305" : "web_search_20260209", name: "web_search", max_uses: maxSearches };
   if (timeZone) search.user_location = { type: "approximate", timezone: timeZone };
 
   const params = {
-    model,
+    model: gateway ? spec.gateway : model,
     max_tokens: maxTokens,
-    system: [{ type: "text", text: system, cache_control: { type: "ephemeral" } }],
+    system: [
+      { type: "text", text: stableSystem, cache_control: { type: "ephemeral" } },
+      { type: "text", text: liveSystem },
+    ],
     tools: [search],
     // Thinking is adaptive on all three models when `thinking` is omitted;
     // effort is the control for how much of it happens.
     output_config: { effort },
   };
   // A safety classifier can decline a harmless request. With this opt-in the
-  // API re-runs a declined request on another model inside the same call
-  // rather than handing the driver a refusal. Haiku 5.5 has no server-side
-  // fallback, so its refusals are surfaced as they are.
-  if (spec.serverFallback) {
+  // Claude API re-runs a declined request on another model inside the same
+  // call rather than handing the driver a refusal. Haiku 5.5 has no
+  // server-side fallback, and the gateway does its own routing, so in those
+  // cases a refusal is surfaced as it is.
+  if (!gateway && spec.serverFallback) {
     params.betas = [FALLBACK_BETA];
     params.fallbacks = "default";
   }
+
+  const api = clientFor(provider);
+  const open = (body) => (gateway ? api.messages.stream(body, { signal }) : api.beta.messages.stream(body, { signal }));
 
   const conversation = messages.slice();
   const usage = { input: 0, output: 0, searches: 0 };
@@ -88,7 +117,7 @@ export async function* runTurn({ model, effort, system, messages, maxSearches, m
   let last;
 
   for (let attempt = 0; attempt <= MAX_RESUMES; attempt++) {
-    const stream = client().beta.messages.stream({ ...params, messages: conversation }, { signal });
+    const stream = open({ ...params, messages: conversation });
 
     for await (const event of stream) {
       let next = "";
@@ -127,8 +156,17 @@ export async function* runTurn({ model, effort, system, messages, maxSearches, m
   yield { t: "done", model: last.model, usage, sources };
 }
 
+function brief(message) {
+  const text = String(message || "").replace(/\s+/g, " ").trim();
+  return text.length > 220 ? text.slice(0, 220) + "..." : text;
+}
+
 // A short, driver-readable description of an API failure.
-export function describeError(err) {
+export function describeError(err, provider) {
+  const gateway = provider && provider.kind === "gateway";
+  if (gateway && err instanceof Anthropic.APIError && [401, 402, 403].includes(err.status)) {
+    return "Vercel AI Gateway refused the request (" + err.status + "): " + brief(err.message) + " Check AI Gateway credits and access in the Vercel dashboard.";
+  }
   if (err instanceof Anthropic.AuthenticationError) {
     return "The Anthropic API key was rejected. Check ANTHROPIC_API_KEY.";
   }
@@ -139,13 +177,13 @@ export function describeError(err) {
     return "Rate limited by the API. Give it a moment and try again.";
   }
   if (err instanceof Anthropic.BadRequestError) {
-    return "The API rejected the request: " + err.message;
+    return "The API rejected the request: " + brief(err.message);
   }
   if (err instanceof Anthropic.APIConnectionError) {
-    return "Couldn't reach the Claude API. Check the connection and try again.";
+    return "Couldn't reach Claude. Check the connection and try again.";
   }
   if (err instanceof Anthropic.APIError) {
-    return "Claude had a problem (status " + err.status + "). Try again.";
+    return "Claude had a problem (status " + err.status + "): " + brief(err.message);
   }
   return "Something went wrong on the server.";
 }

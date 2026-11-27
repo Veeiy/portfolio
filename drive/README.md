@@ -17,19 +17,24 @@ It is its own small app. It lives in this folder, deploys as its own Vercel proj
 
 - **Control the car or clear faults.** It reads data. It never sends a command, and no outside app can clear a Tesla alert.
 - **Use the car's microphone.** A 2021 Model 3 has the Intel Atom infotainment computer, and Tesla's browser only offers mic access on AMD Ryzen cars. You type, or tap a tile. On a phone or laptop the mic button appears and dictation works.
-- **Share anything with the Claude app.** This talks to the Claude API. Your Claude subscription, memory, projects and connectors are separate.
+- **Share anything with the Claude app.** This talks to Claude's API. Your Claude subscription, memory, projects and connectors are separate.
 
 ## Set it up
 
-You need an Anthropic API key. Tessie is optional.
+Claude can be reached two ways, and you only need one:
+
+- **Vercel AI Gateway (no key).** On Vercel the app authenticates to the gateway with the project's own short-lived token. Nothing to create or store. Usage is billed to the Vercel team at the model's list price.
+- **Your own Anthropic API key.** Set `ANTHROPIC_API_KEY` and the app calls the Claude API directly and bills your Anthropic account. When this is set it always wins.
+
+Tessie is optional either way.
 
 1. **Create the Vercel project.** In Vercel, add a new project from this repo, set **Root Directory** to `drive`, and leave the framework preset on Other. No build command is needed.
 2. **Add environment variables** in the project's settings:
 
    | Variable | Required | What it is |
    |---|---|---|
-   | `ANTHROPIC_API_KEY` | Yes | From console.anthropic.com. Set a monthly spend limit there too. |
    | `DRIVE_PASSCODE` | Yes | 6 to 12 digits. This is the PIN you type on the car screen. Use 8 or more. |
+   | `ANTHROPIC_API_KEY` | No | From console.anthropic.com. Leave it unset to use Vercel AI Gateway. |
    | `TESSIE_TOKEN` | No | From dash.tessie.com/settings/api. Turns on the fleet card. |
    | `DRIVE_PROFILE` | No | A few sentences about you: where you are, what you trade, how you like answers. Claude reads it on every message. |
    | `DRIVE_TILES` | No | Preloads home tiles so you don't type them on the car keyboard. JSON: `[{"label":"Market pulse","prompt":"..."}]` |
@@ -42,7 +47,7 @@ Environment variable changes only take effect after a redeploy.
 
 ## What it costs
 
-You pay Anthropic per use. Rough numbers for a typical car question (about 4,000 tokens in, 400 out):
+You pay per use, to Vercel through AI Gateway or to Anthropic with your own key. The rates are the same. Rough numbers for a typical car question (about 4,000 tokens in, 400 out):
 
 | Model | Per question |
 |---|---|
@@ -50,7 +55,7 @@ You pay Anthropic per use. Rough numbers for a typical car question (about 4,000
 | Sonnet 5.5 | about 1 cent |
 | Opus 5.5 | about 2.5 cents |
 
-Each web search adds 1 cent. A daily brief runs up to six searches. Settings shows a running estimate for the month; the Anthropic console has the real figure.
+Each web search adds 1 cent. A daily brief runs up to six searches. Settings shows a running estimate for the month; the Vercel or Anthropic dashboard has the real figure. Set a spend limit there.
 
 ## Run it locally
 
@@ -58,7 +63,7 @@ Each web search adds 1 cent. A daily brief runs up to six searches. Settings sho
 npm install
 npm run dev:mock   # stubbed Claude and Tessie, passcode 123456, costs nothing
 npm run dev        # real services; put your keys in .env.local (see .env.example)
-npm test           # 48 checks against the stubs
+npm test           # 52 checks against the stubs
 ```
 
 `npm test` runs the API checks with no extra setup. The browser checks need Playwright (`npm i -D playwright`) and are skipped without it.
@@ -72,15 +77,15 @@ lib/      auth, the Claude call, the Tessie client, the prompts
 tools/    local stubs and the smoke test
 ```
 
-- **One streamed request per answer.** `lib/claude.js` calls the Messages API with the server-side web search tool. There are no client-run tools, so there is no agent loop to host.
+- **One streamed request per answer.** `lib/claude.js` calls the Messages API with the server-side web search tool, either directly or through AI Gateway, which speaks the same API. There are no client-run tools, so there is no agent loop to host.
 - **Stateless server.** The browser keeps the conversation and sends it with each message. Settings, tiles and chat history live in that browser's storage, so the car and your phone each keep their own.
-- **Live context.** The clock, your chosen answer length and the fleet snapshot ride in a trailing system message, so the main system prompt stays cacheable.
+- **Live context.** The clock, your chosen answer length and the fleet snapshot ride in their own system block after the main prompt, so the main prompt stays cacheable.
 - **Built for a slow browser.** Plain HTML, CSS and JavaScript with nothing newer than async/await, no blur or heavy animation, and streamed text repainted a few times a second.
 
 ## Security notes
 
 - Every API route needs the passcode. If `DRIVE_PASSCODE` is missing or malformed the routes refuse to run.
-- Eight wrong passcodes from one address lock that address out for ten minutes. That counter lives in one function instance's memory, so treat it as a speed bump. The passcode length is the real protection, and the Anthropic spend limit caps the damage if it ever leaks.
+- Eight wrong passcodes from one address lock that address out for ten minutes. That counter lives in one function instance's memory, so treat it as a speed bump. The passcode length is the real protection, and a spend limit caps the damage if it ever leaks.
 - The browser never receives VINs or raw coordinates. It does get street addresses for the fleet card.
 - Model output is escaped before it is rendered, links are limited to http and https, and a strict Content-Security-Policy blocks inline script.
 

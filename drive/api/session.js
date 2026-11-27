@@ -3,7 +3,7 @@
 
 import { requireAuth } from "../lib/auth.js";
 import { json, methodNotAllowed } from "../lib/http.js";
-import { MODELS, DEFAULT_MODEL, SEARCH_PRICE, claudeConfigured } from "../lib/claude.js";
+import { MODELS, DEFAULT_MODEL, SEARCH_PRICE, resolveProvider } from "../lib/claude.js";
 import { fleetConfigured } from "../lib/tessie.js";
 
 const MAX_TILES = 12;
@@ -33,9 +33,11 @@ export default {
     const denied = await requireAuth(request);
     if (denied) return denied;
 
+    const provider = resolveProvider(request);
     return json({
       ok: true,
-      claude: claudeConfigured(),
+      claude: Boolean(provider),
+      provider: provider ? provider.kind : null,
       fleet: fleetConfigured(),
       defaultModel: DEFAULT_MODEL,
       searchPrice: SEARCH_PRICE,

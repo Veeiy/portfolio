@@ -83,10 +83,10 @@ async function apiChecks(base, stub) {
   check("chat ends with sources and usage", done.t === "done" && done.sources[0].url === "https://example.com/markets" && done.usage.searches === 1 && done.usage.output === 180, JSON.stringify(done));
 
   let sent = (await upstream(stub))[0];
-  const tail = sent.body.messages[sent.body.messages.length - 1];
-  check("opus request opts into refusal fallback", sent.beta.includes("server-side-fallback-2026-07-01") && sent.body.fallbacks === "default");
+  const live = sent.body.system[1].text;
+  check("opus request opts into refusal fallback", sent.beta.includes("server-side-fallback-2026-07-01") && sent.body.fallbacks === "default" && sent.body.model === "claude-opus-5-5" && sent.key === "stub-key");
   check("request uses web search, low effort, cached system", sent.body.tools[0].type === "web_search_20260209" && sent.body.tools[0].max_uses === 3 && sent.body.output_config.effort === "low" && sent.body.system[0].cache_control.type === "ephemeral" && sent.body.thinking === undefined);
-  check("live context rides in a trailing system message", tail.role === "system" && tail.content.includes("Fleet snapshot from Tessie") && tail.content.includes("America/Los_Angeles") && tail.content.includes("glance"));
+  check("live context rides in its own system block", sent.body.system.length === 2 && live.includes("Fleet snapshot from Tessie") && live.includes("America/Los_Angeles") && live.includes("glance") && sent.body.messages.length === 1);
   check("search is located by time zone only", JSON.stringify(sent.body.tools[0].user_location) === JSON.stringify({ type: "approximate", timezone: "America/Los_Angeles" }));
 
   await upstream(stub, true);
@@ -140,9 +140,36 @@ async function configChecks() {
     check("without Tessie the fleet reports not configured", session.fleet === false && fleet.configured === false);
     await chat(base, ask("where are my cars"));
     const sent = (await upstream("http://127.0.0.1:4332"))[0];
-    check("without Tessie the model is told so", sent.body.messages[1].content.includes("Fleet snapshot: not connected"));
+    check("without Tessie the model is told so", sent.body.system[1].text.includes("Fleet snapshot: not connected"));
   } finally {
     noFleet.kill();
+  }
+
+  const viaKey = await startServer(4351, 4352, { MOCK_PROVIDER: "gateway" });
+  try {
+    const base = "http://localhost:4351";
+    const session = await (await fetch(base + "/api/session", { headers: auth() })).json();
+    const reply = await chat(base, ask("market pulse", { model: "claude-sonnet-5-5" }));
+    const sent = (await upstream("http://127.0.0.1:4352"))[0];
+    check("gateway mode is reported and answers", session.claude === true && session.provider === "gateway" && reply.answer.includes("Short version"));
+    check("gateway request uses its model ids, basic search and no fallback fields", sent.body.model === "anthropic/claude-sonnet-5.5" && sent.body.tools[0].type === "web_search_20250305" && sent.body.fallbacks === undefined && !sent.beta && sent.path === "/v1/messages" && sent.key === "stub-gateway-key", JSON.stringify({ model: sent.body.model, path: sent.path, beta: sent.beta }));
+  } finally {
+    viaKey.kill();
+  }
+
+  const viaOidc = await startServer(4361, 4362, { MOCK_PROVIDER: "oidc" });
+  try {
+    const base = "http://localhost:4361";
+    const bare = await (await fetch(base + "/api/session", { headers: auth() })).json();
+    const refused = await chat(base, ask("hello"));
+    check("with no key and no token Claude reads as not connected", bare.claude === false && refused.status === 503);
+    const token = { "x-vercel-oidc-token": "stub-oidc-token" };
+    const session = await (await fetch(base + "/api/session", { headers: auth(token) })).json();
+    await chat(base, ask("hello"), auth(token));
+    const sent = (await upstream("http://127.0.0.1:4362"))[0];
+    check("the per-request Vercel token authenticates gateway calls", session.provider === "gateway" && sent.key === "stub-oidc-token" && sent.body.model === "anthropic/claude-opus-5.5");
+  } finally {
+    viaOidc.kill();
   }
 
   const noPass = await startServer(4341, 4342, { DRIVE_PASSCODE: "abc" });
@@ -199,7 +226,7 @@ async function browserChecks(base, stub) {
     await page.click("#followups .btn >> nth=0");
     await answerDone();
     const followup = (await upstream(stub))[0];
-    check("follow-up sends the conversation so far", followup.body.messages.map((m) => m.role).join(",") === "user,assistant,user,system", followup.body.messages.map((m) => m.role).join(","));
+    check("follow-up sends the conversation so far", followup.body.messages.map((m) => m.role).join(",") === "user,assistant,user", followup.body.messages.map((m) => m.role).join(","));
 
     await upstream(stub, true);
     await send("[slow] long one");

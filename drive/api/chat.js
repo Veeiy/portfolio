@@ -6,7 +6,7 @@
 
 import { requireAuth } from "../lib/auth.js";
 import { json, methodNotAllowed, readJson, BodyError, ndjsonStream } from "../lib/http.js";
-import { MODELS, DEFAULT_MODEL, claudeConfigured, runTurn, describeError, isAbort } from "../lib/claude.js";
+import { MODELS, DEFAULT_MODEL, resolveProvider, runTurn, describeError, isAbort } from "../lib/claude.js";
 import { systemPrompt, liveContext, BRIEF_REQUEST, LENGTH_KEYS } from "../lib/prompts.js";
 import { getFleet, describeFleet } from "../lib/tessie.js";
 
@@ -62,9 +62,10 @@ export default {
     if (request.method !== "POST") return methodNotAllowed("POST");
     const denied = await requireAuth(request);
     if (denied) return denied;
-    if (!claudeConfigured()) {
+    const provider = resolveProvider(request);
+    if (!provider) {
       return json(
-        { error: "not_configured", message: "Set ANTHROPIC_API_KEY in the server environment, then redeploy." },
+        { error: "not_configured", message: "Claude isn't connected. Set ANTHROPIC_API_KEY, or deploy on Vercel to use AI Gateway." },
         503,
       );
     }
@@ -91,14 +92,11 @@ export default {
 
     const messages = input.messages.slice();
     if (input.brief) messages[messages.length - 1] = { role: "user", content: BRIEF_REQUEST };
-    messages.push({
-      role: "system",
-      content: liveContext({
-        timeZone: input.timeZone,
-        length: input.length,
-        fleetText,
-        fleetProblem,
-      }),
+    const liveSystem = liveContext({
+      timeZone: input.timeZone,
+      length: input.length,
+      fleetText,
+      fleetProblem,
     });
 
     const abort = new AbortController();
@@ -111,9 +109,11 @@ export default {
       async (send) => {
         try {
           const turn = runTurn({
+            provider,
             model: input.model,
             effort: input.brief ? "medium" : input.deep ? "high" : "low",
-            system: systemPrompt(),
+            stableSystem: systemPrompt(),
+            liveSystem,
             messages,
             maxSearches: input.brief || input.deep ? 6 : 3,
             maxTokens: input.deep ? 32_000 : 16_000,
@@ -124,7 +124,7 @@ export default {
         } catch (err) {
           if (isAbort(err)) return;
           console.error("chat turn failed:", err);
-          send({ t: "error", v: describeError(err) });
+          send({ t: "error", v: describeError(err, provider) });
         }
       },
       () => abort.abort(),
