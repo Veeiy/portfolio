@@ -22,7 +22,7 @@ export const MODELS = {
 export const DEFAULT_MODEL = "claude-opus-5-5";
 export const SEARCH_PRICE = 0.01; // USD per web search
 
-const GATEWAY_URL = (process.env.AI_GATEWAY_BASE_URL || "https://ai-gateway.vercel.sh").replace(/\/+$/, "");
+export const GATEWAY_URL = (process.env.AI_GATEWAY_BASE_URL || "https://ai-gateway.vercel.sh").replace(/\/+$/, "");
 const FALLBACK_BETA = "server-side-fallback-2026-07-01";
 const MAX_RESUMES = 3;
 const MAX_SOURCES = 6;
@@ -31,11 +31,19 @@ const MAX_SOURCES = 6;
 // nothing is configured. The OIDC token rotates, so it is read per request.
 export function resolveProvider(request) {
   if (process.env.ANTHROPIC_API_KEY) return { kind: "anthropic" };
-  const token =
+  const token = gatewayToken(request);
+  return token ? { kind: "gateway", token } : null;
+}
+
+// The credential for AI Gateway, or null. Also used for speech, which goes
+// through the gateway even when text comes from the Claude API directly.
+export function gatewayToken(request) {
+  return (
     process.env.AI_GATEWAY_API_KEY ||
     (request && request.headers.get("x-vercel-oidc-token")) ||
-    process.env.VERCEL_OIDC_TOKEN;
-  return token ? { kind: "gateway", token } : null;
+    process.env.VERCEL_OIDC_TOKEN ||
+    null
+  );
 }
 
 let directClient;

@@ -306,6 +306,7 @@ html[data-theme="light"] .prose a { color: var(--text); }
 }
 .followups { display: flex; flex-wrap: wrap; margin: 0.7rem -5px 0; }
 .followups .btn { margin: 5px; min-height: 52px; font-size: 0.95rem; }
+.speech-note { flex-basis: 100%; margin: 0.3rem 5px 0; }
 
 /* ---------- Composer ---------- */
 
@@ -461,7 +462,7 @@ html[data-theme="light"] .prose a { color: var(--text); }
     padding: 6px 4px; padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px));
     border-right: 0; border-top: 1px solid var(--line);
   }
-  .rail-btn { width: 68px; height: 56px; margin: 0; font-size: 11px; }
+  .rail-btn { flex: 1 1 0; width: auto; max-width: 76px; min-width: 0; height: 56px; margin: 0; font-size: 11px; }
   .rail-btn .icon { width: 24px; height: 24px; margin-bottom: 3px; }
   .rail-end { margin-top: 0; }
   .screen { padding: 0.9rem 1rem 1.1rem; }

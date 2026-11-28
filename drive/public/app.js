@@ -90,6 +90,8 @@
         // the lower screen, so the typing box starts at the top there.
         composer: /Tesla\//.test(navigator.userAgent) ? "top" : "bottom",
         driving: false,
+        voice: false,
+        voiceName: "",
       },
       load(KEYS.settings, {})
     ),
@@ -331,6 +333,7 @@
     $("stage").classList.toggle("is-top", state.settings.composer === "top");
     $("app").classList.toggle("is-driving", Boolean(state.settings.driving));
     $("nav-drive").setAttribute("aria-pressed", String(Boolean(state.settings.driving)));
+    $("nav-voice").setAttribute("aria-pressed", String(Boolean(state.settings.voice)));
   }
 
   // Driving mode is for use on the move: taps only, short answers, big text.
@@ -389,6 +392,7 @@
 
   function lockNow() {
     stopAnswer();
+    stopSpeaking();
     drop(KEYS.pass);
     state.pass = "";
     state.pin = "";
@@ -452,6 +456,8 @@
     restoreChat();
     $("cards").className = "cards" + (state.session.fleet ? "" : " is-single");
     $("fleet-card").hidden = !state.session.fleet;
+    $("nav-voice").hidden = !state.session.speech;
+    $("voice-section").hidden = !state.session.speech;
     if (state.session.fleet) loadFleet();
     showScreen("home");
   }
@@ -717,11 +723,22 @@
     }
     if (state.settings.driving) tail.appendChild(actionButton("Tiles", true, function () { showScreen("home"); }));
     if (!last.content) return;
+    if (state.session && state.session.speech) {
+      if (speech.state === "idle") {
+        tail.appendChild(actionButton("Listen", false, function () {
+          primeAudio();
+          speak(last.content);
+        }));
+      } else {
+        tail.appendChild(actionButton(speech.state === "loading" ? "Getting audio" : "Stop audio", false, stopSpeaking));
+      }
+    }
     FOLLOWUPS.forEach(function (followup) {
       tail.appendChild(actionButton(followup.label, false, function () {
         ask(followup.prompt, {});
       }));
     });
+    if (speech.note) tail.appendChild(make("p", "msg-note is-error speech-note", speech.note));
   }
 
   function persistChat() {
@@ -759,6 +776,7 @@
 
   function newChat() {
     stopAnswer();
+    stopSpeaking();
     clearThread();
     drop(KEYS.chat);
   }
@@ -796,6 +814,9 @@
     text = String(text || "").trim();
     if (!text || state.busy || !state.session) return;
     options = options || {};
+    stopSpeaking();
+    // Called from inside the tap, so the reply can be spoken when it arrives.
+    if (state.settings.voice && state.session.speech) primeAudio();
     if (options.fresh) newChat();
     showScreen("chat");
     var question = pushMessage({ role: "user", content: text });
@@ -885,7 +906,162 @@
       save(KEYS.brief, state.brief);
       renderBrief();
     }
+    if (state.settings.voice && finished && answer.content && !answer.error && !answer.note) speak(answer.content);
   }
+
+  // ---------- Speech ----------
+  // Answers are read aloud by fetching audio for the finished text and playing
+  // it on one shared <audio> element.
+
+  var player = null;
+  var silentUrl = "";
+  var speech = { state: "idle", ticket: 0, abort: null, url: "", note: "" }; // idle | loading | playing
+
+  function getPlayer() {
+    if (!player) {
+      player = new Audio();
+      player.addEventListener("ended", function () {
+        if (speech.state === "playing") finishSpeaking();
+      });
+      player.addEventListener("error", function () {
+        if (speech.state === "playing") {
+          speech.note = "Couldn't play the audio.";
+          finishSpeaking();
+        }
+      });
+    }
+    return player;
+  }
+
+  function silentWav() {
+    var samples = 400;
+    var buffer = new ArrayBuffer(44 + samples);
+    var view = new DataView(buffer);
+    function put(offset, text) {
+      for (var i = 0; i < text.length; i += 1) view.setUint8(offset + i, text.charCodeAt(i));
+    }
+    put(0, "RIFF");
+    view.setUint32(4, 36 + samples, true);
+    put(8, "WAVEfmt ");
+    view.setUint32(16, 16, true);
+    view.setUint16(20, 1, true);
+    view.setUint16(22, 1, true);
+    view.setUint32(24, 8000, true);
+    view.setUint32(28, 8000, true);
+    view.setUint16(32, 1, true);
+    view.setUint16(34, 8, true);
+    put(36, "data");
+    view.setUint32(40, samples, true);
+    for (var j = 0; j < samples; j += 1) view.setUint8(44 + j, 128);
+    return buffer;
+  }
+
+  // Browsers only let a page start sound from inside a tap. The answer's audio
+  // arrives seconds after the tap, so the tap itself plays a moment of silence
+  // on the shared element, which keeps that element allowed to play later.
+  function primeAudio() {
+    if (typeof Audio === "undefined" || !window.URL || !URL.createObjectURL || speech.state !== "idle") return;
+    try {
+      if (!silentUrl) silentUrl = URL.createObjectURL(new Blob([silentWav()], { type: "audio/wav" }));
+      var element = getPlayer();
+      element.src = silentUrl;
+      var attempt = element.play();
+      if (attempt && attempt.catch) attempt.catch(function () {});
+    } catch (e) {
+      // No audio support; speaking will report its own failure.
+    }
+  }
+
+  // Markdown reads badly aloud, so it is reduced to plain sentences first.
+  function speechText(markdown) {
+    var text = String(markdown).replace(/```[\s\S]*?```/g, " ");
+    text = text.replace(/\[([^\]\n]+)\]\((https?:\/\/[^\s)]+)\)/g, "$1").replace(/https?:\/\/\S+/g, "");
+    var lines = text.split("\n").map(function (line) {
+      if (/^\s*\|?\s*:?-{2,}/.test(line)) return "";
+      if (TABLE_ROW.test(line)) {
+        return line.trim().replace(/^\|/, "").replace(/\|$/, "").split("|")
+          .map(function (cell) { return cell.trim(); })
+          .filter(Boolean).join(", ");
+      }
+      return line.replace(/^\s*#{1,6}\s+/, "").replace(/^\s*([-*+]|\d{1,3}[.)])\s+/, "").replace(/^\s*>\s?/, "");
+    });
+    return lines
+      .map(function (line) {
+        line = line.replace(/[*_`]/g, "").trim();
+        return line && !/[.!?:;,]$/.test(line) ? line + "." : line;
+      })
+      .filter(Boolean)
+      .join(" ")
+      .slice(0, 3000);
+  }
+
+  function finishSpeaking() {
+    if (speech.url) {
+      URL.revokeObjectURL(speech.url);
+      speech.url = "";
+    }
+    speech.state = "idle";
+    speech.abort = null;
+    renderTail();
+  }
+
+  function stopSpeaking() {
+    speech.ticket += 1;
+    if (speech.abort) speech.abort.abort();
+    if (player && speech.state === "playing") player.pause();
+    if (speech.state !== "idle") finishSpeaking();
+  }
+
+  async function speak(markdown) {
+    var text = speechText(markdown);
+    if (!text || !state.session || !state.session.speech) return;
+    stopSpeaking();
+    var ticket = speech.ticket;
+    var controller = typeof AbortController === "undefined" ? null : new AbortController();
+    speech.state = "loading";
+    speech.abort = controller;
+    speech.note = "";
+    renderTail();
+    try {
+      var response = await api("/api/speak", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: text, voice: state.settings.voiceName || state.session.defaultVoice }),
+        signal: controller ? controller.signal : undefined,
+      });
+      if (ticket !== speech.ticket) return;
+      if (!response.ok) throw new Error(await errorMessage(response));
+      var blob = await response.blob();
+      if (ticket !== speech.ticket) return;
+      speech.url = URL.createObjectURL(blob);
+      var element = getPlayer();
+      element.src = speech.url;
+      speech.state = "playing";
+      renderTail();
+      recordSpeechSpend(text.length);
+      await element.play();
+    } catch (err) {
+      if (ticket !== speech.ticket) return;
+      if (err && err.name === "NotAllowedError") speech.note = "Tap Listen to hear it.";
+      else if (!(err && err.name === "AbortError")) speech.note = err && err.message && err.message.indexOf("Failed to fetch") === -1 ? err.message : "Couldn't get the audio.";
+      finishSpeaking();
+    }
+  }
+
+  function toggleVoice() {
+    setSetting("voice", !state.settings.voice);
+    if (state.settings.voice) primeAudio();
+    else stopSpeaking();
+  }
+
+  function recordSpeechSpend(characters) {
+    var month = new Date().toISOString().slice(0, 7);
+    var spend = load(KEYS.spend, null);
+    if (!spend || spend.month !== month) spend = { month: month, cost: 0, answers: 0 };
+    spend.cost += characters * (state.session.speechPrice || 0);
+    save(KEYS.spend, spend);
+  }
+
 
   // ---------- Spend estimate ----------
 
@@ -938,6 +1114,14 @@
       function (value) { setSetting("length", value); }
     );
     buildSegment("seg-size", [{ value: "m", label: "M" }, { value: "l", label: "L" }, { value: "xl", label: "XL" }], state.settings.size, function (value) { setSetting("size", value); });
+    if (state.session.speech) {
+      buildSegment(
+        "seg-voice",
+        state.session.voices.map(function (name) { return { value: name, label: name.charAt(0).toUpperCase() + name.slice(1) }; }),
+        state.settings.voiceName || state.session.defaultVoice,
+        function (value) { setSetting("voiceName", value); }
+      );
+    }
     buildSegment("seg-composer", [{ value: "top", label: "Top" }, { value: "bottom", label: "Bottom" }], state.settings.composer, function (value) { setSetting("composer", value); });
     buildSegment(
       "seg-theme",
@@ -1162,6 +1346,7 @@
       showScreen("chat");
     });
     $("nav-drive").addEventListener("click", toggleDriving);
+    $("nav-voice").addEventListener("click", toggleVoice);
     $("nav-settings").addEventListener("click", openSettings);
     $("mode-chip").addEventListener("click", openSettings);
     $("fleet-refresh").addEventListener("click", loadFleet);

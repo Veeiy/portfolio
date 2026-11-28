@@ -5,6 +5,7 @@ import { requireAuth } from "../lib/auth.js";
 import { json, methodNotAllowed } from "../lib/http.js";
 import { MODELS, DEFAULT_MODEL, SEARCH_PRICE, resolveProvider } from "../lib/claude.js";
 import { fleetConfigured } from "../lib/tessie.js";
+import { speechToken, SPEECH_PRICE, VOICES, DEFAULT_VOICE } from "../lib/speech.js";
 
 const MAX_TILES = 12;
 
@@ -39,6 +40,10 @@ export default {
       claude: Boolean(provider),
       provider: provider ? provider.kind : null,
       fleet: fleetConfigured(),
+      speech: Boolean(speechToken(request)),
+      speechPrice: SPEECH_PRICE,
+      voices: VOICES,
+      defaultVoice: DEFAULT_VOICE,
       defaultModel: DEFAULT_MODEL,
       searchPrice: SEARCH_PRICE,
       models: Object.entries(MODELS).map(([id, m]) => ({ id, label: m.label, note: m.note, price: m.price })),

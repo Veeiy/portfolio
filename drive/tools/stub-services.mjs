@@ -216,6 +216,25 @@ const PLACES = {
   "5YJ3STUB000000003": { latitude: 37.3382, longitude: -121.8863, address: "55 Placeholder Blvd, San Jose, California 95113, United States", saved_location: "" },
 };
 
+// A third of a second of silence as a valid WAV, standing in for speech audio.
+function shortWav() {
+  const samples = 2700;
+  const wav = Buffer.alloc(44 + samples, 128);
+  wav.write("RIFF", 0, "latin1");
+  wav.writeUInt32LE(36 + samples, 4);
+  wav.write("WAVEfmt ", 8, "latin1");
+  wav.writeUInt32LE(16, 16);
+  wav.writeUInt16LE(1, 20);
+  wav.writeUInt16LE(1, 22);
+  wav.writeUInt32LE(8000, 24);
+  wav.writeUInt32LE(8000, 28);
+  wav.writeUInt16LE(1, 32);
+  wav.writeUInt16LE(8, 34);
+  wav.write("data", 36, "latin1");
+  wav.writeUInt32LE(samples, 40);
+  return wav;
+}
+
 function readBody(req) {
   return new Promise((resolve) => {
     let data = "";
@@ -241,6 +260,11 @@ export function startStubs(port = 0) {
       const record = { service: "claude", path: url.pathname + url.search, key: req.headers["x-api-key"] || (req.headers.authorization || "").replace(/^Bearer /, ""), beta: req.headers["anthropic-beta"] || "", body, aborted: false };
       requests.push(record);
       return streamMessage(req, res, body, record);
+    }
+    if (req.method === "POST" && url.pathname === "/v4/ai/speech-model") {
+      const body = JSON.parse(await readBody(req));
+      requests.push({ service: "speech", model: req.headers["ai-model-id"] || "", key: (req.headers.authorization || "").replace(/^Bearer /, ""), body });
+      return sendJson(200, { audio: shortWav().toString("base64"), warnings: [] });
     }
     if (req.method === "GET" && url.pathname === "/vehicles") {
       requests.push({ service: "tessie", path: url.pathname + url.search, auth: req.headers.authorization || "" });

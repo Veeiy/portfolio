@@ -11,13 +11,14 @@ It is its own small app. It lives in this folder, deploys as its own Vercel proj
 - **Daily brief.** Markets, what's on deck, and your fleet. Tap once, then ask follow-ups in the same chat.
 - **Fleet card.** Battery, range, charging, location and lock state for every Tesla on your Tessie account. Claude sees the same snapshot and can answer questions about it.
 - **Driving mode.** The Drive button on the side rail strips the screen down for use on the move: bigger tiles with no fine print, no typing box, larger answer text, answers forced to the short length, and no links that lead away from the page. Stop stays reachable while an answer streams.
+- **Spoken answers.** The Voice button on the side rail reads each answer aloud when it finishes, and every answer has a Listen button for reading it on demand. Speech comes from a text-to-speech model on Vercel AI Gateway, so it is only offered where the gateway is available.
 - **Your settings.** Model (Opus 5.5, Sonnet 5.5, Haiku 5.5), quick or deep thinking, answer length, text size, theme, accent color, and whether the typing box sits at the top or bottom.
 - **Live web search** on every model, with the sources shown under the answer.
 
 ## What it can't do
 
 - **Control the car or clear faults.** It reads data. It never sends a command, and no outside app can clear a Tesla alert.
-- **Use the car's microphone.** A 2021 Model 3 has the Intel Atom infotainment computer, and Tesla's browser only offers mic access on AMD Ryzen cars. You type, or tap a tile. On a phone or laptop the mic button appears and dictation works.
+- **Listen to you in the car.** A 2021 Model 3 has the Intel Atom infotainment computer, and Tesla's browser only offers mic access on AMD Ryzen cars. You type, or tap a tile. On a phone or laptop the mic button appears and dictation works.
 - **Share anything with the Claude app.** This talks to Claude's API. Your Claude subscription, memory, projects and connectors are separate.
 
 ## Set it up
@@ -58,6 +59,8 @@ You pay per use, to Vercel through AI Gateway or to Anthropic with your own key.
 
 Web search is what costs money. Each search is 1 cent, and the result pages it returns add roughly 15,000 input tokens. That is why a quick answer is capped at 2 searches, the brief at 4 and deep mode at 5. The Opus search and brief figures are computed from the same token counts as the Sonnet runs, not run separately.
 
+A spoken answer adds about half a cent: speech is billed per character, at $15 per million.
+
 Settings shows a running estimate for the month; the Vercel or Anthropic dashboard has the real figure. Set a spend limit there.
 
 ## Run it locally
@@ -66,7 +69,7 @@ Settings shows a running estimate for the month; the Vercel or Anthropic dashboa
 npm install
 npm run dev:mock   # stubbed Claude and Tessie, passcode 123456, costs nothing
 npm run dev        # real services; put your keys in .env.local (see .env.example)
-npm test           # 58 checks against the stubs
+npm test           # 71 checks against the stubs
 ```
 
 `npm test` runs the API checks with no extra setup. The browser checks need Playwright (`npm i -D playwright`) and are skipped without it.
@@ -75,8 +78,8 @@ npm test           # 58 checks against the stubs
 
 ```
 public/   the page: index.html, app.css, app.js (no framework, no build step)
-api/      three Vercel functions: session, fleet, chat
-lib/      auth, the Claude call, the Tessie client, the prompts
+api/      four Vercel functions: session, fleet, chat, speak
+lib/      auth, the Claude call, speech, the Tessie client, the prompts
 tools/    local stubs and the smoke test
 ```
 

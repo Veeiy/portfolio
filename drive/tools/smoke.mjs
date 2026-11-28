@@ -60,6 +60,11 @@ async function upstream(stub, reset = false) {
   return (await response.json()).filter((r) => r.service === "claude");
 }
 
+async function spoken(stub) {
+  const response = await fetch(stub + "/__requests");
+  return (await response.json()).filter((r) => r.service === "speech");
+}
+
 async function apiChecks(base, stub) {
   console.log("\nAPI");
   check("no passcode is rejected", (await fetch(base + "/api/session")).status === 401);
@@ -67,6 +72,8 @@ async function apiChecks(base, stub) {
 
   const session = await (await fetch(base + "/api/session", { headers: auth() })).json();
   check("session lists three models", session.ok && session.models.length === 3 && session.defaultModel === "claude-opus-5-5");
+  const mute = await fetch(base + "/api/speak", { method: "POST", headers: auth({ "Content-Type": "application/json" }), body: JSON.stringify({ text: "Hello" }) });
+  check("speech is off where there is no gateway credential", session.speech === false && mute.status === 503);
 
   const fleet = await (await fetch(base + "/api/fleet", { headers: auth() })).json();
   const car = fleet.vehicles[0];
@@ -130,6 +137,52 @@ async function apiChecks(base, stub) {
   check("other clients are unaffected", (await fetch(base + "/api/session", { headers: auth() })).status === 200);
 }
 
+// Spoken answers in the page, run against a server where speech is available.
+async function voiceBrowserChecks(base, stub) {
+  let chromium;
+  try {
+    chromium = createRequire(import.meta.url)("playwright").chromium;
+  } catch {
+    return;
+  }
+  const browser = await chromium.launch();
+  const problems = [];
+  try {
+    const page = await (await browser.newContext({ viewport: { width: 1180, height: 860 } })).newPage();
+    page.on("console", (m) => m.type() === "error" && problems.push(m.text()));
+    page.on("pageerror", (e) => problems.push("pageerror: " + e.message));
+    await page.goto(base);
+    for (const digit of PASS) await page.click(`#keypad [data-key="${digit}"]`);
+    await page.click("#unlock");
+    await page.waitForSelector(".tile");
+    check("Voice button shows where speech is available", await page.isVisible("#nav-voice"));
+
+    await fetch(stub + "/__requests", { method: "DELETE" });
+    await page.click(".tile >> nth=0");
+    await page.waitForSelector("#followups .btn");
+    check("answers stay silent until Voice is on", (await spoken(stub)).length === 0 && (await page.textContent("#followups")).includes("Listen"));
+
+    await page.click("#followups .btn:has-text('Listen')");
+    await page.waitForFunction(() => document.querySelector("#followups").textContent.includes("Stop audio"));
+    const onDemand = (await spoken(stub))[0];
+    check("Listen reads the answer without markdown", onDemand && onDemand.body.text.startsWith("Short version: stocks are a touch higher") && !/[*#|`]/.test(onDemand.body.text) && !onDemand.body.text.includes("http"), onDemand && onDemand.body.text.slice(0, 200));
+    await page.waitForFunction(() => document.querySelector("#followups").textContent.includes("Listen"), null, { timeout: 8000 });
+    check("the button returns to Listen when the audio ends", true);
+
+    await page.click("#nav-voice");
+    await page.click("#nav-home");
+    await fetch(stub + "/__requests", { method: "DELETE" });
+    await page.click(".tile >> nth=3");
+    await page.waitForFunction(() => document.querySelector("#followups").textContent.includes("Stop audio"), null, { timeout: 15000 });
+    check("with Voice on, a new answer is spoken by itself", (await spoken(stub)).length === 1 && (await page.getAttribute("#nav-voice", "aria-pressed")) === "true");
+    await page.click("#followups .btn:has-text('Stop audio')");
+    check("Stop audio silences it", (await page.textContent("#followups")).includes("Listen") && (await page.evaluate(() => document.querySelector(".speech-note"))) === null);
+    check("speech runs without console errors", problems.length === 0, problems.join(" | "));
+  } finally {
+    await browser.close();
+  }
+}
+
 async function configChecks() {
   console.log("\nConfiguration");
   const noFleet = await startServer(4331, 4332, { MOCK_FLEET: "off" });
@@ -152,6 +205,17 @@ async function configChecks() {
     const reply = await chat(base, ask("market pulse", { model: "claude-sonnet-5-5" }));
     const sent = (await upstream("http://127.0.0.1:4352"))[0];
     check("gateway mode is reported and answers", session.claude === true && session.provider === "gateway" && reply.answer.includes("Short version"));
+    const say = (body, headers = auth({ "Content-Type": "application/json" })) =>
+      fetch(base + "/api/speak", { method: "POST", headers, body: JSON.stringify(body) });
+    const audio = await say({ text: "Hello there", voice: "nova" });
+    const bytes = Buffer.from(await audio.arrayBuffer());
+    await say({ text: "Second line", voice: "not-a-voice" });
+    const said = await spoken("http://127.0.0.1:4352");
+    check("speech returns audio bytes", session.speech === true && audio.status === 200 && audio.headers.get("content-type").startsWith("audio/") && bytes.length > 44);
+    check("speech request names the model, voice and text", said[0].model === "openai/tts-1" && said[0].body.voice === "nova" && said[0].body.text === "Hello there" && said[0].body.outputFormat === "mp3" && said[0].key === "stub-gateway-key", JSON.stringify(said[0]));
+    check("an unknown voice falls back to the default", said[1].body.voice === "alloy");
+    check("speech rejects empty, oversized and unauthenticated requests", (await say({ text: "  " })).status === 400 && (await say({ text: "x".repeat(3001) })).status === 400 && (await say({ text: "Hi" }, { "Content-Type": "application/json" })).status === 401);
+    await voiceBrowserChecks(base, "http://127.0.0.1:4352");
     check("gateway request uses its model ids and no fallback fields", sent.body.model === "anthropic/claude-sonnet-5.5" && sent.body.tools[0].type === "web_search_20250305" && sent.body.fallbacks === undefined && !sent.beta && sent.path === "/v1/messages" && sent.key === "stub-gateway-key", JSON.stringify({ model: sent.body.model, path: sent.path, beta: sent.beta }));
   } finally {
     viaKey.kill();
@@ -216,6 +280,7 @@ async function browserChecks(base, stub) {
     check("wrong PIN shows an error and stays locked", await page.isVisible("#lock"));
     await enterPin(PASS);
     await page.waitForSelector(".car");
+    check("Voice button is hidden where speech is unavailable", !(await page.isVisible("#nav-voice")));
     check("home shows tiles, fleet and mode", (await page.locator(".tile").count()) === 8 && (await page.locator(".car").count()) === 3 && (await page.textContent("#mode-chip")).includes("Opus 5.5"));
 
     await page.click(".tile >> nth=0");

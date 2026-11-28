@@ -55,6 +55,10 @@
         <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2"/><path d="M12 14v7M10.2 11L3.6 8.6M13.8 11l6.6-2.4"/></svg>
         <span>Drive</span>
       </button>
+      <button type="button" class="rail-btn" id="nav-voice" aria-pressed="false" hidden>
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 8.5a5 5 0 010 7M19 6a8.5 8.5 0 010 12"/></svg>
+        <span>Voice</span>
+      </button>
       <button type="button" class="rail-btn rail-end" id="nav-settings">
         <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>
         <span>Settings</span>
@@ -148,6 +152,11 @@
           <section>
             <h3>Text size</h3>
             <div class="seg" id="seg-size" role="radiogroup" aria-label="Text size"></div>
+          </section>
+          <section id="voice-section" hidden>
+            <h3>Voice</h3>
+            <div class="seg" id="seg-voice" role="radiogroup" aria-label="Voice"></div>
+            <p class="hint">Turn spoken answers on with the Voice button on the side rail. Each spoken answer costs about half a cent.</p>
           </section>
           <section>
             <h3>Typing box</h3>
