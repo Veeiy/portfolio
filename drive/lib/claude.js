@@ -80,9 +80,10 @@ export async function* runTurn({ provider, model, effort, stableSystem, liveSyst
   const spec = MODELS[model];
   const gateway = provider.kind === "gateway";
 
-  // The gateway documents the basic search tool; the Claude API also offers
-  // the newer one that filters results before they reach the model.
-  const search = { type: gateway ? "web_search_20250305" : "web_search_20260209", name: "web_search", max_uses: maxSearches };
+  // This search tool version filters results with code before they reach the
+  // model, which keeps a search-backed answer from carrying whole pages of
+  // text as input.
+  const search = { type: "web_search_20260209", name: "web_search", max_uses: maxSearches };
   if (timeZone) search.user_location = { type: "approximate", timezone: timeZone };
 
   const params = {

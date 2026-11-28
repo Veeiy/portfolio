@@ -152,7 +152,7 @@ async function configChecks() {
     const reply = await chat(base, ask("market pulse", { model: "claude-sonnet-5-5" }));
     const sent = (await upstream("http://127.0.0.1:4352"))[0];
     check("gateway mode is reported and answers", session.claude === true && session.provider === "gateway" && reply.answer.includes("Short version"));
-    check("gateway request uses its model ids, basic search and no fallback fields", sent.body.model === "anthropic/claude-sonnet-5.5" && sent.body.tools[0].type === "web_search_20250305" && sent.body.fallbacks === undefined && !sent.beta && sent.path === "/v1/messages" && sent.key === "stub-gateway-key", JSON.stringify({ model: sent.body.model, path: sent.path, beta: sent.beta }));
+    check("gateway request uses its model ids and no fallback fields", sent.body.model === "anthropic/claude-sonnet-5.5" && sent.body.tools[0].type === "web_search_20260209" && sent.body.fallbacks === undefined && !sent.beta && sent.path === "/v1/messages" && sent.key === "stub-gateway-key", JSON.stringify({ model: sent.body.model, path: sent.path, beta: sent.beta }));
   } finally {
     viaKey.kill();
   }
