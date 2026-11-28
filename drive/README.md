@@ -48,15 +48,17 @@ Environment variable changes only take effect after a redeploy.
 
 ## What it costs
 
-You pay per use, to Vercel through AI Gateway or to Anthropic with your own key. The rates are the same. Rough numbers for a typical car question (about 4,000 tokens in, 400 out):
+You pay per use, to Vercel through AI Gateway or to Anthropic with your own key. The rates are the same. These figures come from token counts measured on the live deployment:
 
-| Model | Per question |
-|---|---|
-| Haiku 5.5 | under a tenth of a cent |
-| Sonnet 5.5 | about 1 cent |
-| Opus 5.5 | about 2.5 cents |
+| Model | Plain answer | Answer with web search | Daily brief |
+|---|---|---|---|
+| Haiku 5.5 | under 0.1 cent | about 2.5 cents | about 3.5 cents |
+| Sonnet 5.5 | about 1 cent | about 9 cents | about 14 cents |
+| Opus 5.5 | about 2 cents | about 17 cents | about 25 cents |
 
-Each web search adds 1 cent. A daily brief runs up to six searches. Settings shows a running estimate for the month; the Vercel or Anthropic dashboard has the real figure. Set a spend limit there.
+Web search is what costs money. Each search is 1 cent, and the result pages it returns add roughly 15,000 input tokens. That is why a quick answer is capped at 2 searches, the brief at 4 and deep mode at 5. The Opus search and brief figures are computed from the same token counts as the Sonnet runs, not run separately.
+
+Settings shows a running estimate for the month; the Vercel or Anthropic dashboard has the real figure. Set a spend limit there.
 
 ## Run it locally
 
@@ -90,9 +92,19 @@ tools/    local stubs and the smoke test
 - The browser never receives VINs or raw coordinates. It does get street addresses for the fleet card.
 - Model output is escaped before it is rendered, links are limited to http and https, and a strict Content-Security-Policy blocks inline script.
 
-## Not verified yet
+## What has and hasn't been verified
 
-- **The live Claude API and live Tessie.** Everything was tested against local stubs that speak the same wire formats, through the real Anthropic SDK. No real key was available where this was built.
+Verified on the live deployment, through Vercel AI Gateway:
+
+- All three models answer, with streaming.
+- Web search runs and returns sources.
+- A follow-up question uses the conversation so far.
+- The daily brief produces its sections and skips the ones it has no data for.
+
+Not verified yet:
+
+- **Calling the Claude API directly with `ANTHROPIC_API_KEY`.** That path has only run against local stubs. It also uses a newer web search tool version than the gateway path; through the gateway that version was slower and gave one wrong "search is unavailable" answer on Haiku, which is why the gateway path uses the basic one.
+- **Live Tessie.** No token has been set, so the fleet card and fleet answers have only run against the stub.
 - **The car itself.** The layout was checked in desktop Chromium at car-like sizes. Settings has a "This screen" panel that reports the car browser's real viewport and capabilities, which is the first thing to look at if something is off.
 - **Tessie's units.** Their docs don't state them. The code assumes Tesla's native miles, Celsius and bar, then converts to what your car displays. If a number looks wrong on the fleet card, that assumption is the place to look (`lib/tessie.js`).
 
