@@ -80,10 +80,12 @@ export async function* runTurn({ provider, model, effort, stableSystem, liveSyst
   const spec = MODELS[model];
   const gateway = provider.kind === "gateway";
 
-  // This search tool version filters results with code before they reach the
-  // model, which keeps a search-backed answer from carrying whole pages of
-  // text as input.
-  const search = { type: "web_search_20260209", name: "web_search", max_uses: maxSearches };
+  // Through the gateway the basic search tool is the reliable one. The newer
+  // version, which filters results with code before the model reads them, was
+  // measured live there: about 30% fewer input tokens, but slower, and on
+  // Haiku the answer came back claiming search was unavailable. The Claude
+  // API documents the newer version as the default, so the direct path uses it.
+  const search = { type: gateway ? "web_search_20250305" : "web_search_20260209", name: "web_search", max_uses: maxSearches };
   if (timeZone) search.user_location = { type: "approximate", timezone: timeZone };
 
   const params = {

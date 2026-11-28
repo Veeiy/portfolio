@@ -115,7 +115,9 @@ export default {
             stableSystem: systemPrompt(),
             liveSystem,
             messages,
-            maxSearches: input.brief || input.deep ? 6 : 3,
+            // Each search adds roughly 15K input tokens of page text, so the
+            // caps are the main cost control for search-backed answers.
+            maxSearches: input.deep ? 5 : input.brief ? 4 : 2,
             maxTokens: input.deep ? 32_000 : 16_000,
             timeZone: input.timeZone,
             signal: abort.signal,

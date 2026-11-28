@@ -85,7 +85,7 @@ async function apiChecks(base, stub) {
   let sent = (await upstream(stub))[0];
   const live = sent.body.system[1].text;
   check("opus request opts into refusal fallback", sent.beta.includes("server-side-fallback-2026-07-01") && sent.body.fallbacks === "default" && sent.body.model === "claude-opus-5-5" && sent.key === "stub-key");
-  check("request uses web search, low effort, cached system", sent.body.tools[0].type === "web_search_20260209" && sent.body.tools[0].max_uses === 3 && sent.body.output_config.effort === "low" && sent.body.system[0].cache_control.type === "ephemeral" && sent.body.thinking === undefined);
+  check("request uses web search, low effort, cached system", sent.body.tools[0].type === "web_search_20260209" && sent.body.tools[0].max_uses === 2 && sent.body.output_config.effort === "low" && sent.body.system[0].cache_control.type === "ephemeral" && sent.body.thinking === undefined);
   check("live context rides in its own system block", sent.body.system.length === 2 && live.includes("Fleet snapshot from Tessie") && live.includes("America/Los_Angeles") && live.includes("glance") && sent.body.messages.length === 1);
   check("search is located by time zone only", JSON.stringify(sent.body.tools[0].user_location) === JSON.stringify({ type: "approximate", timezone: "America/Los_Angeles" }));
 
@@ -99,8 +99,8 @@ async function apiChecks(base, stub) {
   await chat(base, ask("Daily brief", { kind: "brief" }));
   await chat(base, ask("hello", { model: "made-up-model" }));
   const [deep, brief, fallbackModel] = await upstream(stub);
-  check("deep raises effort, searches and room", deep.body.output_config.effort === "high" && deep.body.tools[0].max_uses === 6 && deep.body.max_tokens === 32000);
-  check("brief swaps in the server-written request", brief.body.output_config.effort === "medium" && brief.body.messages[0].content.startsWith("Give me my daily brief"));
+  check("deep raises effort, searches and room", deep.body.output_config.effort === "high" && deep.body.tools[0].max_uses === 5 && deep.body.max_tokens === 32000);
+  check("brief swaps in the server-written request", brief.body.output_config.effort === "medium" && brief.body.tools[0].max_uses === 4 && brief.body.messages[0].content.startsWith("Give me my daily brief"));
   check("unknown model falls back to the default", fallbackModel.body.model === "claude-opus-5-5");
 
   const refused = await chat(base, ask("[refuse] hello"));
@@ -152,7 +152,7 @@ async function configChecks() {
     const reply = await chat(base, ask("market pulse", { model: "claude-sonnet-5-5" }));
     const sent = (await upstream("http://127.0.0.1:4352"))[0];
     check("gateway mode is reported and answers", session.claude === true && session.provider === "gateway" && reply.answer.includes("Short version"));
-    check("gateway request uses its model ids and no fallback fields", sent.body.model === "anthropic/claude-sonnet-5.5" && sent.body.tools[0].type === "web_search_20260209" && sent.body.fallbacks === undefined && !sent.beta && sent.path === "/v1/messages" && sent.key === "stub-gateway-key", JSON.stringify({ model: sent.body.model, path: sent.path, beta: sent.beta }));
+    check("gateway request uses its model ids and no fallback fields", sent.body.model === "anthropic/claude-sonnet-5.5" && sent.body.tools[0].type === "web_search_20250305" && sent.body.fallbacks === undefined && !sent.beta && sent.path === "/v1/messages" && sent.key === "stub-gateway-key", JSON.stringify({ model: sent.body.model, path: sent.path, beta: sent.beta }));
   } finally {
     viaKey.kill();
   }
